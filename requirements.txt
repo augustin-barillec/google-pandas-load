@@ -1,0 +1,4 @@
+google-cloud-bigquery==1.10
+google-cloud-storage==1.13.2
+pandas==0.23.4
+

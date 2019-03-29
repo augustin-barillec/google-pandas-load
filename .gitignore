@@ -1,0 +1,13 @@
+.idea
+
+google_pandas_load.egg-info
+
+tests/coverage
+tests/context/ressource_names
+
+.scannerwork
+sonar-project.properties
+
+docs/build
+docs/source/.ipynb_checkpoints
+
