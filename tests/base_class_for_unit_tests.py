@@ -8,7 +8,7 @@ def clean():
     # empty the dataset
     tables = bq_client.list_tables(dataset_ref)
     for t in tables:
-        bq_client.delete(table=t.reference)
+        bq_client.delete_table(table=t.reference)
 
     # empty the bucket
     blobs = bucket.list_blobs()

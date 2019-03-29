@@ -1,6 +1,6 @@
 import logging
 from google.cloud import bigquery, storage
-from .loader import Loader
+from google_pandas_load.loader import Loader
 
 not_propagating_logger = logging.getLogger(name='LoaderQuickSetup')
 not_propagating_logger.setLevel(level=logging.DEBUG)

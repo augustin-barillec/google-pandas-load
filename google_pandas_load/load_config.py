@@ -1,7 +1,7 @@
 from argparse import Namespace
 from google.cloud import bigquery
-from .utils import build_atomic_function_names
-from .constants import LOCATIONS, REVERSED_LOCATIONS, MIDDLE_LOCATIONS, ATOMIC_FUNCTION_NAMES
+from google_pandas_load.utils import build_atomic_function_names
+from google_pandas_load.constants import LOCATIONS, REVERSED_LOCATIONS, MIDDLE_LOCATIONS, ATOMIC_FUNCTION_NAMES
 
 
 class LoadConfig:

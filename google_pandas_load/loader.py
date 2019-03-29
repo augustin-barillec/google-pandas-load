@@ -5,14 +5,14 @@ from argparse import Namespace
 from datetime import datetime
 from copy import deepcopy
 from google.cloud import bigquery, storage
-from .load_config import LoadConfig
-from .utils import \
+from google_pandas_load.load_config import LoadConfig
+from google_pandas_load.utils import \
     wait_for_jobs, \
     table_exists, \
     timestamp_randint_string, \
     check_no_prefix, \
     union_keys
-from .constants import ATOMIC_FUNCTION_NAMES
+from google_pandas_load.constants import ATOMIC_FUNCTION_NAMES
 
 logger_ = logging.getLogger(name='Loader')
 
@@ -641,9 +641,8 @@ class Loader:
 
              There is one exception :
 
-             - When destination = 'bq' and the parameter
-               [google_pandas_load.Loader.load()](Loader.rst#google_pandas_load.Loader.load) is set to 'WRITE_APPEND',
-               the data   is appended to pre-existing data with the same name in the dataset. The default value of this
+             - When destination = 'bq' and the parameter write_diposition is set to 'WRITE_APPEND',
+               the data is appended to pre-existing data with the same name in the dataset. The default value of this
                parameter is 'WRITE_TRUNCATE'.
 
          Args:

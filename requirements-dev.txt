@@ -1,4 +1,5 @@
 -r requirements.txt
+pyarrow
 setuptools==40.6.3
 coverage==4.5.2
 sphinx>=1.4
