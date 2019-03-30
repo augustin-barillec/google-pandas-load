@@ -1,22 +1,11 @@
-import time
 from datetime import datetime
 from random import randint
 from google.cloud.exceptions import NotFound
 
 
-def wait_for_job(job):
-    while True:
-        job.reload()
-        if job.state == 'DONE':
-            if job.error_result:
-                raise RuntimeError(job.errors)
-            return True
-        time.sleep(1)
-
-
 def wait_for_jobs(jobs):
     for job in jobs:
-        wait_for_job(job)
+        job.result()
 
 
 def table_exists(client, table_reference):

@@ -4,5 +4,5 @@ from tests.unit.test_exist_methods import ExistMethodsTest
 from tests.unit.test_delete_methods import DeleteMethodsTest
 
 suite = unittest.TestSuite()
-suite.addTest(DeleteMethodsTest('test_delete_in_local'))
+suite.addTest(ExistMethodsTest('test_exist_in_bq'))
 unittest.TextTestRunner(verbosity=2).run(suite)
