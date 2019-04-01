@@ -1,16 +1,16 @@
 google-pandas-load documentation
 ================================
 
-Release v\ |version|.
+Release v\ |release|.
 
-.. image:: https://img.shields.io/pypi/l/requests.svg
+.. image:: https://img.shields.io/pypi/l/google-pandas-load.svg
     :target: https://pypi.org/project/google-pandas-load/
 
 .. image:: https://img.shields.io/pypi/pyversions/google-pandas-load.svg
     :target: https://pypi.org/project/google-pandas-load/
 
-google-pandas-load is a simple wrapper library for conveying big data between BigQuery and pandas, via Storage and a
-local folder.
+google-pandas-load is a simple wrapper library for conveying big data between A and B, with A and B distinct amongst
+BigQuery, Storage, a local folder and pandas.
 
 This library enables faster data transferts than those executed by these `Python Client for Google BigQuery`_ methods
 (`Speed Comparison`_) :
@@ -20,7 +20,7 @@ This library enables faster data transferts than those executed by these `Python
 
 Acknowledgements
 ----------------
-I am grateful to Ysance_ for providing me the resources to develop this library and for allowing me to publish it.
+I am grateful to my employer Ysance_ for providing me the resources to develop this library and for allowing me to publish it.
 
 
 Installation

@@ -11,7 +11,10 @@ setup(
     version='1.0.dev1',
     author='Augustin Barillec',
     author_email='augustin.barillec@ysance.com',
-    description='Wrapper for conveying big data between BigQuery and pandas, via Storage and a local folder.',
+    description="""
+    Wrapper for conveying big data between A and B, with A and B distinct 
+    amongst BigQuery, Storage, a local folder and pandas.
+    """,
     long_description=README,
     install_requires=REQUIREMENTS,
     packages=find_namespace_packages(include=['google_pandas_load*']),
