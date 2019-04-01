@@ -1,6 +1,14 @@
 google-pandas-load documentation
 ================================
 
+Release v\ |version|.
+
+.. image:: https://img.shields.io/pypi/l/requests.svg
+    :target: https://pypi.org/project/google-pandas-load/
+
+.. image:: https://img.shields.io/pypi/pyversions/google-pandas-load.svg
+    :target: https://pypi.org/project/google-pandas-load/
+
 google-pandas-load is a simple wrapper library for conveying big data between BigQuery and pandas, via Storage and a
 local folder.
 
@@ -9,6 +17,11 @@ This library enables faster data transferts than those executed by these `Python
 
 - `google.cloud.bigquery.job.QueryJob.to_dataframe()`_
 - `google.cloud.bigquery.client.Client.load_table_from_dataframe()`_
+
+Acknowledgements
+----------------
+I am grateful to Ysance_ for providing me the resources to develop this library and for allowing me to publish it.
+
 
 Installation
 ------------
@@ -151,8 +164,7 @@ Table of Contents
 
 .. _`Speed Comparison`: Speed_comparison.ipynb
 
-.. _`google-pandas-load.Loader.load()`: Loader.rst#google_pandas_load.Loader.load
-
+.. _Ysance: https://www.ysance.com/data-services/fr/home/
 
 .. _`google.cloud.bigquery.job.QueryJob.to_dataframe()`: https://google-cloud.readthedocs.io/en/latest/bigquery/generated/google.cloud.bigquery.job.QueryJob.to_dataframe.html#google.cloud.bigquery.job.QueryJob.to_dataframe
 .. _`google.cloud.bigquery.client.Client.load_table_from_dataframe()`: https://google-cloud.readthedocs.io/en/latest/bigquery/generated/google.cloud.bigquery.client.Client.load_table_from_dataframe.html#google.cloud.bigquery.client.Client.load_table_from_dataframe
@@ -168,5 +180,3 @@ Table of Contents
 .. _`pandas.DataFrame.to_csv()`: https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.to_csv.html
 .. _`google.cloud.storage.blob.Blob.upload_from_filename()`: https://googleapis.github.io/google-cloud-python/latest/storage/blobs.html#google.cloud.storage.blob.Blob.upload_from_filename
 .. _`google.cloud.bigquery.client.load_table_from_uri()`: https://googleapis.github.io/google-cloud-python/latest/bigquery/generated/google.cloud.bigquery.client.Client.html#google.cloud.bigquery.client.Client.load_table_from_uri
-
-

@@ -119,7 +119,7 @@ class LoadConfig:
             list of google.cloud.bigquery.schema.SchemaField: A BigQuery schema.
         """
         if len(dataframe.columns) == 0:
-            raise ValueError('A bq_schema cannot be inferred from a dataframe with no columns')
+            raise ValueError('A non empty bq_schema cannot be inferred from a dataframe with no columns')
         if timestamp_cols is None:
             timestamp_cols = []
         if date_cols is None:

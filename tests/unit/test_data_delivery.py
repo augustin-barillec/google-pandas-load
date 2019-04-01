@@ -1,3 +1,4 @@
+from google_pandas_load import LoadConfig
 from tests.context.loaders import *
 from tests.utils import *
 
@@ -52,7 +53,165 @@ class DataDeliveryTest(BaseClassTest):
             query='select 1 as x union all select 1 as x',
             data_name='a1',
             delete_in_bq=False)
+        self.assertTrue(gpl2.exist_in_bq(data_name='a1'))
+        self.assertFalse(gpl2.exist_in_gs(data_name='a1'))
+        self.assertFalse(gpl2.exist_in_local(data_name='a1'))
         self.assertTrue(df0.equals(df1))
+
+    def local_to_bq(self):
+        populate()
+        gpl3.load(
+            source='local',
+            destination='bq',
+            data_name='a',
+            bq_schema=[bigquery.SchemaField('x', 'STRING')])
+        self.assertFalse(gpl3.exist_in_local(data_name='a'))
+        self.assertFalse(gpl3.exist_in_gs(data_name='a'))
+        self.assertTrue(gpl3.exist_in_bq(data_name='a'))
+        table_ref = dataset_ref.table(table_id='a')
+        table = bq_client.get_table(table_ref=table_ref)
+        num_rows = table.num_rows
+        self.assertEqual(num_rows, 5)
+
+    def dataframe_to_gs(self):
+        df = pandas.DataFrame(data={'x': [1]})
+        gpl3.load(
+            source='dataframe',
+            destination='gs',
+            data_name='b',
+            dataframe=df,
+            delete_in_local=False)
+        self.assertTrue(gpl3.exist_in_local(data_name='b'))
+        self.assertTrue(gpl3.exist_in_gs(data_name='b'))
+        self.assertEqual(len(gpl3.list_blob_uris(data_name='b')), 1)
+
+    def local_to_gs(self):
+        populate()
+        gpl1.load(
+            source='local',
+            destination='gs',
+            data_name='a1')
+        self.assertTrue(gpl1.exist_in_local(data_name='a'))
+        self.assertFalse(gpl1.exist_in_local(data_name='a1'))
+        self.assertEqual(len(gpl1.list_blob_uris(data_name='a1')), 4)
+
+    def bq_to_query(self):
+        populate_dataset()
+        query = gpl5.load(
+            source='bq',
+            destination='query',
+            data_name='a8_bq')
+        self.assertTrue(gpl5.exist_in_bq(data_name='a8_bq'))
+        self.assertEqual(query, 'select * from `{}.{}.{}`'.format(project_id, dataset_id, 'a8_bq'))
+
+    def dataframe_to_query(self):
+        df = pandas.DataFrame(data={'x': [2]*3})
+        populate()
+        query = gpl5.load(
+            source='dataframe',
+            destination='query',
+            data_name='a',
+            dataframe=df)
+        self.assertFalse(gpl5.exist_in_local(data_name='a'))
+        self.assertFalse(gpl5.exist_in_gs(data_name='a'))
+        self.assertTrue(gpl5.exist_in_bq(data_name='a'))
+        self.assertEqual(query, 'select * from `{}.{}.{}`'.format(project_id, dataset_id, 'a'))
+        table_ref = dataset_ref.table(table_id='a')
+        table = bq_client.get_table(table_ref=table_ref)
+        num_rows = table.num_rows
+        self.assertEqual(num_rows, 3)
+
+    def upload_download(self):
+        df0 = pandas.DataFrame(data={'x': [1], 'y': [3]})
+        populate()
+        query = gpl1.load(
+            source='dataframe',
+            destination='query',
+            data_name='a9',
+            dataframe=df0)
+        df1 = gpl1.load(
+            source='query',
+            destination='dataframe',
+            query=query)
+        self.assertTrue(df0.equals(df1))
+
+    def download_upload(self):
+        df0 = pandas.DataFrame(data={'x': [3]})
+        df1 = gpl2.load(
+            source='query',
+            destination='dataframe',
+            query='select 3 as x')
+        self.assertTrue(df0.equals(df1))
+        query = gpl2.load(
+            source='dataframe',
+            destination='query',
+            dataframe=df1)
+        df2 = bq_client.query(query).to_dataframe()
+        self.assertTrue(df0.equals(df2))
+
+    def test_mload(self):
+        populate()
+        config1 = LoadConfig(
+            source='dataframe',
+            destination='query',
+            data_name='a10',
+            dataframe=pandas.DataFrame(data={'x': [3]}))
+        config2 = LoadConfig(
+            source='query',
+            destination='dataframe',
+            query='select 4 as y')
+        config3 = LoadConfig(
+            source='query',
+            destination='gs',
+            data_name='e0',
+            query='select 4 as y')
+        load_results = gpl5.mload(configs=[config1, config2, config3])
+        self.assertEqual(len(load_results), 3)
+        self.assertEqual(load_results[0], 'select * from `{}.{}.a10`'.format(project_id, dataset_id))
+        self.assertTrue(load_results[1].equals(pandas.DataFrame(data={'y': [4]})))
+        self.assertTrue(load_results[2] is None)
+
+    def test_diamond(self):
+        df0 = pandas.DataFrame(data={'x': [3]})
+        query = 'select 3 as x'
+        populate()
+        df1 = gpl5.xload(
+            source='query',
+            destination='dataframe',
+            query=query).load_result
+        config = LoadConfig(
+            source='query',
+            destination='dataframe',
+            query=query)
+        df2 = gpl5.mload(configs=[config])[0]
+        self.assertTrue(df0.equals(df1))
+        self.assertTrue(df0.equals(df2))
+
+    def test_config_repeated(self):
+        df0 = pandas.DataFrame(data={'x': [3]})
+        populate()
+        config = LoadConfig(
+            source='query',
+            destination='dataframe',
+            query='select 3 as x')
+        dfs = gpl5.mload(configs=[config] * 3)
+        for df in dfs:
+            self.assertTrue(df0.equals(df))
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

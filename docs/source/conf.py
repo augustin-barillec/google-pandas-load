@@ -17,6 +17,9 @@ import sys
 sys.path.insert(0, os.path.abspath('../..'))
 
 
+import google_pandas_load
+
+
 # -- Project information -----------------------------------------------------
 
 project = 'google-pandas-load'
@@ -24,9 +27,9 @@ copyright = '2019, Augustin Barillec'
 author = 'Augustin Barillec'
 
 # The short X.Y version
-version = ''
+version = '1.0'
 # The full version, including alpha/beta/rc tags
-release = '1.0'
+release = '1.0.dev1'
 
 
 # -- General configuration ---------------------------------------------------
@@ -82,7 +85,11 @@ html_theme = 'alabaster'
 # further.  For a list of options available for each theme, see the
 # documentation.
 #
-# html_theme_options = {}
+html_theme_options = {
+    "github_user": "augustin-barillec",
+    "github_repo": "google-pandas-load",
+    "github_banner": True,
+}
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
