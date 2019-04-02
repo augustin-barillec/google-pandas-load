@@ -9,14 +9,15 @@ Release v\ |release|.
 .. image:: https://img.shields.io/pypi/pyversions/google-pandas-load.svg
     :target: https://pypi.org/project/google-pandas-load/
 
-google-pandas-load is a simple wrapper library for conveying big data between A and B, with A and B distinct amongst
-BigQuery, Storage, a local folder and pandas.
+google-pandas-load is a simple wrapper library conveying big data from a location A to a different location B.
+A and B to refer to BigQuery, Storage, a local folder or pandas.
 
-This library enables faster data transferts than those executed by these `Python Client for Google BigQuery`_ methods
-(`Speed Comparison`_) :
+This library enables faster data transfer than those performed by `Python Client for Google BigQuery`_'s methods :
 
 - `google.cloud.bigquery.job.QueryJob.to_dataframe()`_
 - `google.cloud.bigquery.client.Client.load_table_from_dataframe()`_
+
+See `Speed Comparison`_.
 
 Acknowledgements
 ----------------
@@ -33,9 +34,12 @@ To install google-pandas-load, run this command in your terminal::
 Quickstart
 ----------
 
-Set up a loader (in the following code, the credentials are inferred from the environment.
-See `here <https://googleapis.github.io/google-cloud-python/latest/core/auth.html?highlight=defaults/>`__ for more
-informations about how to authenticate to Google Cloud Platform with the `Google Cloud Client Library for Python`_). :
+Set up a loader.
+
+In the following code, the credentials are inferred from the environment.
+For further information about how to authenticate to Google Cloud Platform with
+ the `Google Cloud Client Library for Python`_ have a look
+`here <https://googleapis.github.io/google-cloud-python/latest/core/auth.html?highlight=defaults/>`__.
 
 .. code-block:: python
 
@@ -51,11 +55,12 @@ informations about how to authenticate to Google Cloud Platform with the `Google
 Transfer data seamlessly from and to various locations :
 
 .. warning::
-   In general, data is moved, not copied ! The precise behaviour is stated `here <Loader.html#moved>`__ .
+   In general, data is moved, not copied ! The precise behavior is stated `here <Loader.html#moved>`__ .
 
 .. warning::
-   In general, before data moves to any location, data with the same name already existing in the location is deleted,
-   to make a clean space for the new data to come. The precise behaviour is stated `here <Loader.html#pre-deletion>`__ .
+   In general, before data is moved to any location, it will delete any prior existing data having the same name in
+   the location. This ensures a clean space for the upcoming data.
+   The precise behavior is stated `here <Loader.html#pre-deletion>`__ .
 
 .. code-block:: python
 
@@ -91,8 +96,8 @@ Transfer data seamlessly from and to various locations :
         data_name='a0',
         delete_in_gs=False)
 
-Launch several load jobs at the same time with massive parallelization of the query_to_bq and bq_to_gs steps thanks
-to BigQuery.
+Launch simultaneously several load jobs with massive parallelization of the query_to_bq and bq_to_gs steps.
+This is made possible by BigQuery.
 
 .. code-block:: python
 
@@ -117,14 +122,14 @@ Main features
 
 - Transfer big data faster (see `Speed Comparison`_).
 - Transfer data seamlessly from and to various locations.
-- Launch several load jobs at the same time.
-- Massive parallelization of the cloud steps thanks to BigQuery.
-- Monitor the query cost and the step durations of load jobs.
+- Launch several load jobs simultaneously.
+- Massive parallelization of the cloud steps with BigQuery.
+- Monitor query costs and step durations of load jobs.
 
 The basic mechanism
 -------------------
 
-Essentially, this code chains transferring data functions from the `Google Cloud Client Library for Python`_
+This code essentially chains transferring data functions from the `Google Cloud Client Library for Python`_
 and from pandas_.
 
 To download, the following functions are chained :
@@ -144,7 +149,7 @@ To upload, the following functions are chained :
 Required packages
 -----------------
 
-This package requires only the three following packages (with versions specified in requirements.txt) :
+This package requires only the three following packages :
 
 - google-cloud-bigquery
 - google-cloud-storage
@@ -180,3 +185,5 @@ Table of Contents
 .. _`pandas.DataFrame.to_csv()`: https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.to_csv.html
 .. _`google.cloud.storage.blob.Blob.upload_from_filename()`: https://googleapis.github.io/google-cloud-python/latest/storage/blobs.html#google.cloud.storage.blob.Blob.upload_from_filename
 .. _`google.cloud.bigquery.client.load_table_from_uri()`: https://googleapis.github.io/google-cloud-python/latest/bigquery/generated/google.cloud.bigquery.client.Client.html#google.cloud.bigquery.client.Client.load_table_from_uri
+
+The versions are specified in the requirements.txt file.
