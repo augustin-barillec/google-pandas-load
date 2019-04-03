@@ -17,9 +17,6 @@ import sys
 sys.path.insert(0, os.path.abspath('../..'))
 
 
-import google_pandas_load
-
-
 # -- Project information -----------------------------------------------------
 
 project = 'google-pandas-load'
@@ -29,7 +26,7 @@ author = 'Augustin Barillec'
 # The short X.Y version
 version = '1.0'
 # The full version, including alpha/beta/rc tags
-release = '1.0dev2'
+release = '1.0.dev2'
 
 
 # -- General configuration ---------------------------------------------------

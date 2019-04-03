@@ -1,7 +1,7 @@
 google-pandas-load documentation
 ================================
 
-Release v\|release|.
+Release v\ |release|.
 
 .. image:: https://img.shields.io/pypi/l/google-pandas-load.svg
     :target: https://pypi.org/project/google-pandas-load/
