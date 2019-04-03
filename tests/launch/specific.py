@@ -1,8 +1,9 @@
 import unittest
 from tests.unit.test_load_parameters import LoadParametersTest
 from tests.unit.test_display_log import DisplayLogTest
+from tests.unit.test_data_delivery import DataDeliveryTest
 
 suite = unittest.TestSuite()
-suite.addTests(unittest.TestLoader().loadTestsFromTestCase(DisplayLogTest))
-# suite.addTest(CompressTest('test_compress_dataframe_to_local'))
+suite.addTests(unittest.TestLoader().loadTestsFromTestCase(DataDeliveryTest))
+# suite.addTest(DataDeliveryTest('dataframe_to_query'))
 unittest.TextTestRunner(verbosity=2).run(suite)

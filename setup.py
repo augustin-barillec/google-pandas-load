@@ -8,12 +8,12 @@ with open('requirements.txt') as f:
 
 setup(
     name='google-pandas-load',
-    version='1.0dev2',
+    version='1.0.dev2',
     author='Augustin Barillec',
     author_email='augustin.barillec@ysance.com',
     description="""
-    Wrapper for conveying big data between A and B, with A and B distinct 
-    amongst BigQuery, Storage, a local folder and pandas.
+    Wrapper for conveying big data from A to B, where A and B are distinct 
+    and chosen among BigQuery, Storage, a local folder or pandas.
     """,
     long_description=README,
     install_requires=REQUIREMENTS,

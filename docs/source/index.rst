@@ -1,7 +1,7 @@
 google-pandas-load documentation
 ================================
 
-Release v\ |release|.
+Release v\|release|.
 
 .. image:: https://img.shields.io/pypi/l/google-pandas-load.svg
     :target: https://pypi.org/project/google-pandas-load/
@@ -9,8 +9,8 @@ Release v\ |release|.
 .. image:: https://img.shields.io/pypi/pyversions/google-pandas-load.svg
     :target: https://pypi.org/project/google-pandas-load/
 
-google-pandas-load is a simple wrapper library conveying big data from a location A to a different location B.
-A and B to refer to BigQuery, Storage, a local folder or pandas.
+google-pandas-load is a wrapper library for conveying big data from A to B, where A and B are distinct
+and chosen among BigQuery, Storage, a local folder or pandas.
 
 This library enables faster data transfer than those performed by `Python Client for Google BigQuery`_'s methods :
 
@@ -27,7 +27,7 @@ I am grateful to my employer Ysance_ for providing me the resources to develop t
 Installation
 ------------
 
-To install google-pandas-load, run this command in your terminal::
+::
 
     $ pip install google-pandas-load
 
@@ -37,8 +37,8 @@ Quickstart
 Set up a loader.
 
 In the following code, the credentials are inferred from the environment.
-For further information about how to authenticate to Google Cloud Platform with
- the `Google Cloud Client Library for Python`_ have a look
+For further information about how to authenticate to Google Cloud Platform with the
+`Google Cloud Client Library for Python`_, have a look
 `here <https://googleapis.github.io/google-cloud-python/latest/core/auth.html?highlight=defaults/>`__.
 
 .. code-block:: python
@@ -149,8 +149,6 @@ To upload, the following functions are chained :
 Required packages
 -----------------
 
-This package requires only the three following packages :
-
 - google-cloud-bigquery
 - google-cloud-storage
 - pandas
@@ -185,5 +183,3 @@ Table of Contents
 .. _`pandas.DataFrame.to_csv()`: https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.to_csv.html
 .. _`google.cloud.storage.blob.Blob.upload_from_filename()`: https://googleapis.github.io/google-cloud-python/latest/storage/blobs.html#google.cloud.storage.blob.Blob.upload_from_filename
 .. _`google.cloud.bigquery.client.load_table_from_uri()`: https://googleapis.github.io/google-cloud-python/latest/bigquery/generated/google.cloud.bigquery.client.Client.html#google.cloud.bigquery.client.Client.load_table_from_uri
-
-The versions are specified in the requirements.txt file.
