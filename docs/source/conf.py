@@ -24,9 +24,9 @@ copyright = '2019, Augustin Barillec'
 author = 'Augustin Barillec'
 
 # The short X.Y version
-version = '1.0'
+version = '1.0.0'
 # The full version, including alpha/beta/rc tags
-release = '1.0.dev2'
+release = '1.0.0.dev2'
 
 
 # -- General configuration ---------------------------------------------------

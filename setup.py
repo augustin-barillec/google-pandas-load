@@ -8,7 +8,7 @@ with open('requirements.txt') as f:
 
 setup(
     name='google-pandas-load',
-    version='1.0.dev2',
+    version='1.0.0.dev2',
     author='Augustin Barillec',
     author_email='augustin.barillec@ysance.com',
     description="""
