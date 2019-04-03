@@ -18,8 +18,9 @@ logger_ = logging.getLogger(name='Loader')
 
 
 class Loader:
-    """Wrapper for conveying big data between A and B with A, B distinct amongst a BigQuery dataset,
-    a directory in a Storage bucket, a local folder and the RAM (with type pandas.DataFrame).
+    """Wrapper for conveying big data between A and B where A and B are distinct and chosen among
+    a BigQuery dataset, a directory in a Storage bucket, a local folder and the RAM
+    (with type pandas.DataFrame).
 
     The Loader bundles all the parameters that do not change often when executing load jobs during a
     workflow.
