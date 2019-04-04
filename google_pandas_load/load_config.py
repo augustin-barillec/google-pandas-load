@@ -7,11 +7,11 @@ from google_pandas_load.constants import LOCATIONS, REVERSED_LOCATIONS, MIDDLE_L
 class LoadConfig:
     """Configuration for a load job.
 
-    This class has the same parameters than :meth:`google_pandas_load.Loader.load`. It is used to execute
+    This class has the same parameters as :meth:`google_pandas_load.Loader.load`. It is used to launch
     simultaneously load jobs as follows:
 
-    - A list of LoadConfig configs is built.
-    - configs is passed to :meth:`google_pandas_load.Loader.mload`.
+    - A list of LoadConfig is built.
+    - The list is passed to :meth:`google_pandas_load.Loader.mload`.
     """
 
     def __init__(
@@ -97,23 +97,21 @@ class LoadConfig:
 
     @staticmethod
     def bq_schema_inferred_from_dataframe(dataframe, date_cols=None, timestamp_cols=None):
-        """Return a BigQuery schema inferred from a pandas dataframe schema.
+        """Return a BigQuery schema that is inferred from a pandas dataframe.
 
-        The pandas columns are given BigQuery types as follow and in this order of priority :
+        The pandas columns transfer their type to BigQuery according to the following rules listed in order of priority:
 
-        - the columns whose name are in the list parameter date_cols are given the BigQuery type DATE.
-        - the columns whose name are in the list parameter timestamp_cols are given the BigQuery type TIMESTAMP.
-        - the columns with python type bool are given the BigQuery type BOOLEAN.
-        - the columns with python type int are given the BigQuery type INTEGER.
-        - the columns with python type float are given the BigQuery type FLOAT.
-        - the other columns are given the BigQuery type STRING.
+        - columns' names liste in the date_cols parameter are given the BigQuery type DATE.
+        - columns’ name listed in the timestamp_cols parameter are given the BigQuery type TIMESTAMP.
+        - columns with python type bool are given the BigQuery type BOOLEAN.
+        - columns with python type int are given the BigQuery type INTEGER.
+        - columns with python type float are given the BigQuery type FLOAT.
+        - other columns are given the BigQuery type STRING.
 
         Args:
             dataframe (pandas.DataFrame): The dataframe.
-            date_cols (list of str, optional): The names of the columns receiving the BigQuery type DATE in
-                the result.
-            timestamp_cols (list of str, optional): The names of the columns receiving the BigQuery type TIMESTAMP in
-                the result.
+            date_cols (list of str, optional): The names of the columns receiving the BigQuery type DATE.
+            timestamp_cols (list of str, optional): The names of the columns receiving the BigQuery type TIMESTAMP.
 
         Returns:
             list of google.cloud.bigquery.schema.SchemaField: A BigQuery schema.

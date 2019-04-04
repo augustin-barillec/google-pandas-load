@@ -13,11 +13,9 @@ not_propagating_logger.addHandler(hdlr=ch)
 
 class LoaderQuickSetup(Loader):
     """
-    This class is used to quickly set up a loader, which is convenient when scripting. A drawback is that the objects
-    built internally during the creation of the instance (ie : the bq_client, the dataset_ref, the gs_client and
-    the bucket) could be used in other modules which do not need a loader.
+    The purpose of this class is to quickly set up a loader, which is convenient when scripting.
 
-    An instance of LoaderQuickSetup is simply an instance of the base class built with the following arguments :
+    An instance of LoaderQuickSetup is simply an instance of the base class built with the following arguments:
 
     ::
 
@@ -50,9 +48,6 @@ class LoaderQuickSetup(Loader):
         bucket = google.cloud.storage.bucket.Bucket(
             client=gs_client,
             name=bucket_name)
-
-    We see here an other drawback of LoaderQuickSetup : by construction, the bq_client, the dataset_ref and
-    the bucket share the same project_id which is not mandatory for an instance of the base class.
 
     Args:
         project_id (str, optional): The project_id.
@@ -119,20 +114,20 @@ class LoaderQuickSetup(Loader):
 
     @property
     def bq_client(self):
-        """google.cloud.bigquery.client.Client: See the paramater bq_client of the base class."""
+        """google.cloud.bigquery.client.Client: See the bq_client parameter of the base class."""
         return self._bq_client
 
     @property
     def dataset_ref(self):
-        """google.cloud.bigquery.dataset.DatasetReference: See the paramater dataset_ref of the base class."""
+        """google.cloud.bigquery.dataset.DatasetReference: See the dataset_ref parameter of the base class."""
         return self._dataset_ref
 
     @property
     def gs_client(self):
-        """google.cloud.storage.client.Client: The Storage Client used to create the loader's bucket."""
+        """google.cloud.storage.client.Client: The Storage Client used to create the bucket."""
         return self._gs_client
 
     @property
     def bucket(self):
-        """google.cloud.storage.bucket.Bucket: See the paramater bucket of the base class."""
+        """google.cloud.storage.bucket.Bucket: See the bucket parameter of the base class."""
         return self._bucket
