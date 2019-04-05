@@ -1,4 +1,4 @@
-PROJECT_ID = 'persuasive-net-133214'
+PROJECT_ID = 'dmp-y-tests'
 DATASET_ID = 'test_gpl'
-BUCKET_NAME = 'bucket_8642'
+BUCKET_NAME = 'bucket_gpl'
 LOCAL_DIR_PATH = '/tmp/gpl_directory'

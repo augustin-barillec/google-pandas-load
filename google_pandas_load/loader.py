@@ -18,7 +18,7 @@ logger_ = logging.getLogger(name='Loader')
 
 
 class Loader:
-    """Wrapper for conveying big data between A and B where A and B are distinct and chosen among
+    """Wrapper transferring big data between A and B where A and B are distinct and chosen among
     a BigQuery dataset, a directory in a Storage bucket, a local folder and the RAM
     (with type pandas.DataFrame).
 
@@ -27,39 +27,37 @@ class Loader:
 
     Args:
         bq_client (google.cloud.bigquery.client.Client, optional): Client to execute google load jobs.
-        dataset_ref (google.cloud.bigquery.dataset.DatasetReference, optional): The reference of the dataset.
+        dataset_ref (google.cloud.bigquery.dataset.DatasetReference, optional): The dataset reference.
         bucket (google.cloud.storage.bucket.Bucket, optional): The bucket.
         gs_dir_path_in_bucket (str, optional): The path of the directory in the bucket.
         local_dir_path (str, optional): The path of the local folder.
-        generated_data_name_prefix (str, optional): The prefix added to a generated data name (if the user does not
-            name the loaded data, the loader will generate a name for it). It is useful for finding quickly loaded
-            data during debugging.
-        max_concurrent_google_jobs (int, optional): The maximum number of concurrent google jobs launched by
-            the BigQuery Client. Defaults to 10.
-        use_wildcard (bool, optional): If set to True, when data moves from BigQuery to Storage, it is split in
-            several files whose basenames match a wildcard pattern. Defaults to True.
-        compress (bool, optional): if set to True, data is compressed when it moves from BigQuery to Storage or from
+        generated_data_name_prefix (str, optional): The prefix added to any generated data name in case the user does
+            not give a name to the loaded data. It is a useful feature  to quickly find loaded data when debugging the
+            code.
+        max_concurrent_google_jobs (int, optional): The maximum number of concurrent google jobs allowed to be
+            launched by the BigQuery Client. Defaults to 10.
+        use_wildcard (bool, optional): If set to True, data moving from BigQuery to Storage will be split in several
+            files whose basenames match a wildcard pattern. Defaults to True.
+        compress (bool, optional): If set to True, data is compressed when moved from BigQuery to Storage or from
             pandas to the local folder. Defaults to True.
         separator (str, optional): The character which separates the columns of the data. Defaults to '|'.
-        chunk_size (int, optional): The chunk size of a Storage's blob created with data coming from the local folder.
+        chunk_size (int, optional): The chunk size of a Storage's blob created when data comes from the local folder.
             See `here <https://googleapis.github.io/google-cloud-python/latest/storage/blobs.html>`__ for more
             informations. Defaults to 2**28.
         logger (logging.Logger, optional): The logger creating the log records of this class.
-            Defaults to a logger named Loader.
+            Defaults to a logger called Loader.
 
     .. _named:
 
     Note:
-        **What is the data named data_name ?**
+        **What is the data named data_name?**
 
-        For a loader, the data named data_name is :
+    - in BigQuery : the table in the dataset whose id is data_name.
+    - in Storage : the blobs whose basename begins with data_name inside the bucket directory.
+    - in local : the files whose basename begins with data_name inside the local folder.
 
-        - in BigQuery : the table in the dataset whose id is data_name
-        - in Storage : the blobs which are inside the bucket directory and whose basename begins with data_name
-        - in local : the files which are inside the local folder and whose basename begins with data_name
-
-        This defintion is motivated by the fact that BigQuery splits a big table in several blobs when extracting it to
-        Storage.
+    This definition is motivated by the fact that BigQuery splits a big table in several blobs when extracting it to
+    Storage.
     """
 
     def __init__(
@@ -78,7 +76,7 @@ class Loader:
             logger=logger_):
 
         if gs_dir_path_in_bucket is not None and gs_dir_path_in_bucket.endswith('/'):
-            raise ValueError('To simplify Storage path concatenation, gs_dir_path_in_bucket must not end with /')
+            raise ValueError('To ease Storage path concatenation, gs_dir_path_in_bucket must not end with /')
 
         self._bq_client = bq_client
         self._dataset_ref = dataset_ref
@@ -117,7 +115,7 @@ class Loader:
                                   self._dataframe_to_local, self._local_to_gs, self._gs_to_bq, self._bq_to_query]
 
     def list_blobs(self, data_name):
-        """Return the data named_ data_name in Storage as a list of Storage's blobs.
+        """Return the data named_ data_name in Storage as a list of Storage blobs.
         """
         if self._gs_dir_path_in_bucket is None:
             prefix = data_name
@@ -126,7 +124,7 @@ class Loader:
         return list(self._bucket.list_blobs(prefix=prefix))
 
     def list_blob_uris(self, data_name):
-        """Return the list of the uris of Storage's blobs forming the data named_ data_name in Storage.
+        """Return the list of the uris of Storage blobs forming the data named_ data_name in Storage.
         """
         return [self._bucket_uri + '/' + blob.name for blob in self.list_blobs(data_name=data_name)]
 
@@ -158,8 +156,8 @@ class Loader:
 
         Args:
             data_name (str): The name of the data.
-            warn (bool, optional): If set to True, a warning log record is created if data named data_name exist in
-                BigQuery. Defaults to True.
+            warn (bool, optional): When set to True, a warning log record is created if data named data_name exist in
+                BigQuery.
         """
         if self.exist_in_bq(data_name=data_name):
             table_ref = self._dataset_ref.table(table_id=data_name)
@@ -172,8 +170,8 @@ class Loader:
 
         Args:
             data_name (str): The name of the data.
-            warn (bool, optional): If set to True, a warning log record is created if data named data_name exist in
-                Storage. Defaults to True.
+            warn (bool, optional): When set to True, a warning log record is created if data named data_name exist in
+                Storage.
         """
         if self.exist_in_gs(data_name=data_name):
             self._bucket.delete_blobs(blobs=self.list_blobs(data_name=data_name))
@@ -185,8 +183,8 @@ class Loader:
 
         Args:
             data_name (str): The name of the data.
-            warn (bool, optional): If set to True, a warning log record is created if data named data_name exist in
-                local. Defaults to True.
+            warn (bool, optional): When set to True, a warning log record is created if data named data_name exist in
+                local.
         """
         if self.exist_in_local(data_name=data_name):
             for local_file_path in self.list_local_file_paths(data_name=data_name):
@@ -393,32 +391,29 @@ class Loader:
             raise ValueError('local_dir_path must be given if local is used')
 
     def xmload(self, configs):
-        """Do as :meth:`google_pandas_load.Loader.mload` and return extra (the prefix x is for
-        extra) informations about the data and the execution of the mload job.
+        """It works like :meth:`google_pandas_load.Loader.mload` but also returns extra informations about the data
+        and the mload job's execution.
 
         Args:
             configs (list of google_pandas_load.LoadConfig): See :class:`google_pandas_load.LoadConfig` for the format
-                of one config.
+                of one configuration.
 
         Returns:
             args.Namespace: The xmload result res with the following attributes:
 
-                - res.load_results (list of (str or NoneType or pandas.DataFrame)): A list of load results, equals
-                  to the result of :meth:`google_pandas_load.Loader.mload` with the same passed arguments.
+                - res.load_results (list of (str or NoneType or pandas.DataFrame)): A list of load results.
 
-                - res.data_names (list of str): The names of the data. The ith element is the data_name attached to
-                  config[i], either given as an argument or generated by the loader.
+                - res.data_names (list of str): The names of the data. The i-th element is the data_name attached to
+                  configs[i], either given as an argument or generated by the loader.
 
-                - res.duration (int): The duration in seconds of the mload job.
+                - res.duration (int): The mload job's duration.
 
-                - res.durations (args.Namespace): A report res.durations giving the duration of each step of
-                  the mload job. It has the same format than the attribute durations of the result of
-                  :meth:`google_pandas_load.Loader.xload`.
+                - res.durations (args.Namespace): A report res.durations providing the duration of each step of
+                  the mload job.
 
-                - res.query_cost (float or NoneType): The query cost in US dollars of the query_to_bq part if there
-                  was one.
+                - res.query_cost (float or NoneType): The query cost in US dollars of the query_to_bq part if any.
 
-                - res.query_costs (list of (float or NoneType)): The query costs in US dollars of the mload. The ith
+                - res.query_costs (list of (float or NoneType)): The query costs in US dollars of the mload. The i-th
                   element is the query cost of the load job configured by configs[i].
         """
         configs = [deepcopy(config) for config in configs]
@@ -443,23 +438,23 @@ class Loader:
                 if n in s:
                     f_indices.append(i)
                     f_configs.append(s[n])
-            if f_configs:
-                res = f(configs=f_configs)
-                if n == 'query_to_bq':
-                    f_duration, f_cost, f_costs = res
-                    query_cost = f_cost
-                    for i in f_indices:
-                        query_costs[i] = f_costs.pop(0)
-                elif n in ('local_to_dataframe', 'bq_to_query'):
-                    f_duration, f_load_results = res
-                    for i in f_indices:
-                        load_results[i] = f_load_results.pop(0)
-                else:
-                    f_duration = res
-                durations[n] = f_duration
-                duration += f_duration
-            else:
+            if not f_configs:
                 durations[n] = None
+                continue
+            res = f(configs=f_configs)
+            if n == 'query_to_bq':
+                f_duration, f_cost, f_costs = res
+                query_cost = f_cost
+                for i in f_indices:
+                    query_costs[i] = f_costs.pop(0)
+            elif n in ('local_to_dataframe', 'bq_to_query'):
+                f_duration, f_load_results = res
+                for i in f_indices:
+                    load_results[i] = f_load_results.pop(0)
+            else:
+                f_duration = res
+            durations[n] = f_duration
+            duration += f_duration
 
         load_results = [load_results.get(i) for i in range(nb_of_configs)]
         durations = Namespace(**durations)
@@ -475,19 +470,18 @@ class Loader:
         return res
 
     def mload(self, configs):
-        """Execute several load jobs specified by the configs (the prefix m is for multi).
+        """Execute several load jobs specified by the configurations. The prefix m means multi.
 
-        The BigQuery Client executes the query_to_bq parts of the configs simultaneoulsy by batch of size
-        max_concurrent_google_jobs, which is a paramater of the Loader. The same is true for the bq_to_gs parts and
-        the gs_to_bq parts.
+        The BigQuery Client executes simultaneously the query_to_bq parts (resp. the bq_to_gs and gs_to_bq parts) from
+        the configurations by batch of size max_concurrent_google_jobs.
 
         Args:
             configs (list of google_pandas_load.LoadConfig): See :class:`google_pandas_load.LoadConfig` for the format
-                of one config.
+                of one configuration.
 
         Returns:
-            list of (str or NoneType or pandas.DataFrame): A list of of load results. The ith element is equals to
-            to the result of the load job configured by configs[i]. See :meth:`google_pandas_load.Loader.load` for the
+            list of (str or NoneType or pandas.DataFrame): A list of of load results. The i-th element is the result of
+            the load job configured by configs[i]. See :meth:`google_pandas_load.Loader.load` for the
             format of one load result.
         """
         return self.xmload(configs=configs).load_results
@@ -512,47 +506,40 @@ class Loader:
             delete_in_bq=True,
             delete_in_gs=True,
             delete_in_local=True):
-        """Do as :meth:`google_pandas_load.Loader.load` and return extra (the prefix x is for extra) informations
-        about the data and the execution of the load job.
+        """It works like  :meth:`google_pandas_load.Loader.load` but also returns extra informations
+        about the data and the load job's execution. The prefix x is for extra.
 
         Returns:
             argparse.Namespace: A xload result res with the following attributes:
 
-            - res.load_result (str or NoneType or pandas.DataFrame): The result of the load job, equals to the result of
-              :meth:`google_pandas_load.Loader.load` with the same passed arguments.
+            - res.load_result (str or NoneType or pandas.DataFrame): The result of the load job.
 
-            - res.data_name (str): The `name <named_>`_ of the data loaded.
+            - res.data_name (str): The `name <named_>`_ of the loaded data.
 
-            - res.duration (int): The duration in seconds of the load job.
+            - res.duration (int): The load job's duration in seconds.
 
-            - res.durations (argparse.Namespace): A report giving the durations of each step of the
+            - res.durations (argparse.Namespace): A report providing the durations of each step of the
               load job. It has the following attributes:
 
-              * res.durations.query_to_bq (int or NoneType): the duration in seconds of the query_to_bq part if there
-                was one.
+              * res.durations.query_to_bq (int or NoneType): the duration in seconds of the query_to_bq part if any.
 
-              * res.durations.bq_to_gs (int or NoneType): the duration in seconds of the bq_to_gs part if there was
-                one.
+              * res.durations.bq_to_gs (int or NoneType): the duration in seconds of the bq_to_gs part if any.
 
-              * res.durations.gs_to_local (int or NoneType): the duration in seconds of the gs_to_local part if
-                there was one.
+              * res.durations.gs_to_local (int or NoneType): the duration in seconds of the gs_to_local part if any.
 
               * res.durations.local_to_dataframe (int or NoneType): the duration in seconds of the local_to_dataframe
-                part if there was one.
+                part if any.
 
               * res.durations.dataframe_to_local (int or NoneType): the duration in seconds of the dataframe_to_local
-                part if there was one.
+                part if any.
 
-              * res.durations.local_to_gs (int or NoneType): the duration in seconds of the local_to_gs part if there
-                was one.
+              * res.durations.local_to_gs (int or NoneType): the duration in seconds of the local_to_gs part if any.
 
-              * res.durations.gs_to_bq (int or NoneType): the duration in seconds of the gs_to_bq part if there
-                was one.
+              * res.durations.gs_to_bq (int or NoneType): the duration in seconds of the gs_to_bq part if any.
 
-              * res.durations.bq_to_query (int or NoneType): the duration in seconds of the bq_to_query part if there
-                was one.
+              * res.durations.bq_to_query (int or NoneType): the duration in seconds of the bq_to_query part if any.
 
-            - res.query_cost (float or NoneType): The query cost in US dollars of the query_to_bq part if there was one.
+            - res.query_cost (float or NoneType): The query cost in US dollars of the query_to_bq part if any.
          """
 
         config = LoadConfig(
@@ -607,19 +594,19 @@ class Loader:
             delete_in_local=True):
         """Execute a load job whose configuration is specified by the arguments.
 
-         The data is conveyed from source to destination. The valid values for the source and the destination are
-         the following : 'query', 'bq', 'gs', 'local' and 'dataframe'.
+         The data is conveyed from source to destination. The valid values for the source and the destination are:
+         'query', 'bq', 'gs', 'local' and 'dataframe'.
 
-         Downloading is along this path : 'query' -> 'bq' -> 'gs' -> 'local' -> 'dataframe' and uploading is along
-         the reverted path.
+         Downloading follows the path : 'query' -> 'bq' -> 'gs' -> 'local' -> 'dataframe' while uploading goes in the
+         opposite direction.
 
          .. _moved:
 
          Warning:
-             **In general, the data is moved, not copied !**
+             **In general, data is moved, not copied!**
 
-             Thus, in general, once the load job has been executed, the data does not exist anymore in the source and
-             in the transitional locations.
+             Once the load job has been executed, the data usually does not exist anymore in the source and
+             in any transitional locations.
 
              There are two exceptions :
 
@@ -632,65 +619,77 @@ class Loader:
              Use the parameters delete_in_bq, delete_in_gs and delete_in_local to control the deletion of the data
              during the execution of the load job.
 
+             However two exceptions exist:
+
+            - When source = 'dataframe', the dataframe is not deleted in RAM.
+            - When destination = ‘query’, the data is not deleted in BigQuery, so that it still exists somewhere.
+              Indeed, in this case, the load job returns a simple query (see the previous section) which represents
+              the data but does not contain it.
+
+             Use the delete_in_bq, delete_in_gs and delete_in_local parameters to control the data deletion,
+             during the execution of the load job.
+
+
          .. _pre-deletion:
 
          Warning:
-             **In general, pre-existing data is deleted !**
+             **In general, pre-existing data is deleted!**
 
-             In general, before data moves to any location, data with the same name already existing in the location is
-             deleted, to make a clean space for the new data to come.
+             Before new data is moved to any location, the loader will usually delete any prior data bearing the same
+             name to prevent any conflict.
 
              There is one exception :
 
-             - When destination = 'bq' and the parameter write_diposition is set to 'WRITE_APPEND',
-               the data is appended to pre-existing data with the same name in the dataset. The default value of this
-               parameter is 'WRITE_TRUNCATE'.
+             - When destination = ‘bq’ and the write_dispostion parameter is set to ‘WRITE_APPEND’, new data is
+               appended to pre-existing one with the same name in the dataset. The write_dispostion parameter’s default
+               value is ‘WRITE_TRUNCATE’.
 
          Args:
              source (str): one of 'query', 'bq', 'gs', 'local', 'dataframe'.
              destination (str): one of 'query', 'bq', 'gs', 'local', 'dataframe'.
 
-             data_name (str, optional): The `name <named_>`_ of the data. If not passed, it is generated by the loader
-                and includes in this order the generated_data_name_prefix of the loader if one was given, the
-                current timestamp and a random integer. This is useful when source = 'query' and
-                destination = 'dataframe'` because then, the user may not need to know the data_name.
+             data_name (str, optional): The `name <named_>`_ of the data. If not passed, a name is generated by
+                concatenating generated_data_name_prefix of the loader, if any, the current timestamp and a random
+                integer. This is useful wneh source = 'query' and destination = 'dataframe' because the user may not
+                need to know the data_name.
+
              query (str, optional): A BigQuery Standard Sql query. Required if source = 'query'.
              dataframe (pandas.DataFrame, optional): A pandas dataframe. Required if source = 'dataframe'.
 
              write_disposition (google.cloud.bigquery.job.WriteDisposition, optional): Specifies the action that occurs
                 if data named_ data_name already exist in BigQuery. Defaults to 'WRITE_TRUNCATE'.
-             dtype (dict, optional): When destination = 'dataframe', the function pandas.read_csv is used.
-                dtype is one parameter of this function. It specifies the type of the data's column. For instance
-                dtype={‘a’: float, ‘b’: str, ‘d’: int}.
-             parse_dates (list of str, optional): When destination = 'dataframe', the function pandas.read_csv is used.
-                 parse_dates is one parameter of this function. If parse_dates = ['a', 'c'], pandas will attempt
-                 to parse the values of columns 'a' and 'c' into datetime.datetime objects.
-             infer_datetime_format (bool, optional): When destination = 'dataframe', the function pandas.read_csv is
-                 used. infer_datetime_format is one parameter of this function. If set to True and parse_dates is
-                 enabled, the parsing speed can be increased by 5-10x if pandas manages to infer the format of datetime
-                 strings in the columns. Defaults to True.
+             dtype (dict, optional): When destination = 'dataframe', pandas.read_csv() is used and dtype is one
+                of its parameters.
+             parse_dates (list of str, optional): When destination = 'dataframe', pandas.read_csv() is used and
+                parse_dates is one of its parameters.
+             infer_datetime_format (bool, optional): When destination = 'dataframe', pandas.read_csv() is used and
+                infer_datetime_format is one of its parameters. Defaults to True.
              date_cols (list of str, optional): If no bq_schema is passed, indicate which columns of a pandas dataframe
-                should have the BigQuery type DATE, once the dataframe is uploaded in BigQuery. It is a parameter of
+                should have the BigQuery type DATE. It is a parameter from
                 :meth:`google_pandas_load.LoadConfig.bq_schema_inferred_from_dataframe`.
-             timestamp_cols (list of str, optional): Similar to the parameter above but with the BigQuery type
-                TIMESTAMP instead of the BigQuery type DATE.
+             timestamp_cols (list of str, optional): If no bq_schema is passed, indicate which columns of a pandas
+                dataframe should have the BigQuery type TIMESTAMP. It is a parameter from
+                :meth:`google_pandas_load.LoadConfig.bq_schema_inferred_from_dataframe`.
              bq_schema (list of google.cloud.bigquery.schema.SchemaField, optional): The table's schema in BigQuery.
-                 Used if destination = 'bq' and source != 'query' (if source = 'query', the bq_schema is inferred from
-                 the query). If not passed and source = 'dataframe', falls back to an inferred value
+                 Used when destination = 'bq' and source != 'query'. When source = 'query', the bq_schema is inferred
+                 from the query. If not passed and source = 'dataframe', falls back to an inferred value
                  from the dataframe with :meth:`google_pandas_load.LoadConfig.bq_schema_inferred_from_dataframe`.
 
-             delete_in_bq (bool, optional): If set to False and if the data go from or through Bigquery, it is not
-                deleted in BigQuery. Defaults to True.
-             delete_in_gs (bool, optional): If set to False and if the data go from or through Storage, it is not
-                deleted in Storage. Defaults to True.
-             delete_in_local (bool, optional): If set to False and if the data go from or through local, it is not
-                deleted in local. Defaults to True.
+             delete_in_bq (bool, optional): If set to False, data going from or through Bigquery is not deleted
+                in BigQuery. Defaults to True.
+             delete_in_gs (bool, optional): If set to False, data going from or through Storage is not deleted in
+                Storage. Defaults to True.
+             delete_in_local (bool, optional): If set to False, data going from or through the local folder is not
+                deleted in that folder. Defaults to True.
 
          Returns:
-             str or NoneType or pandas.DataFrame: The result of the load job. If destination = 'query', the
-             following BigQuery standard SQL query: "select * from \`project_id.dataset_id.data_name\`",
-             where the project_id is the one of the dataset. If destination = 'dataframe',
-             a pandas dataframe populated with the data specified by the arguments. Otherwise, None.
+             str or pandas.DataFrame or NoneType: The result of the load job:
+             - When destination = 'query', it returns the BigQuery standard SQL query:
+               "select * from \`project_id.dataset_id.data_name\`",
+               where the project_id is the one from the dataset.
+             - When destination = 'dataframe', it returns a pandas dataframe populated with the data specified
+               by the arguments.
+             - In all other cases, it returns None.
          """
 
         return self.xload(
