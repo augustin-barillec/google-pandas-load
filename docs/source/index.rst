@@ -21,7 +21,8 @@ See `Speed Comparison`_.
 
 Acknowledgements
 ----------------
-I am grateful to my employer Ysance_ for providing me the resources to develop this library and for allowing me to publish it.
+I am grateful to my employer Ysance_ for providing me the resources to develop this library and for allowing me
+to publish it.
 
 
 Installation
@@ -52,10 +53,10 @@ For further information about how to authenticate to Google Cloud Platform with 
         local_dir_path='/tmp',
         credentials=None)
 
-Transfer data seamlessly from and to various locations :
+Transfer data seamlessly from and to various locations:
 
 .. warning::
-   In general, data is moved, not copied ! The precise behavior is stated `here <Loader.html#moved>`__ .
+   In general, data is moved, not copied! The precise behavior is stated `here <Loader.html#moved>`__ .
 
 .. warning::
    In general, before data is moved to any location, it will delete any prior existing data having the same name in
@@ -132,14 +133,14 @@ The basic mechanism
 This code essentially chains transferring data functions from the `Google Cloud Client Library for Python`_
 and from pandas_.
 
-To download, the following functions are chained :
+To download, the following functions are chained:
 
 - `google.cloud.bigquery.client.query()`_
 - `google.cloud.bigquery.client.extract_table()`_
 - `google.cloud.storage.blob.Blob.download_to_filename()`_
 - `pandas.read_csv()`_
 
-To upload, the following functions are chained :
+To upload, the following functions are chained:
 
 - `pandas.DataFrame.to_csv()`_
 - `google.cloud.storage.blob.Blob.upload_from_filename()`_

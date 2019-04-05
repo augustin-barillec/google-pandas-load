@@ -608,17 +608,6 @@ class Loader:
              Once the load job has been executed, the data usually does not exist anymore in the source and
              in any transitional locations.
 
-             There are two exceptions :
-
-             - When source = 'dataframe', the dataframe is not deleted in RAM (a function cannot delete a global
-               variable without knowing its name).
-             - When destination = 'query', the data is not deleted in BigQuery, so that the data still exists
-               somewhere. Indeed   in this case, the load job returns a simple query (see the result of this method),
-               which represents the data but does not contain the data.
-
-             Use the parameters delete_in_bq, delete_in_gs and delete_in_local to control the deletion of the data
-             during the execution of the load job.
-
              However two exceptions exist:
 
             - When source = 'dataframe', the dataframe is not deleted in RAM.
