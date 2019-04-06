@@ -13,7 +13,7 @@ not_propagating_logger.addHandler(hdlr=ch)
 
 class LoaderQuickSetup(Loader):
     """
-    The purpose of this class is to quickly set up a loader, which is convenient when scripting.
+    The purpose of this class is to quickly set up a loader.
 
     An instance of LoaderQuickSetup is simply an instance of the base class built with the following arguments:
 
@@ -50,9 +50,9 @@ class LoaderQuickSetup(Loader):
             name=bucket_name)
 
     Args:
-        project_id (str, optional): The project_id.
-        dataset_id (str, optional): The dataset_id.
-        bucket_name (str, optional): The bucket_name.
+        project_id (str, optional): The project id.
+        dataset_id (str, optional): The dataset id.
+        bucket_name (str, optional): The bucket name.
         gs_dir_path_in_bucket (str, optional): see base class.
         credentials (google.auth.credentials.Credentials): The credentials used to build the bq_client and the
             bucket. If not passed, falls back to the default inferred from the environment.

@@ -18,7 +18,7 @@ logger_ = logging.getLogger(name='Loader')
 
 
 class Loader:
-    """Wrapper transferring big data between A and B where A and B are distinct and chosen among
+    """Wrapper for transferring big data between A and B where A and B are distinct and chosen among
     a BigQuery dataset, a directory in a Storage bucket, a local folder and the RAM
     (with type pandas.DataFrame).
 
@@ -41,7 +41,7 @@ class Loader:
         compress (bool, optional): If set to True, data is compressed when moved from BigQuery to Storage or from
             pandas to the local folder. Defaults to True.
         separator (str, optional): The character which separates the columns of the data. Defaults to '|'.
-        chunk_size (int, optional): The chunk size of a Storage's blob created when data comes from the local folder.
+        chunk_size (int, optional): The chunk size of a Storage blob created when data comes from the local folder.
             See `here <https://googleapis.github.io/google-cloud-python/latest/storage/blobs.html>`__ for more
             informations. Defaults to 2**28.
         logger (logging.Logger, optional): The logger creating the log records of this class.
