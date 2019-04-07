@@ -136,61 +136,34 @@ class Loader:
                 if basename.startswith(data_name)]
 
     def exist_in_bq(self, data_name):
-        """Return True if data named_ data_name exist in BigQuery.
-        """
+        """Return True if data named_ data_name exist in BigQuery."""
         table_ref = self._dataset_ref.table(table_id=data_name)
         return table_exists(client=self._bq_client, table_reference=table_ref)
 
     def exist_in_gs(self, data_name):
-        """Return True if data named_ data_name exist in Storage,
-        """
+        """Return True if data named_ data_name exist in Storage,"""
         return len(self.list_blobs(data_name=data_name)) > 0
 
     def exist_in_local(self, data_name):
-        """Return True if data named_ data_name exist in local.
-        """
+        """Return True if data named_ data_name exist in local."""
         return len(self.list_local_file_paths(data_name=data_name)) > 0
 
-    def delete_in_bq(self, data_name, warn=True):
-        """Delete the data named_ data_name in BigQuery.
-
-        Args:
-            data_name (str): The name of the data.
-            warn (bool, optional): When set to True, a warning log record is created if data named data_name exist in
-                BigQuery.
-        """
+    def delete_in_bq(self, data_name):
+        """Delete the data named_ data_name in BigQuery."""
         if self.exist_in_bq(data_name=data_name):
             table_ref = self._dataset_ref.table(table_id=data_name)
             self._bq_client.delete_table(table=table_ref)
-        elif warn:
-            self._logger.warning('There is no data named {} in bq'.format(data_name))
 
-    def delete_in_gs(self, data_name, warn=True):
-        """Delete the data named_ data_name in Storage.
-
-        Args:
-            data_name (str): The name of the data.
-            warn (bool, optional): When set to True, a warning log record is created if data named data_name exist in
-                Storage.
-        """
+    def delete_in_gs(self, data_name):
+        """Delete the data named_ data_name in Storage."""
         if self.exist_in_gs(data_name=data_name):
             self._bucket.delete_blobs(blobs=self.list_blobs(data_name=data_name))
-        elif warn:
-            self._logger.warning('There is no data named {} in gs'.format(data_name))
 
-    def delete_in_local(self, data_name, warn=True):
-        """Delete the data named_ data_name in local.
-
-        Args:
-            data_name (str): The name of the data.
-            warn (bool, optional): When set to True, a warning log record is created if data named data_name exist in
-                local.
-        """
+    def delete_in_local(self, data_name):
+        """Delete the data named_ data_name in local."""
         if self.exist_in_local(data_name=data_name):
             for local_file_path in self.list_local_file_paths(data_name=data_name):
                 os.remove(local_file_path)
-        elif warn:
-            self._logger.warning('There is no data named {} in local'.format(data_name))
 
     def _query_to_bq(self, configs):
         self._logger.debug('Starting query to bq...')
@@ -219,7 +192,7 @@ class Loader:
         self._logger.debug('Starting bq to gs...')
         start_timestamp = datetime.now()
         for config in configs:
-            self.delete_in_gs(data_name=config.data_name, warn=False)
+            self.delete_in_gs(data_name=config.data_name)
         nb_of_batches = len(configs)//self._mcgj + 1
         for i in range(nb_of_batches):
             jobs = []
@@ -248,7 +221,7 @@ class Loader:
         self._logger.debug('Starting gs to local...')
         start_timestamp = datetime.now()
         for config in configs:
-            self.delete_in_local(data_name=config.data_name, warn=False)
+            self.delete_in_local(data_name=config.data_name)
         for config in configs:
             if not self.exist_in_gs(data_name=config.data_name):
                 raise ValueError('There is no data named {} in gs'.format(config.data_name))
@@ -291,7 +264,7 @@ class Loader:
         self._logger.debug('Starting dataframe to local...')
         start_timestamp = datetime.now()
         for config in configs:
-            self.delete_in_local(data_name=config.data_name, warn=False)
+            self.delete_in_local(data_name=config.data_name)
         for config in configs:
             config.dataframe.to_csv(path_or_buf=os.path.join(self._local_dir_path,
                                                              config.data_name + self._dataframe_to_local_ext),
@@ -307,7 +280,7 @@ class Loader:
         self._logger.debug('Starting local to gs...')
         start_timestamp = datetime.now()
         for config in configs:
-            self.delete_in_gs(data_name=config.data_name, warn=False)
+            self.delete_in_gs(data_name=config.data_name)
         for config in configs:
             if not self.exist_in_local(data_name=config.data_name):
                 raise ValueError('There is no data named {} in local'.format(config.data_name))
