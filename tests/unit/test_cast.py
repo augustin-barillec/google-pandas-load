@@ -85,4 +85,3 @@ class CastTest(BaseClassTest):
         f1, f2 = table.schema
         self.assertEqual((f1.name, f1.field_type), ('x', 'FLOAT'))
         self.assertEqual((f2.name, f2.field_type), ('y', 'FLOAT'))
-
