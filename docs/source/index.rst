@@ -12,7 +12,7 @@ Release v\ |release|.
 google-pandas-load is a wrapper library for conveying big data from A to B, where A and B are distinct
 and chosen among BigQuery, Storage, a local folder or pandas.
 
-This library enables faster data transfer than those performed by `Python Client for Google BigQuery`_'s methods :
+This library enables faster data transfer than those performed by `Python Client for Google BigQuery`_'s methods:
 
 - `google.cloud.bigquery.job.QueryJob.to_dataframe()`_
 - `google.cloud.bigquery.client.Client.load_table_from_dataframe()`_
@@ -56,12 +56,12 @@ For further information about how to authenticate to Google Cloud Platform with 
 Transfer data seamlessly from and to various locations:
 
 .. warning::
-   In general, data is moved, not copied! The precise behavior is stated `here <Loader.html#moved>`__ .
+   In general, data is moved, not copied! The precise behavior is stated `here <Loader.html#moved>`__.
 
 .. warning::
    In general, before data is moved to any location, it will delete any prior existing data having the same name in
    the location. This ensures a clean space for the upcoming data.
-   The precise behavior is stated `here <Loader.html#pre-deletion>`__ .
+   The precise behavior is stated `here <Loader.html#pre-deletion>`__.
 
 .. code-block:: python
 

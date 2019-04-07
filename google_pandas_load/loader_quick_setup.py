@@ -124,7 +124,7 @@ class LoaderQuickSetup(Loader):
 
     @property
     def gs_client(self):
-        """google.cloud.storage.client.Client: The Storage Client used to create the bucket."""
+        """google.cloud.storage.client.Client: The Storage client used to create the bucket."""
         return self._gs_client
 
     @property
