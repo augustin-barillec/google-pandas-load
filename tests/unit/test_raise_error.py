@@ -50,7 +50,7 @@ class LoaderSetupRaiseErrorTest(BaseClassTest):
         with self.assertRaises(ValueError) as cm:
             Loader(gs_dir_path_in_bucket='dir/subdir/')
         self.assertEqual(str(cm.exception),
-                         'To simplify Storage path concatenation, gs_dir_path_in_bucket must not end with /')
+                         'To ease Storage path concatenation, gs_dir_path_in_bucket must not end with /')
 
 
 class LoadRaiseErrorTest(BaseClassTest):

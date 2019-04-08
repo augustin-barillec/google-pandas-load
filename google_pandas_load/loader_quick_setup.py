@@ -53,23 +53,23 @@ class LoaderQuickSetup(Loader):
         project_id (str, optional): The project id.
         dataset_id (str, optional): The dataset id.
         bucket_name (str, optional): The bucket name.
-        gs_dir_path_in_bucket (str, optional): see base class.
-        credentials (google.auth.credentials.Credentials): The credentials used to build the bq_client and the
+        gs_dir_path_in_bucket (str, optional): See base class.
+        credentials (google.auth.credentials.Credentials): Credentials used to build the bq_client and the
             bucket. If not passed, falls back to the default inferred from the environment.
-        local_dir_path (str, optional): see base class.
-        generated_data_name_prefix (str, optional): see base class.
-        max_concurrent_google_jobs (int, optional): see base class. The default value is 40 whereas the default value
-            for the base class is 10. This is because the first value is intended for a scripting environment and
-            the second one for a production environment, where the amount of google computing resources is usually
-            shared by several other programs running also in production.
-        use_wildcard (bool, optional): see base class.
-        compress (bool, optional): see base class.
-        separator (str, optional): see base class.
-        chunk_size (int, optional): see base class.
-        logger (logging.Logger, optional): see base class. The default value is a logger named LoaderQuickSetup,
-            which contrary to the default logger of the base class, is set to not propagate its log records to its
-            logger ancestors and is equipped with an handler which displays the log records to the console. This is
-            convenient when working in a notebook for instance.
+        local_dir_path (str, optional): See base class.
+        generated_data_name_prefix (str, optional): See base class.
+        max_concurrent_google_jobs (int, optional): See base class. Default value is 40 while the default value
+            for the base class is 10. The first value is intended for a scripting environment whereas the second one for
+            a production environment. In the latter case the amount of google computing resources is usually
+            shared by several programs running in production.
+        use_wildcard (bool, optional): See base class.
+        compress (bool, optional): See base class.
+        separator (str, optional): See base class.
+        chunk_size (int, optional): See base class.
+        logger (logging.Logger, optional): See base class. Default value is a logger called LoaderQuickSetup.
+            Contrary to the default base class logger, it is set to not propagate its log records to its
+            logger ancestors and it is equipped with an handler displaying the log records to the console. This is, for
+            instance, convenient when working in a notebook.
     """
 
     def __init__(

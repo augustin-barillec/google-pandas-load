@@ -1,7 +1,11 @@
 -r requirements.txt
-pyarrow~=0.10
-setuptools~=40.1
-coverage>=4.5,<5.1
-sphinx~=2.0
-ipykernel~=5.1
-nbsphinx~=0.4
+
+setuptools==40.*
+
+coverage==5.*
+
+sphinx==2.*
+ipykernel==5.*
+nbsphinx==0.*
+
+pyarrow==0.*

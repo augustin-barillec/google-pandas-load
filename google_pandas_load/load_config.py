@@ -99,14 +99,14 @@ class LoadConfig:
     def bq_schema_inferred_from_dataframe(dataframe, date_cols=None, timestamp_cols=None):
         """Return a BigQuery schema that is inferred from a pandas dataframe.
 
-        A pandas column C is given a BigQuery type according to the following rule:
+        In BigQuery, a column C is given its type according to the following rule:
 
-        - if C name is listed in the date_cols parameter, C is given the BigQuery type DATE.
-        - elif  a C name is listed in the timestamp_cols parameter, C is given the BigQuery type TIMESTAMP.
-        - elif C has python type bool, it is given the BigQuery type BOOLEAN.
-        - elif C has python type int, it is given the BigQuery type INTEGER.
-        - elif C has python type float, it is given the BigQuery type FLOAT.
-        - else C is given the BigQuery type STRING.
+        - if C name is listed in the date_cols parameter, its type in BigQuery should be DATE.
+        - elif  a C name is listed in the timestamp_cols parameter, its type in BigQuery should be TIMESTAMP.
+        - elif C has python type bool, its type in BigQuery is BOOLEAN.
+        - elif C has python type int, its type in BigQuery is INTEGER.
+        - elif C has python type float, its type in BigQuery is FLOAT.
+        - else its type in BigQuery is STRING.
 
         Args:
             dataframe (pandas.DataFrame): The dataframe.
