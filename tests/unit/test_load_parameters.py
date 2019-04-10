@@ -24,7 +24,7 @@ class LoadParametersTest(BaseClassTest):
             dataframe=df0,
             write_disposition='WRITE_APPEND')
         table_ref = dataset_ref.table(table_id='a10')
-        table = bq_client.get_table(table_ref=table_ref)
+        table = bq_client.get_table(table_ref)
         num_rows = table.num_rows
         self.assertEqual(num_rows, 2)
 
@@ -42,7 +42,7 @@ class LoadParametersTest(BaseClassTest):
             query='select 4 as x',
             write_disposition='WRITE_APPEND')
         table_ref = dataset_ref.table(table_id='a10')
-        table = bq_client.get_table(table_ref=table_ref)
+        table = bq_client.get_table(table_ref)
         num_rows = table.num_rows
         self.assertEqual(num_rows, 2)
 
