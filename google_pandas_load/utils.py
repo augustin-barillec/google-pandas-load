@@ -41,3 +41,13 @@ def union_keys(dicts):
     for d in dicts:
         res = res.union(d.keys())
     return res
+
+
+def build_numpy_leaf_types(dtype):
+    subs = dtype.__subclasses__()
+    if not subs:
+        return [dtype]
+    res = []
+    for dt in subs:
+        res += build_numpy_leaf_types(dt)
+    return res

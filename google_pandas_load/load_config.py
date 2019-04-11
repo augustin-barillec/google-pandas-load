@@ -1,7 +1,11 @@
 from argparse import Namespace
+import numpy
 from google.cloud import bigquery
-from google_pandas_load.utils import build_atomic_function_names
+from google_pandas_load.utils import build_atomic_function_names, build_numpy_leaf_types
 from google_pandas_load.constants import LOCATIONS, REVERSED_LOCATIONS, MIDDLE_LOCATIONS, ATOMIC_FUNCTION_NAMES
+
+integer_numpy_leaf_types = build_numpy_leaf_types(dtype=numpy.integer)
+float_numpy_leaf_types = build_numpy_leaf_types(dtype=numpy.floating)
 
 
 class LoadConfig:
@@ -99,13 +103,13 @@ class LoadConfig:
     def bq_schema_inferred_from_dataframe(dataframe, date_cols=None, timestamp_cols=None):
         """Return a BigQuery schema that is inferred from a pandas dataframe.
 
-        In BigQuery, a column C is given its type according to the following rule:
+        In BigQuery, a column is given its type according to the following rule:
 
-        - if C name is listed in the date_cols parameter, its type in BigQuery should be DATE.
-        - elif  a C name is listed in the timestamp_cols parameter, its type in BigQuery should be TIMESTAMP.
-        - elif C has python type bool, its type in BigQuery is BOOLEAN.
-        - elif C has python type int, its type in BigQuery is INTEGER.
-        - elif C has python type float, its type in BigQuery is FLOAT.
+        - if its name is listed in the date_cols parameter, its type in BigQuery should be DATE.
+        - elif  its name is listed in the timestamp_cols parameter, its type in BigQuery should be TIMESTAMP.
+        - elif its pandas dtype is equal to numpy.bool, its type in BigQuery is BOOLEAN.
+        - elif its pandas dtype has numpy.integer dtype as ancestor, its type in BigQuery is INTEGER.
+        - elif its pandas dtype has numpy.floating dtype as ancestor, its type in BigQuery is FLOAT.
         - else its type in BigQuery is STRING.
 
         Args:
@@ -129,11 +133,11 @@ class LoadConfig:
                 bq_schema.append(bigquery.SchemaField(name=col, field_type='DATE'))
             elif col in timestamp_cols:
                 bq_schema.append(bigquery.SchemaField(name=col, field_type='TIMESTAMP'))
-            elif dtype == bool:
+            elif dtype == numpy.bool:
                 bq_schema.append(bigquery.SchemaField(name=col, field_type='BOOLEAN'))
-            elif dtype == int:
+            elif dtype in integer_numpy_leaf_types:
                 bq_schema.append(bigquery.SchemaField(name=col, field_type='INTEGER'))
-            elif dtype == float:
+            elif dtype in float_numpy_leaf_types:
                 bq_schema.append(bigquery.SchemaField(name=col, field_type='FLOAT'))
             else:
                 bq_schema.append(bigquery.SchemaField(name=col, field_type='STRING'))

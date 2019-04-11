@@ -1,3 +1,4 @@
+import numpy
 from datetime import datetime
 from tests.context.loaders import *
 from tests.utils import *
@@ -51,7 +52,9 @@ class CastTest(BaseClassTest):
                                      'c': [True, False],
                                      'd': [4, 3],
                                      'e': [1.1, 2.2],
-                                     'f': ['1', '2']})
+                                     'f': ['1', '2'],
+                                     'g': [5, 7]})
+        df0['g'] = df0['g'].astype(numpy.unsignedinteger)
         gpl3.load(
             source='dataframe',
             destination='bq',
@@ -61,13 +64,14 @@ class CastTest(BaseClassTest):
             timestamp_cols=['b'])
         table_ref = dataset_ref.table(table_id='a10')
         table = bq_client.get_table(table_ref=table_ref)
-        f1, f2, f3, f4, f5, f6 = table.schema
+        f1, f2, f3, f4, f5, f6, f7 = table.schema
         self.assertEqual((f1.name, f1.field_type), ('a', 'DATE'))
         self.assertEqual((f2.name, f2.field_type), ('b', 'TIMESTAMP'))
         self.assertEqual((f3.name, f3.field_type), ('c', 'BOOLEAN'))
         self.assertEqual((f4.name, f4.field_type), ('d', 'INTEGER'))
         self.assertEqual((f5.name, f5.field_type), ('e', 'FLOAT'))
         self.assertEqual((f6.name, f6.field_type), ('f', 'STRING'))
+        self.assertEqual((f7.name, f7.field_type), ('g', 'INTEGER'))
 
     def test_bq_schema_given(self):
         populate()
