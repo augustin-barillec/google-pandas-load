@@ -12,7 +12,7 @@ setup(
     author='Augustin Barillec',
     author_email='augustin.barillec@ysance.com',
     description="""
-    Wrapper for conveying big data from A to B, where A and B are distinct 
+    Wrapper for transferring big data from A to B, where A and B are distinct 
     and chosen between BigQuery, Storage, a local folder and pandas.
     """,
     long_description=README,

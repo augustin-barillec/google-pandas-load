@@ -9,7 +9,7 @@ Release v\ |release|.
 .. image:: https://img.shields.io/pypi/pyversions/google-pandas-load.svg
     :target: https://pypi.org/project/google-pandas-load/
 
-google-pandas-load is a wrapper library for conveying big data from A to B, where A and B are distinct
+google-pandas-load is a wrapper library for transferring big data from A to B, where A and B are distinct
 and chosen between BigQuery, Storage, a local folder and pandas.
 
 This library enables faster data transfer than those performed by `Python Client for Google BigQuery`_'s methods:
