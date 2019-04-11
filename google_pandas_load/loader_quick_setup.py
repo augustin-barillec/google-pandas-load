@@ -69,7 +69,7 @@ class LoaderQuickSetup(Loader):
         logger (logging.Logger, optional): See base class. Default value is a logger called LoaderQuickSetup.
             Contrary to the default base class logger, it is set to not propagate its log records to its
             logger ancestors and it is equipped with an handler displaying the log records to the console. This is, for
-            instance, convenient when working in a notebook.
+            instance, convenient when working with a notebook.
     """
 
     def __init__(

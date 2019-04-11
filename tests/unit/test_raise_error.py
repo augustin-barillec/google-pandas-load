@@ -23,11 +23,11 @@ class LoadConfigRaiseErrorTest(unittest.TestCase):
     def test_raise_error_if_missing_required_values(self):
         with self.assertRaises(ValueError) as cm:
             LoadConfig(source='query', destination='dataframe')
-        self.assertEqual(str(cm.exception), "query must be given if source == 'query'")
+        self.assertEqual(str(cm.exception), "query must be given if source = 'query'")
 
         with self.assertRaises(ValueError) as cm:
             LoadConfig(source='dataframe', destination='local')
-        self.assertEqual(str(cm.exception), "dataframe must be given if source == 'dataframe'")
+        self.assertEqual(str(cm.exception), "dataframe must be given if source = 'dataframe'")
 
         with self.assertRaises(ValueError) as cm:
             LoadConfig(source='query', destination='gs', query='select 3')

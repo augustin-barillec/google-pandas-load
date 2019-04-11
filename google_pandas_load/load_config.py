@@ -78,10 +78,10 @@ class LoadConfig:
 
     def _check_required_values(self):
         if self._source == 'query' and self._query is None:
-            raise ValueError("query must be given if source == 'query'")
+            raise ValueError("query must be given if source = 'query'")
 
         if self._source == 'dataframe' and self._dataframe is None:
-            raise ValueError("dataframe must be given if source == 'dataframe'")
+            raise ValueError("dataframe must be given if source = 'dataframe'")
 
         if self.data_name is None and (self._source in MIDDLE_LOCATIONS or self._destination in MIDDLE_LOCATIONS):
             raise ValueError("data_name must be given if source or destination is one of 'bq' or 'gs' or 'local'")
