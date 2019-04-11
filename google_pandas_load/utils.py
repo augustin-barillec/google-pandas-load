@@ -10,7 +10,7 @@ def wait_for_jobs(jobs):
 
 def table_exists(client, table_reference):
     try:
-        client.get_table(table_ref=table_reference)
+        client.get_table(table_reference)
         return True
     except NotFound:
         return False

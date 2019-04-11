@@ -14,7 +14,7 @@ class DataDeliveryTest(BaseClassTest):
             data_name='a0',
             query='select 3 as x union all select 2 as x')
         table_ref = dataset_ref.table(table_id='a0')
-        table = bq_client.get_table(table_ref=table_ref)
+        table = bq_client.get_table(table_ref)
         df1 = bq_client.list_rows(table=table).to_dataframe()
         l1 = sorted(list(df1.x))
         self.assertEqual(l0, l1)
@@ -73,7 +73,7 @@ class DataDeliveryTest(BaseClassTest):
         self.assertFalse(gpl3.exist_in_local(data_name='a'))
         self.assertFalse(gpl3.exist_in_gs(data_name='a'))
         table_ref = dataset_ref.table(table_id='a')
-        table = bq_client.get_table(table_ref=table_ref)
+        table = bq_client.get_table(table_ref)
         num_rows = table.num_rows
         self.assertEqual(num_rows, 5)
 
