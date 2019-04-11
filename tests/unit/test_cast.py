@@ -63,7 +63,7 @@ class CastTest(BaseClassTest):
             date_cols=['a'],
             timestamp_cols=['b'])
         table_ref = dataset_ref.table(table_id='a10')
-        table = bq_client.get_table(table_ref=table_ref)
+        table = bq_client.get_table(table_ref)
         f1, f2, f3, f4, f5, f6, f7 = table.schema
         self.assertEqual((f1.name, f1.field_type), ('a', 'DATE'))
         self.assertEqual((f2.name, f2.field_type), ('b', 'TIMESTAMP'))
@@ -85,7 +85,7 @@ class CastTest(BaseClassTest):
             dataframe=df0,
             bq_schema=bq_schema)
         table_ref = dataset_ref.table(table_id='a')
-        table = bq_client.get_table(table_ref=table_ref)
+        table = bq_client.get_table(table_ref)
         f1, f2 = table.schema
         self.assertEqual((f1.name, f1.field_type), ('x', 'FLOAT'))
         self.assertEqual((f2.name, f2.field_type), ('y', 'FLOAT'))
