@@ -46,9 +46,9 @@ class ListMethodsTest(BaseClassTest):
         populate_local_folder()
 
         self.assertEqual(
-            sorted(gpl3.list_local_file_paths(data_name='a')),
-            sorted([os.path.join(local_dir_path, 'a{}_local'.format(i)) for i in range(9, 14)]))
+            sorted([os.path.normpath(p) for p in gpl3.list_local_file_paths(data_name='a')]),
+            sorted([os.path.normpath(os.path.join(local_dir_path, 'a{}_local'.format(i))) for i in range(9, 14)]))
 
         self.assertEqual(
-            sorted(gpl3.list_local_file_paths(data_name='a1')),
-            sorted([os.path.join(local_dir_path, 'a{}_local'.format(i)) for i in range(10, 14)]))
+            sorted([os.path.normpath(p) for p in gpl3.list_local_file_paths(data_name='a1')]),
+            sorted([os.path.normpath(os.path.join(local_dir_path, 'a{}_local'.format(i))) for i in range(10, 14)]))
