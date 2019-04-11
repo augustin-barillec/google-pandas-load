@@ -13,7 +13,7 @@ setup(
     author_email='augustin.barillec@ysance.com',
     description="""
     Wrapper for conveying big data from A to B, where A and B are distinct 
-    and chosen among BigQuery, Storage, a local folder or pandas.
+    and chosen between BigQuery, Storage, a local folder and pandas.
     """,
     long_description=README,
     install_requires=REQUIREMENTS,

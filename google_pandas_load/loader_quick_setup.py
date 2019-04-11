@@ -59,7 +59,7 @@ class LoaderQuickSetup(Loader):
         local_dir_path (str, optional): See base class.
         generated_data_name_prefix (str, optional): See base class.
         max_concurrent_google_jobs (int, optional): See base class. Default value is 40 while the default value
-            for the base class is 10. The first value is intended for a scripting environment whereas the second one for
+            for the base class is 10. The first value is intended for a notebook environment whereas the second one for
             a production environment. In the latter case the amount of google computing resources is usually
             shared by several programs running in production.
         use_wildcard (bool, optional): See base class.
