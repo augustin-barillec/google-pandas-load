@@ -40,7 +40,8 @@ release = '1.0.0'
 # ones.
 extensions = [
     'sphinx.ext.napoleon',
-    'nbsphinx'
+    'nbsphinx',
+    'sphinx.ext.viewcode'
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -83,15 +84,16 @@ html_theme = 'alabaster'
 # documentation.
 #
 html_theme_options = {
-    "github_user": "augustin-barillec",
-    "github_repo": "google-pandas-load",
-    "github_banner": True,
+    'page_width': 'auto',
+    'github_user': 'augustin-barillec',
+    'github_repo': 'google-pandas-load',
+    'github_banner': True,
 }
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
-html_static_path = ['_static']
+html_static_path = ['_static/custom.css']
 
 # Custom sidebar templates, must be a dictionary that maps document names
 # to template names.
@@ -156,8 +158,7 @@ man_pages = [
 #  dir menu entry, description, category)
 texinfo_documents = [
     (master_doc, 'google-pandas-load', 'google-pandas-load Documentation',
-     author, 'google-pandas-load', 'One line description of project.',
-     'Miscellaneous'),
+     author, 'google-pandas-load'),
 ]
 
 

@@ -1,7 +1,7 @@
 Loader
 ======
 
-.. autoclass:: google_pandas_load.Loader
+.. autoclass:: google_pandas_load.loader.Loader
    :members:
    :show-inheritance:
 
