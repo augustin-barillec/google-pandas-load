@@ -84,7 +84,6 @@ html_theme = 'alabaster'
 # documentation.
 #
 html_theme_options = {
-    'page_width': 'auto',
     'github_user': 'augustin-barillec',
     'github_repo': 'google-pandas-load',
     'github_banner': True,
