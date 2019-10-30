@@ -113,21 +113,6 @@ class LoaderQuickSetup(Loader):
                          logger=logger)
 
     @property
-    def bq_client(self):
-        """google.cloud.bigquery.client.Client: See the bq_client parameter of the base class."""
-        return self._bq_client
-
-    @property
-    def dataset_ref(self):
-        """google.cloud.bigquery.dataset.DatasetReference: See the dataset_ref parameter of the base class."""
-        return self._dataset_ref
-
-    @property
     def gs_client(self):
         """google.cloud.storage.client.Client: The Storage client used to create the bucket."""
         return self._gs_client
-
-    @property
-    def bucket(self):
-        """google.cloud.storage.bucket.Bucket: See the bucket parameter of the base class."""
-        return self._bucket
