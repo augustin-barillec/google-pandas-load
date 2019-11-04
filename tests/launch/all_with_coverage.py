@@ -2,7 +2,7 @@ import os
 import unittest
 import coverage
 
-file_dir_path = os.path.abspath(os.path.dirname(__file__))
+file_dir_path = os.path.dirname(__file__)
 tests_dir_path = os.path.join(file_dir_path, '..')
 root_project_dir_path = os.path.join(tests_dir_path, '..')
 package_path = os.path.join(root_project_dir_path, 'google_pandas_load')

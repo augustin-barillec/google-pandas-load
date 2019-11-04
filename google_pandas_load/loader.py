@@ -31,7 +31,7 @@ class Loader:
         dataset_ref (google.cloud.bigquery.dataset.DatasetReference, optional):
             The dataset reference.
         bucket (google.cloud.storage.bucket.Bucket, optional): The bucket.
-        gs_dir_path_in_bucket (str, optional): The path of the directory in
+        gs_dir_path (str, optional): The path of the directory in
             the bucket.
         local_dir_path (str, optional): The path of the local folder.
         generated_data_name_prefix (str, optional): The prefix added to any
@@ -76,7 +76,7 @@ class Loader:
             bq_client=None,
             dataset_ref=None,
             bucket=None,
-            gs_dir_path_in_bucket=None,
+            gs_dir_path=None,
             local_dir_path=None,
             generated_data_name_prefix=None,
             max_concurrent_google_jobs=10,
@@ -87,23 +87,23 @@ class Loader:
             logger=logger_):
 
         if (
-            gs_dir_path_in_bucket is not None
-            and gs_dir_path_in_bucket.endswith('/')
+            gs_dir_path is not None
+            and gs_dir_path.endswith('/')
         ):
             raise ValueError('To ease Storage path concatenation, '
-                             'gs_dir_path_in_bucket must not end with /')
+                             'gs_dir_path must not end with /')
 
         self._bq_client = bq_client
         self._dataset_ref = dataset_ref
         self._bucket = bucket
-        self._gs_dir_path_in_bucket = gs_dir_path_in_bucket
+        self._gs_dir_path = gs_dir_path
         if self._bucket is not None:
             self._bucket_uri = 'gs://{}'.format(self._bucket.name)
-            if self._gs_dir_path_in_bucket is None:
+            if self._gs_dir_path is None:
                 self._gs_dir_uri = self._bucket_uri
             else:
                 self._gs_dir_uri = (self._bucket_uri + '/'
-                                    + self._gs_dir_path_in_bucket)
+                                    + self._gs_dir_path)
         self._local_dir_path = local_dir_path
         self._generated_data_name_prefix = generated_data_name_prefix
         self._mcgj = max_concurrent_google_jobs
@@ -157,14 +157,24 @@ class Loader:
         argument."""
         return self._bucket
 
+    @property
+    def gs_dir_path(self):
+        """str: The gs_dir_path given in the argument."""
+        return self._bucket
+
+    @property
+    def local_dir_path(self):
+        """str: The local_dir_path given in the argument."""
+        return self._local_dir_path
+
     def list_blobs(self, data_name):
         """Return the data named_ data_name in Storage as a list of
         Storage blobs.
         """
-        if self._gs_dir_path_in_bucket is None:
+        if self._gs_dir_path is None:
             prefix = data_name
         else:
-            prefix = self._gs_dir_path_in_bucket + '/' + data_name
+            prefix = self._gs_dir_path + '/' + data_name
         return list(self._bucket.list_blobs(prefix=prefix))
 
     def list_blob_uris(self, data_name):
@@ -357,10 +367,10 @@ class Loader:
             for local_file_path in self.list_local_file_paths(
                     data_name=config.data_name):
                 basename = os.path.basename(local_file_path)
-                if self._gs_dir_path_in_bucket is None:
+                if self._gs_dir_path is None:
                     name = basename
                 else:
-                    name = self._gs_dir_path_in_bucket + '/' + basename
+                    name = self._gs_dir_path + '/' + basename
                 blob = storage.Blob(name=name,
                                     bucket=self._bucket,
                                     chunk_size=self._chunk_size)
@@ -449,38 +459,38 @@ class Loader:
             raise ValueError('local_dir_path must be given if local is used')
 
     def xmload(self, configs):
-        """It works like :meth:`google_pandas_load.Loader.mload` but also
+        """It works like :meth:`google_pandas_load.loader.Loader.mload` but also
         returns extra informations about the data and the mload
         job's execution.
 
         Args:
             configs (list of google_pandas_load.LoadConfig):
-                See :class:`google_pandas_load.LoadConfig` for the format of
-                one configuration.
+                See :class:`google_pandas_load.load_config.LoadConfig` for
+                the format of one configuration.
 
         Returns:
-            args.Namespace: The xmload result res with the following attributes:
+            args.Namespace: The xmload result res with the following
+            attributes:
 
-                - res.load_results
-                  (list of (str or NoneType or pandas.DataFrame)): A list of
-                  load results.
+            - res.load_results (list of (str or NoneType or pandas.DataFrame)):
+              A list of load results.
 
-                - res.data_names (list of str): The names of the data.
-                  The i-th element is the data_name attached to
-                  configs[i], either given as an argument or generated by the
-                  loader.
+            - res.data_names (list of str): The names of the data.
+              The i-th element is the data_name attached to
+              configs[i], either given as an argument or generated by the
+              loader.
 
-                - res.duration (int): The mload job's duration.
+            - res.duration (int): The mload job's duration.
 
-                - res.durations (args.Namespace): A report res.durations
-                  providing the duration of each step of the mload job.
+            - res.durations (args.Namespace): A report res.durations
+              providing the duration of each step of the mload job.
 
-                - res.query_cost (float or NoneType): The query cost in
-                  US dollars of the query_to_bq part if any.
+            - res.query_cost (float or NoneType): The query cost in
+              US dollars of the query_to_bq part if any.
 
-                - res.query_costs (list of (float or NoneType)): The query
-                  costs in US dollars of the mload. The i-th element is the
-                  query cost of the load job configured by configs[i].
+            - res.query_costs (list of (float or NoneType)): The query
+              costs in US dollars of the mload. The i-th element is the
+              query cost of the load job configured by configs[i].
         """
         configs = [deepcopy(config) for config in configs]
         nb_of_configs = len(configs)
@@ -545,14 +555,14 @@ class Loader:
 
         Args:
             configs (list of google_pandas_load.LoadConfig):
-                See :class:`google_pandas_load.LoadConfig` for the format of
-                one configuration.
+                See :class:`google_pandas_load.load_config.LoadConfig` for the
+                format of one configuration.
 
         Returns:
             list of (str or NoneType or pandas.DataFrame): A list of of load
             results. The i-th element is the result of the load job configured
-            by configs[i]. See :meth:`google_pandas_load.Loader.load` for the
-            format of one load result.
+            by configs[i]. See :meth:`google_pandas_load.loader.Loader.load`
+            for the format of one load result.
         """
         return self.xmload(configs=configs).load_results
 
@@ -576,9 +586,9 @@ class Loader:
             delete_in_bq=True,
             delete_in_gs=True,
             delete_in_local=True):
-        """It works like  :meth:`google_pandas_load.Loader.load` but also
-        returns extra informations about the data and the load job's execution.
-        The prefix x is for extra.
+        """It works like  :meth:`google_pandas_load.loader.Loader.load` but
+        also returns extra informations about the data and the load job's
+        execution. The prefix x is for extra.
 
         Returns:
             argparse.Namespace: A xload result res with the following
@@ -676,106 +686,111 @@ class Loader:
         """Execute a load job whose configuration is specified by the
         arguments.
 
-         The data is transferred from source to destination. The valid values
-         for the source and the destination are: 'query', 'bq', 'gs', 'local'
-         and 'dataframe'.
+        The data is transferred from source to destination. The valid values
+        for the source and the destination are: 'query', 'bq', 'gs', 'local'
+        and 'dataframe'.
 
-         Downloading follows the path :
-         'query' -> 'bq' -> 'gs' -> 'local' -> 'dataframe' while uploading goes
-         in the opposite direction.
+        Downloading follows the path:
+        'query' -> 'bq' -> 'gs' -> 'local' -> 'dataframe' while uploading goes
+        in the opposite direction.
 
-         .. _moved:
+        .. _moved:
 
-         Warning:
-             **In general, data is moved, not copied!**
+        Warning:
+            **In general, data is moved, not copied!**
 
-             Once the load job has been executed, the data usually does not
-             exist anymore in the source and in any transitional locations.
+            Once the load job has been executed, the data usually does not
+            exist anymore in the source and in any transitional locations.
 
-             However two exceptions exist:
+            However two exceptions exist:
 
-             - When source = 'dataframe', the dataframe is not deleted in RAM.
-             - When destination = ‘query’, the data is not deleted in BigQuery,
-               so that it still exists somewhere. Indeed, in this case, the
-               load job returns a simple query which represents the data but
-               does not contain it.
+            - When source = 'dataframe', the dataframe is not deleted in RAM.
+            - When destination = ‘query’, the data is not deleted in BigQuery,
+              so that it still exists somewhere. Indeed, in this case, the
+              load job returns a simple query which represents the data but
+              does not contain it.
 
-             Use the delete_in_bq, delete_in_gs and delete_in_local parameters
-             to control the data deletion, during the execution of the load
-             job.
+            Use the delete_in_bq, delete_in_gs and delete_in_local parameters
+            to control the data deletion, during the execution of the load
+            job.
 
 
-         .. _pre-deletion:
+        .. _pre-deletion:
 
-         Warning:
-             **In general, pre-existing data is deleted!**
+        Warning:
+            **In general, pre-existing data is deleted!**
 
-             Before new data is moved to any location, the loader will usually
-             delete any prior data bearing the same name to prevent any
-             conflict.
+            Before new data is moved to any location, the loader will usually
+            delete any prior data bearing the same name to prevent any
+            conflict.
 
-             There is one exception:
+            There is one exception:
 
-             - When destination = ‘bq’ and the write_dispostion parameter is
-               set to ‘WRITE_APPEND’, new data is appended to pre-existing one
-               with the same name.
+            - When destination = ‘bq’ and the write_dispostion parameter is
+              set to ‘WRITE_APPEND’, new data is appended to pre-existing one
+              with the same name.
 
-         Args:
-             source (str): one of 'query', 'bq', 'gs', 'local', 'dataframe'.
-             destination (str): one of 'query', 'bq', 'gs', 'local',
+        Args:
+            source (str): one of 'query', 'bq', 'gs', 'local', 'dataframe'.
+            destination (str): one of 'query', 'bq', 'gs', 'local',
                 'dataframe'.
 
-             data_name (str, optional): The `name <named_>`_ of the data. If
+            data_name (str, optional): The `name <named_>`_ of the data. If
                 not passed, a name is generated by concatenating the
                 generated_data_name_prefix of the loader, if any, the current
                 timestamp and a random integer. This is useful when
                 source = 'query' and destination = 'dataframe' because the user
                 may not need to know the data_name.
 
-             query (str, optional): A BigQuery Standard Sql query. Required if
+            query (str, optional): A BigQuery Standard Sql query. Required if
                 source = 'query'.
-             dataframe (pandas.DataFrame, optional): A pandas dataframe.
+            dataframe (pandas.DataFrame, optional): A pandas dataframe.
                 Required if source = 'dataframe'.
 
-             write_disposition (google.cloud.bigquery.job.WriteDisposition,
-                optional): Specifies the action that occurs if data named_
+            write_disposition (google.cloud.bigquery.job.WriteDisposition, optional):
+                Specifies the action that occurs if data named_
                 data_name already exist in BigQuery. Defaults to
                 'WRITE_TRUNCATE'.
-             dtype (dict, optional): When destination = 'dataframe',
+            dtype (dict, optional): When destination = 'dataframe',
                 pandas.read_csv() is used and dtype is one of its parameters.
-             parse_dates (list of str, optional): When
+            parse_dates (list of str, optional): When
                 destination = 'dataframe', pandas.read_csv() is used and
                 parse_dates is one of its parameters.
-             infer_datetime_format (bool, optional): When
+            infer_datetime_format (bool, optional): When
                 destination = 'dataframe', pandas.read_csv() is used and
                 infer_datetime_format is one of its parameters. Defaults to
                 True.
-             date_cols (list of str, optional): If no bq_schema is passed, indicate which columns of a pandas dataframe
-                should have the BigQuery type DATE.
-             timestamp_cols (list of str, optional): If no bq_schema is passed, indicate which columns of a pandas
-                dataframe should have the BigQuery type TIMESTAMP.
-             bq_schema (list of google.cloud.bigquery.schema.SchemaField, optional): The table's schema in BigQuery.
-                 Used when destination = 'bq' and source != 'query'. When source = 'query', the bq_schema is inferred
-                 from the query. If not passed and source = 'dataframe', falls back to an inferred value
-                 from the dataframe with :meth:`google_pandas_load.LoadConfig.bq_schema_inferred_from_dataframe`.
+            date_cols (list of str, optional): If no bq_schema is passed,
+                indicate which columns of a pandas dataframe should have the
+                BigQuery type DATE.
+            timestamp_cols (list of str, optional): If no bq_schema is passed,
+                indicate which columns of a pandas dataframe should have the
+                BigQuery type TIMESTAMP.
+            bq_schema (list of google.cloud.bigquery.schema.SchemaField, optional):
+                The table's schema in BigQuery. Used when
+                destination = 'bq' and source != 'query'. When
+                source = 'query', the bq_schema is inferred from the query.
+                If not passed and source = 'dataframe', falls back to
+                an inferred value from the dataframe with :meth:`google_pandas_load.load_config.LoadConfig.bq_schema_inferred_from_dataframe`.
 
-             delete_in_bq (bool, optional): If set to False, data going from or through Bigquery is not deleted
-                in BigQuery. Defaults to True.
-             delete_in_gs (bool, optional): If set to False, data going from or through Storage is not deleted in
-                Storage. Defaults to True.
-             delete_in_local (bool, optional): If set to False, data going from or through the local folder is not
-                deleted in that folder. Defaults to True.
+            delete_in_bq (bool, optional): If set to False, data going from or
+                through Bigquery is not deleted in BigQuery. Defaults to True.
+            delete_in_gs (bool, optional): If set to False, data going from or
+                through Storage is not deleted in Storage. Defaults to True.
+            delete_in_local (bool, optional): If set to False, data going from
+                or through the local folder is not deleted in that folder.
+                Defaults to True.
 
-         Returns:
-             str or pandas.DataFrame or NoneType: The result of the load job:
+        Returns:
+            str or pandas.DataFrame or NoneType: The result of the load job:
 
-             - When destination = 'query', it returns the BigQuery standard SQL query:
-               "select * from \`project_id.dataset_id.data_name\`",
-               where the project_id is the dataset's one.
-             - When destination = 'dataframe', it returns a pandas dataframe populated with the data specified
-               by the arguments.
-             - In all other cases, it returns None.
-         """
+            - When destination = 'query', it returns the BigQuery standard
+              SQL query: "select * from \`project_id.dataset_id.data_name\`",
+              where the project_id is the dataset's one.
+            - When destination = 'dataframe', it returns a pandas dataframe
+              populated with the data specified by the arguments.
+            - In all other cases, it returns None.
+        """
 
         return self.xload(
                     source,

@@ -48,9 +48,9 @@ class LoaderSetupRaiseErrorTest(BaseClassTest):
 
     def test_raise_error_if_gs_dir_path_ends_with_slash(self):
         with self.assertRaises(ValueError) as cm:
-            Loader(gs_dir_path_in_bucket='dir/subdir/')
+            Loader(gs_dir_path='dir/subdir/')
         self.assertEqual(str(cm.exception),
-                         'To ease Storage path concatenation, gs_dir_path_in_bucket must not end with /')
+                         'To ease Storage path concatenation, gs_dir_path must not end with /')
 
 
 class LoadRaiseErrorTest(BaseClassTest):

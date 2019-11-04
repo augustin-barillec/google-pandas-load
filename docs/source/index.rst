@@ -59,7 +59,8 @@ Transfer data seamlessly from and to various locations:
    In general, data is moved, not copied! The precise behavior is stated `here <Loader.html#moved>`__.
 
 .. warning::
-   In general, before data is moved to any location, the loader will delete any prior existing data having the same name in
+   In general, before data is moved to any location, the loader will delete
+   any prior existing data having the same name in
    the location. This ensures a clean space for the upcoming data.
    The precise behavior is stated `here <Loader.html#pre-deletion>`__.
 
