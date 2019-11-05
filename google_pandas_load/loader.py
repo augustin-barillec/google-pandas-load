@@ -63,9 +63,9 @@ class Loader:
 
         - in BigQuery: the table in the dataset whose id is data_name.
         - in Storage: the blobs whose basename begins with data_name inside the
-            bucket directory.
+          bucket directory.
         - in local: the files whose basename begins with data_name inside the
-            local folder.
+          local folder.
 
         This definition is motivated by the fact that BigQuery splits a big
         table in several blobs when extracting it to Storage.
@@ -459,8 +459,8 @@ class Loader:
             raise ValueError('local_dir_path must be given if local is used')
 
     def xmload(self, configs):
-        """It works like :meth:`google_pandas_load.loader.Loader.mload` but also
-        returns extra informations about the data and the mload
+        """It works like :meth:`google_pandas_load.loader.Loader.mload` but
+        also returns extra informations about the data and the mload
         job's execution.
 
         Args:
@@ -497,9 +497,9 @@ class Loader:
         self._fill_missing_data_names(configs=configs)
         data_names = [config.data_name for config in configs]
         check_no_prefix(strings=data_names)
-        sliced_configs = [config.slice_config() for config in configs]
+        atomic_configs = [config.atomic_configs for config in configs]
 
-        names_of_atomic_functions_to_call = union_keys(dicts=sliced_configs)
+        names_of_atomic_functions_to_call = union_keys(dicts=atomic_configs)
         self._check_required_resources(names_of_atomic_functions_to_call)
 
         load_results = dict()
@@ -510,7 +510,7 @@ class Loader:
         for n, f in zip(ATOMIC_FUNCTION_NAMES, self._atomic_functions):
             f_indices = []
             f_configs = []
-            for i, s in enumerate(sliced_configs):
+            for i, s in enumerate(atomic_configs):
                 if n in s:
                     f_indices.append(i)
                     f_configs.append(s[n])
@@ -581,11 +581,7 @@ class Loader:
             infer_datetime_format=True,
             date_cols=None,
             timestamp_cols=None,
-            bq_schema=None,
-
-            delete_in_bq=True,
-            delete_in_gs=True,
-            delete_in_local=True):
+            bq_schema=None):
         """It works like  :meth:`google_pandas_load.loader.Loader.load` but
         also returns extra informations about the data and the load job's
         execution. The prefix x is for extra.
@@ -647,11 +643,7 @@ class Loader:
             infer_datetime_format=infer_datetime_format,
             date_cols=date_cols,
             timestamp_cols=timestamp_cols,
-            bq_schema=bq_schema,
-
-            delete_in_bq=delete_in_bq,
-            delete_in_gs=delete_in_gs,
-            delete_in_local=delete_in_local)
+            bq_schema=bq_schema)
 
         xmload_res = self.xmload(configs=[config])
 
@@ -678,11 +670,7 @@ class Loader:
             infer_datetime_format=True,
             date_cols=None,
             timestamp_cols=None,
-            bq_schema=None,
-
-            delete_in_bq=True,
-            delete_in_gs=True,
-            delete_in_local=True):
+            bq_schema=None):
         """Execute a load job whose configuration is specified by the
         arguments.
 
@@ -771,15 +759,7 @@ class Loader:
                 destination = 'bq' and source != 'query'. When
                 source = 'query', the bq_schema is inferred from the query.
                 If not passed and source = 'dataframe', falls back to
-                an inferred value from the dataframe with :meth:`google_pandas_load.load_config.LoadConfig.bq_schema_inferred_from_dataframe`.
-
-            delete_in_bq (bool, optional): If set to False, data going from or
-                through Bigquery is not deleted in BigQuery. Defaults to True.
-            delete_in_gs (bool, optional): If set to False, data going from or
-                through Storage is not deleted in Storage. Defaults to True.
-            delete_in_local (bool, optional): If set to False, data going from
-                or through the local folder is not deleted in that folder.
-                Defaults to True.
+                an inferred value from the dataframe with `this method <LoadConfig.html#google_pandas_load.load_config.LoadConfig.bq_schema_inferred_from_dataframe>`__.
 
         Returns:
             str or pandas.DataFrame or NoneType: The result of the load job:
@@ -806,8 +786,4 @@ class Loader:
                     infer_datetime_format=infer_datetime_format,
                     date_cols=date_cols,
                     timestamp_cols=timestamp_cols,
-                    bq_schema=bq_schema,
-
-                    delete_in_bq=delete_in_bq,
-                    delete_in_gs=delete_in_gs,
-                    delete_in_local=delete_in_local).load_result
+                    bq_schema=bq_schema).load_result

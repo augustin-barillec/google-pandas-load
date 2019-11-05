@@ -1,10 +1,11 @@
+import uuid
 from argparse import Namespace
 import numpy
 from google.cloud import bigquery
 from google_pandas_load.utils import build_atomic_function_names, \
     build_numpy_leaf_types
 from google_pandas_load.constants import LOCATIONS, REVERSED_LOCATIONS, \
-    MIDDLE_LOCATIONS, ATOMIC_FUNCTION_NAMES
+    MIDDLE_LOCATIONS
 
 integer_numpy_leaf_types = build_numpy_leaf_types(dtype=numpy.integer)
 float_numpy_leaf_types = build_numpy_leaf_types(dtype=numpy.floating)
@@ -36,11 +37,7 @@ class LoadConfig:
             infer_datetime_format=True,
             date_cols=None,
             timestamp_cols=None,
-            bq_schema=None,
-
-            delete_in_bq=True,
-            delete_in_gs=True,
-            delete_in_local=True):
+            bq_schema=None):
 
         self._source = source
         self._destination = destination
@@ -57,15 +54,11 @@ class LoadConfig:
         self._date_cols = date_cols
         self._bq_schema = bq_schema
 
-        self._delete_in_bq = delete_in_bq
-        self._delete_in_gs = delete_in_gs
-        self._delete_in_local = delete_in_local
-
         self._check_source_destination()
-        self._check_required_values()
+        self._check_required_arguments()
 
-        self._names_of_atomic_functions_to_call = \
-            self._build_names_of_atomic_functions_to_call()
+        self._transitional_data_name = (
+            self.data_name + '_' + str(uuid.uuid1().int))
 
         if self._bq_schema is None and self._dataframe is not None:
             self._infer_bq_schema_from_dataframe()
@@ -84,7 +77,7 @@ class LoadConfig:
         if self._source == self._destination:
             raise ValueError('source must be different from destination')
 
-    def _check_required_values(self):
+    def _check_required_arguments(self):
         if self._source == 'query' and self._query is None:
             raise ValueError("query must be given if source = 'query'")
 
@@ -103,7 +96,8 @@ class LoadConfig:
         ):
             raise ValueError('bq_schema is missing')
 
-    def _build_names_of_atomic_functions_to_call(self):
+    @property
+    def _names_of_atomic_functions_to_call(self):
         index_source = LOCATIONS.index(self._source)
         index_destination = LOCATIONS.index(self._destination)
         rindex_source = REVERSED_LOCATIONS.index(self._source)
@@ -114,6 +108,10 @@ class LoadConfig:
         else:
             return build_atomic_function_names(
                 REVERSED_LOCATIONS[rindex_source: rindex_destination + 1])
+
+    @property
+    def _number_of_atomic_functions_to_call(self):
+        return len(self._names_of_atomic_functions_to_call)
 
     @staticmethod
     def bq_schema_inferred_from_dataframe(
@@ -183,63 +181,76 @@ class LoadConfig:
             timestamp_cols=self._timestamp_cols,
             date_cols=self._date_cols)
 
-    def _query_to_bq_config(self):
+    def _source_data_name(self, atomic_function_position):
+        if atomic_function_position == 0:
+            return self.data_name
+        else:
+            return self._transitional_data_name
+
+    def _destination_data_name(self, atomic_function_position):
+        if atomic_function_position == (
+                self._number_of_atomic_functions_to_call - 1):
+            return self.data_name
+        else:
+            return self._transitional_data_name
+
+    @staticmethod
+    def _delete_in_source(atomic_function_position):
+        return atomic_function_position != 0
+
+    def _query_to_bq_config(self, position):
         return Namespace(
-            data_name=self.data_name,
+            destination_data_name=self._destination_data_name(position),
             query=self._query,
             write_disposition=self._write_disposition)
 
-    def _bq_to_gs_config(self):
+    def _bq_to_gs_config(self, position):
         return Namespace(
-            data_name=self.data_name,
-            delete_in_source=self._delete_in_bq)
+            source_data_name=self._source_data_name(position),
+            destination_data_name=self._destination_data_name(position),
+            delete_in_source=self._delete_in_source(position))
 
-    def _gs_to_local_config(self):
+    def _gs_to_local_config(self, position):
         return Namespace(
-            data_name=self.data_name,
-            delete_in_source=self._delete_in_gs)
+            source_data_name=self._source_data_name(position),
+            destination_data_name=self._destination_data_name(position),
+            delete_in_source=self._delete_in_source(position))
 
-    def _local_to_dataframe_config(self):
+    def _local_to_dataframe_config(self, position):
         return Namespace(
-            data_name=self.data_name,
+            source_data_name=self._source_data_name(position),
+            destination_data_name=self._destination_data_name(position),
+            delete_in_source=self._delete_in_source(position),
             dtype=self._dtype,
             parse_dates=self._parse_dates,
-            infer_datetime_format=self._infer_datetime_format,
-            delete_in_source=self._delete_in_local)
+            infer_datetime_format=self._infer_datetime_format)
 
-    def _dataframe_to_local_config(self):
+    def _dataframe_to_local_config(self, position):
         return Namespace(
-            data_name=self.data_name,
+            source_data_name=self._source_data_name(position),
             dataframe=self._dataframe)
 
-    def _local_to_gs_config(self):
+    def _local_to_gs(self, position):
         return Namespace(
-            data_name=self.data_name,
-            delete_in_source=self._delete_in_local)
+            source_data_name=self._source_data_name(position),
+            destination_data_name=self._destination_data_name(position),
+            delete_in_source=self._delete_in_source(position))
 
-    def _gs_to_bq_config(self):
+    def _gs_to_bq_config(self, position):
         return Namespace(
-            data_name=self.data_name,
+            source_data_name=self._source_data_name(position),
+            destination_data_name=self._destination_data_name(position),
+            delete_in_source=self._delete_in_source(position),
             schema=self._bq_schema,
-            write_disposition=self._write_disposition,
-            delete_in_source=self._delete_in_gs)
+            write_disposition=self._write_disposition)
 
-    def _bq_to_query_config(self):
+    def _bq_to_query_config(self, position):
         return Namespace(
-            data_name=self.data_name)
+            source_data_name=self._source_data_name(position))
 
-    def slice_config(self):
-        atomic_configs = [
-            self._query_to_bq_config(),
-            self._bq_to_gs_config(),
-            self._gs_to_local_config(),
-            self._local_to_dataframe_config(),
-            self._dataframe_to_local_config(),
-            self._local_to_gs_config(),
-            self._gs_to_bq_config(),
-            self._bq_to_query_config()]
+    @property
+    def atomic_configs(self):
         res = dict()
-        for n, c in zip(ATOMIC_FUNCTION_NAMES, atomic_configs):
-            if n in self._names_of_atomic_functions_to_call:
-                res[n] = c
+        for i, n in enumerate(self._names_of_atomic_functions_to_call):
+            res[n] = self.__dict__[n + '_config'](i)
         return res
