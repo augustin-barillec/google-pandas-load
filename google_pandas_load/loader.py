@@ -12,7 +12,9 @@ from google_pandas_load.utils import \
     timestamp_randint_string, \
     check_no_prefix, \
     union_keys
-from google_pandas_load.constants import ATOMIC_FUNCTION_NAMES
+from google_pandas_load.constants import \
+    ATOMIC_FUNCTION_NAMES, \
+    MIDDLE_LOCATIONS
 
 logger_ = logging.getLogger(name='Loader')
 
@@ -224,97 +226,119 @@ class Loader:
                     data_name=data_name):
                 os.remove(local_file_path)
 
-    def _query_to_bq(self, configs):
+    def _exist(self, location, data_name):
+        return self.__dict__['exist_in_{}'.format(location)][data_name]
+
+    def _is_source_clear(self, config):
+        return self._exist(config.source, config.data_name)
+
+    def _is_destination_clear(self, config):
+        return self._exist(config.destination, config.data_name)
+
+    def _check_if_data_in_source(self, config):
+        n, s = config.data_name, config.source
+        if self._is_source_clear(config):
+            raise ValueError('There is no data {} in {}'.format(n, s))
+
+    def _check_if_destination_clear(self, config):
+        n, d = config.data_name, config.destination
+        if not self._is_destination_clear(config):
+            raise ValueError('There is already data {} in {}'.format(n, d))
+
+    def _delete(self, location, data_name):
+        return self.__dict__['delete_in_{}'.format(location)][data_name]
+
+    def _clear_destination(self, atomic_config):
+        self._delete(
+            atomic_config.destination,
+            atomic_config.destination_data_name)
+
+    def _clear_source(self, atomic_config):
+        self._delete(
+            atomic_config.source,
+            atomic_config.source_data_name)
+
+    def _query_to_bq_job(self, query_to_bq_config):
+        config = query_to_bq_config
+        job_config = bigquery.job.QueryJobConfig()
+        job_config.destination = self._dataset_ref.table(
+            table_id=config.data_name)
+        job_config.write_disposition = config.write_disposition
+        job = self._bq_client.query(query=config.query,
+                                    job_config=job_config)
+        return job
+
+    def _query_to_bq(self, query_to_bq_configs):
+        configs = query_to_bq_configs
         self._logger.debug('Starting query to bq...')
         start_timestamp = datetime.now()
         total_bytes_billed_list = []
         nb_of_batches = len(configs)//self._mcgj + 1
         for i in range(nb_of_batches):
-            jobs = []
-            for config in configs[i*self._mcgj:(i+1)*self._mcgj]:
-                job_config = bigquery.job.QueryJobConfig()
-                job_config.destination = self._dataset_ref.table(
-                    table_id=config.data_name)
-                job_config.write_disposition = config.write_disposition
-                job = self._bq_client.query(query=config.query,
-                                            job_config=job_config)
-                jobs.append(job)
+            configs_to_process = configs[i*self._mcgj:(i+1)*self._mcgj]
+            jobs = [self._query_to_bq_job(c) for c in configs_to_process]
             wait_for_jobs(jobs=jobs)
             total_bytes_billed_list += [j.total_bytes_billed for j in jobs]
         costs = [round(tbb/10**12*5, 5) for tbb in total_bytes_billed_list]
         cost = sum(costs)
         end_timestamp = datetime.now()
         duration = (end_timestamp - start_timestamp).seconds
-        self._logger.debug('Ended query to bq [{}s, {}$]'.format(
-            duration, cost))
+        self._logger.debug(
+            'Ended query to bq [{}s, {}$]'.format(duration, cost))
         return duration, cost, costs
 
-    def _bq_to_gs(self, configs):
+    def _bq_to_gs_job(self, bq_to_gs_config):
+        config = bq_to_gs_config
+        source = self._dataset_ref.table(table_id=config.data_name)
+        job_config = bigquery.job.ExtractJobConfig()
+        job_config.compression = self._bq_to_gs_compression
+        destination_uri = (self._gs_dir_uri + '/' +
+                           config.data_name + self._bq_to_gs_ext)
+        job_config.field_delimiter = self._separator
+        job = self._bq_client.extract_table(
+            source=source,
+            destination_uris=destination_uri,
+            job_config=job_config)
+        return job
+
+    def _bq_to_gs(self, bq_to_gs_configs):
+        configs = bq_to_gs_configs
         self._logger.debug('Starting bq to gs...')
         start_timestamp = datetime.now()
-        for config in configs:
-            self.delete_in_gs(data_name=config.data_name)
+        map(self._clear_destination,
+            [c for c in configs if c.clear_destination])
         nb_of_batches = len(configs)//self._mcgj + 1
         for i in range(nb_of_batches):
-            jobs = []
-            for config in configs[i*self._mcgj:(i+1)*self._mcgj]:
-                if not self.exist_in_bq(data_name=config.data_name):
-                    raise ValueError(
-                        'There is no data named {} in bq'.format(
-                            config.data_name)
-                    )
-                source = self._dataset_ref.table(table_id=config.data_name)
-                job_config = bigquery.job.ExtractJobConfig()
-                job_config.compression = self._bq_to_gs_compression
-                destination_uri = (self._gs_dir_uri + '/' + config.data_name +
-                                   self._bq_to_gs_ext)
-                job_config.field_delimiter = self._separator
-                job = self._bq_client.extract_table(
-                    source=source,
-                    destination_uris=destination_uri,
-                    job_config=job_config)
-                jobs.append(job)
+            jobs = [self._query_to_bq_job(c) for c in configs]
             wait_for_jobs(jobs=jobs)
-        for config in configs:
-            if config.delete_in_source:
-                self.delete_in_bq(data_name=config.data_name)
+        map(self._clear_source, [c for c in configs if c.clear_source])
         end_timestamp = datetime.now()
         duration = (end_timestamp - start_timestamp).seconds
         self._logger.debug('Ended bq to gs [{}s]'.format(duration))
         return duration
 
-    def _gs_to_local(self, configs):
+    def _gs_to_local(self, gs_to_local_configs):
+        configs = gs_to_local_configs
         self._logger.debug('Starting gs to local...')
         start_timestamp = datetime.now()
+        map(self._clear_destination,
+            [c for c in configs if c.clear_destination])
         for config in configs:
-            self.delete_in_local(data_name=config.data_name)
-        for config in configs:
-            if not self.exist_in_gs(data_name=config.data_name):
-                raise ValueError(
-                    'There is no data named {} in gs'.format(
-                        config.data_name)
-                )
             for blob in self.list_blobs(data_name=config.data_name):
                 blob.download_to_filename(filename=os.path.join(
                     self._local_dir_path, os.path.basename(blob.name)))
-        for config in configs:
-            if config.delete_in_source:
-                self.delete_in_gs(data_name=config.data_name)
+        map(self._clear_source, [c for c in configs if c.clear_source])
         end_timestamp = datetime.now()
         duration = (end_timestamp - start_timestamp).seconds
         self._logger.debug('Ended gs to local [{}s]'.format(duration))
         return duration
 
-    def _local_to_dataframe(self, configs):
+    def _local_to_dataframe(self, local_to_dataframe_configs):
+        configs = local_to_dataframe_configs
         self._logger.debug('Starting local to dataframe...')
         start_timestamp = datetime.now()
         dataframes = []
         for config in configs:
-            if not self.exist_in_local(data_name=config.data_name):
-                raise ValueError(
-                    'There is no data named {} in local'.format(
-                        config.data_name)
-                )
             dataframe_bits = []
             for local_file_path in self.list_local_file_paths(
                     data_name=config.data_name):
@@ -327,19 +351,18 @@ class Loader:
                 dataframe_bits.append(dataframe_bit)
             dataframe = pandas.concat(dataframe_bits)
             dataframes.append(dataframe)
-        for config in configs:
-            if config.delete_in_source:
-                self.delete_in_local(data_name=config.data_name)
+        map(self._clear_source, [c for c in configs if c.clear_source])
         end_timestamp = datetime.now()
         duration = (end_timestamp - start_timestamp).seconds
         self._logger.debug('Ended local to dataframe [{}s]'.format(duration))
         return duration, dataframes
 
-    def _dataframe_to_local(self, configs):
+    def _dataframe_to_local(self, dataframe_to_local_configs):
+        configs = dataframe_to_local_configs
         self._logger.debug('Starting dataframe to local...')
         start_timestamp = datetime.now()
-        for config in configs:
-            self.delete_in_local(data_name=config.data_name)
+        map(self._clear_destination,
+            [c for c in configs if c.clear_destination])
         for config in configs:
             config.dataframe.to_csv(
                 path_or_buf=os.path.join(
@@ -356,14 +379,9 @@ class Loader:
     def _local_to_gs(self, configs):
         self._logger.debug('Starting local to gs...')
         start_timestamp = datetime.now()
+        map(self._clear_destination,
+            [c for c in configs if c.clear_destination])
         for config in configs:
-            self.delete_in_gs(data_name=config.data_name)
-        for config in configs:
-            if not self.exist_in_local(data_name=config.data_name):
-                raise ValueError(
-                    'There is no data named {} in local'.format(
-                        config.data_name)
-                )
             for local_file_path in self.list_local_file_paths(
                     data_name=config.data_name):
                 basename = os.path.basename(local_file_path)
@@ -375,41 +393,39 @@ class Loader:
                                     bucket=self._bucket,
                                     chunk_size=self._chunk_size)
                 blob.upload_from_filename(filename=local_file_path)
-        for config in configs:
-            if config.delete_in_source:
-                self.delete_in_local(data_name=config.data_name)
+        map(self._clear_source, [c for c in configs if c.clear_source])
         end_timestamp = datetime.now()
         duration = (end_timestamp - start_timestamp).seconds
         self._logger.debug('Ended local to gs [{}s]'.format(duration))
         return duration
+
+    def _gs_to_bq_job(self, gs_to_bq_config):
+        config = gs_to_bq_config
+        job_config = bigquery.job.LoadJobConfig()
+        job_config.field_delimiter = self._separator
+        job_config.schema = config.schema
+        job_config.skip_leading_rows = 1
+        job_config.write_disposition = config.write_disposition
+        job = self._bq_client.load_table_from_uri(
+            source_uris=self.list_blob_uris(
+                data_name=config.data_name),
+            destination=self._dataset_ref.table(
+                table_id=config.data_name),
+            job_config=job_config)
+        return job
 
     def _gs_to_bq(self, configs):
         self._logger.debug('Starting gs to bq...')
         start_timestamp = datetime.now()
         nb_of_batches = len(configs)//self._mcgj + 1
         for i in range(nb_of_batches):
+
             jobs = []
             for config in configs[i*self._mcgj:(i+1)*self._mcgj]:
-                if not self.exist_in_gs(data_name=config.data_name):
-                    raise ValueError(
-                        'There is no data named {} in gs'.format(
-                            config.data_name))
-                job_config = bigquery.job.LoadJobConfig()
-                job_config.field_delimiter = self._separator
-                job_config.schema = config.schema
-                job_config.skip_leading_rows = 1
-                job_config.write_disposition = config.write_disposition
-                job = self._bq_client.load_table_from_uri(
-                    source_uris=self.list_blob_uris(
-                        data_name=config.data_name),
-                    destination=self._dataset_ref.table(
-                        table_id=config.data_name),
-                    job_config=job_config)
+
                 jobs.append(job)
             wait_for_jobs(jobs=jobs)
-        for config in configs:
-            if config.delete_in_source:
-                self.delete_in_gs(data_name=config.data_name)
+        map(self._clear_source, [c for c in configs if c.clear_source])
         end_timestamp = datetime.now()
         duration = (end_timestamp - start_timestamp).seconds
         self._logger.debug('Ended gs to bq [{}s]'.format(duration))
@@ -492,6 +508,19 @@ class Loader:
               costs in US dollars of the mload. The i-th element is the
               query cost of the load job configured by configs[i].
         """
+
+
+        for config in configs:
+            if config._source in MIDDLE_LOCATIONS:
+                self._check_if_data_in_source(config)
+
+            if not config._overwrite:
+                self._check_if_destination_clear(config)
+
+
+
+            self.check_if_destination_empty(config)
+
         configs = [deepcopy(config) for config in configs]
         nb_of_configs = len(configs)
         self._fill_missing_data_names(configs=configs)

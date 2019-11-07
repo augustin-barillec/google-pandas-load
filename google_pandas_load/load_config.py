@@ -31,7 +31,7 @@ class LoadConfig:
             query=None,
             dataframe=None,
 
-            write_disposition='WRITE_TRUNCATE',
+            overwrite=False,
             dtype=None,
             parse_dates=None,
             infer_datetime_format=True,
@@ -46,7 +46,7 @@ class LoadConfig:
         self._query = query
         self._dataframe = dataframe
 
-        self._write_disposition = write_disposition
+        self._overwrite = overwrite
         self._dtype = dtype
         self._parse_dates = parse_dates
         self._infer_datetime_format = infer_datetime_format
@@ -63,37 +63,50 @@ class LoadConfig:
         if self._bq_schema is None and self._dataframe is not None:
             self._infer_bq_schema_from_dataframe()
 
-    def _check_source_destination(self):
+    def _check_source_value(self):
+        msg = """
+        source must be one of 'query' or 'bq' or 'gs' or 'local' or 'dataframe
+        """
         if self._source not in LOCATIONS:
-            raise ValueError(
-                "source must be one of 'query' or 'bq' or 'gs' or 'local' "
-                "or 'dataframe'")
+            raise ValueError(msg)
 
+    def _check_destination_value(self):
+        msg = """
+        destination must be one of 'query' or 'bq' or 'gs' or'local' or 
+        'dataframe'
+        """
         if self._destination not in LOCATIONS:
-            raise ValueError(
-                "destination must be one of 'query' or 'bq' or 'gs' or "
-                "'local' or 'dataframe'")
+            raise ValueError(msg)
 
+    def _check_source_different_from_destination(self):
         if self._source == self._destination:
             raise ValueError('source must be different from destination')
 
-    def _check_required_arguments(self):
+    def _check_if_query_missing(self):
         if self._source == 'query' and self._query is None:
             raise ValueError("query must be given if source = 'query'")
 
+    def _check_if_dataframe_missing(self):
         if self._source == 'dataframe' and self._dataframe is None:
             raise ValueError("dataframe must be given if source = 'dataframe'")
 
-        if self.data_name is None and (self._source in MIDDLE_LOCATIONS or
-                                       self._destination in MIDDLE_LOCATIONS):
-            raise ValueError("data_name must be given if source or "
-                             "destination is one of 'bq' or 'gs' or 'local'")
+    def _check_if_data_name_missing(self):
+        msg = """
+        data_name must be given if source or destination is one of 'bq' or 'gs' 
+        or 'local'
+        """
+        condition_1 = self.data_name is None
+        condition_2 = self._source in MIDDLE_LOCATIONS
+        condition_3 = self._destination in MIDDLE_LOCATIONS
 
-        if (
-                self._source in ('local', 'gs') and
-                self._destination in ('bq', 'query')
-                and self._bq_schema is None
-        ):
+        if condition_1 and (condition_2 or condition_3):
+            raise ValueError(msg)
+
+    def _check_if_bq_schema_missing(self):
+        condition_1 = self._source in ('local', 'gs')
+        condition_2 = self._destination in ('bq', 'query')
+        condition_3 = self._bq_schema is None
+        if condition_1 and condition_2 and condition_3:
             raise ValueError('bq_schema is missing')
 
     @property
@@ -194,12 +207,17 @@ class LoadConfig:
         else:
             return self._transitional_data_name
 
+    def _is_last_atomic_function(self, atomic_function_position):
+        return atomic_function_position == (
+                self._number_of_atomic_functions_to_call - 1)
+
     @staticmethod
     def _delete_in_source(atomic_function_position):
         return atomic_function_position != 0
 
     def _query_to_bq_config(self, position):
         return Namespace(
+            is_destination_transitional=self._is_last_atomic_function(position),
             destination_data_name=self._destination_data_name(position),
             query=self._query,
             write_disposition=self._write_disposition)
