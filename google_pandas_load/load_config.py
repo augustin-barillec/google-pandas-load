@@ -43,6 +43,8 @@ class LoadConfig:
         self._destination = destination
 
         self.data_name = data_name
+        self.source_data_name = self.data_name
+        self.destination_data_name = self.data_name
         self._query = query
         self._dataframe = dataframe
 
@@ -220,7 +222,7 @@ class LoadConfig:
             is_destination_transitional=self._is_last_atomic_function(position),
             destination_data_name=self._destination_data_name(position),
             query=self._query,
-            write_disposition=self._write_disposition)
+            write_disposition=self.write_disposition)
 
     def _bq_to_gs_config(self, position):
         return Namespace(
