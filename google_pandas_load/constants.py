@@ -8,3 +8,7 @@ ATOMIC_FUNCTION_NAMES = [
     'query_to_bq', 'bq_to_gs', 'gs_to_local', 'local_to_dataframe',
     'dataframe_to_local', 'local_to_gs', 'gs_to_bq', 'bq_to_query'
 ]
+
+BQ_CLIENT_ATOMIC_FUNCTION_NAMES = [
+    'query_to_bq', 'bq_to_gs', 'gs_to_bq'
+]

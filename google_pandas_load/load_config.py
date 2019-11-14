@@ -31,7 +31,7 @@ class LoadConfig:
             query=None,
             dataframe=None,
 
-            overwrite=False,
+            write_disposition=None,
             dtype=None,
             parse_dates=None,
             infer_datetime_format=True,
@@ -39,16 +39,14 @@ class LoadConfig:
             timestamp_cols=None,
             bq_schema=None):
 
-        self._source = source
-        self._destination = destination
+        self.source = source
+        self.destination = destination
 
         self.data_name = data_name
-        self.source_data_name = self.data_name
-        self.destination_data_name = self.data_name
         self._query = query
         self._dataframe = dataframe
 
-        self._overwrite = overwrite
+        self._write_disposition = write_disposition
         self._dtype = dtype
         self._parse_dates = parse_dates
         self._infer_datetime_format = infer_datetime_format
@@ -56,11 +54,12 @@ class LoadConfig:
         self._date_cols = date_cols
         self._bq_schema = bq_schema
 
-        self._check_source_destination()
-        self._check_required_arguments()
-
-        self._transitional_data_name = (
-            self.data_name + '_' + str(uuid.uuid1().int))
+        self._check_source_value()
+        self._check_destination_value()
+        self._check_source_different_from_destination()
+        self._check_if_query_missing()
+        self._check_if_dataframe_missing()
+        self._check_if_data_name_missing()
 
         if self._bq_schema is None and self._dataframe is not None:
             self._infer_bq_schema_from_dataframe()
@@ -69,7 +68,7 @@ class LoadConfig:
         msg = """
         source must be one of 'query' or 'bq' or 'gs' or 'local' or 'dataframe
         """
-        if self._source not in LOCATIONS:
+        if self.source not in LOCATIONS:
             raise ValueError(msg)
 
     def _check_destination_value(self):
@@ -77,7 +76,7 @@ class LoadConfig:
         destination must be one of 'query' or 'bq' or 'gs' or'local' or 
         'dataframe'
         """
-        if self._destination not in LOCATIONS:
+        if self.destination not in LOCATIONS:
             raise ValueError(msg)
 
     def _check_source_different_from_destination(self):
@@ -196,81 +195,38 @@ class LoadConfig:
             timestamp_cols=self._timestamp_cols,
             date_cols=self._date_cols)
 
-    def _source_data_name(self, atomic_function_position):
-        if atomic_function_position == 0:
-            return self.data_name
-        else:
-            return self._transitional_data_name
-
-    def _destination_data_name(self, atomic_function_position):
-        if atomic_function_position == (
-                self._number_of_atomic_functions_to_call - 1):
-            return self.data_name
-        else:
-            return self._transitional_data_name
-
-    def _is_last_atomic_function(self, atomic_function_position):
-        return atomic_function_position == (
-                self._number_of_atomic_functions_to_call - 1)
-
-    @staticmethod
-    def _delete_in_source(atomic_function_position):
-        return atomic_function_position != 0
-
-    def _query_to_bq_config(self, position):
+    def _query_to_bq_config(self):
         return Namespace(
-            is_destination_transitional=self._is_last_atomic_function(position),
-            destination_data_name=self._destination_data_name(position),
             query=self._query,
-            write_disposition=self.write_disposition)
+            write_disposition=self._write_disposition)
 
-    def _bq_to_gs_config(self, position):
+    def _local_to_dataframe_config(self):
         return Namespace(
-            source_data_name=self._source_data_name(position),
-            destination_data_name=self._destination_data_name(position),
-            delete_in_source=self._delete_in_source(position))
-
-    def _gs_to_local_config(self, position):
-        return Namespace(
-            source_data_name=self._source_data_name(position),
-            destination_data_name=self._destination_data_name(position),
-            delete_in_source=self._delete_in_source(position))
-
-    def _local_to_dataframe_config(self, position):
-        return Namespace(
-            source_data_name=self._source_data_name(position),
-            destination_data_name=self._destination_data_name(position),
-            delete_in_source=self._delete_in_source(position),
             dtype=self._dtype,
             parse_dates=self._parse_dates,
             infer_datetime_format=self._infer_datetime_format)
 
-    def _dataframe_to_local_config(self, position):
-        return Namespace(
-            source_data_name=self._source_data_name(position),
-            dataframe=self._dataframe)
+    def _dataframe_to_local_config(self):
+        return Namespace(dataframe=self._dataframe)
 
-    def _local_to_gs(self, position):
+    def _gs_to_bq_config(self):
         return Namespace(
-            source_data_name=self._source_data_name(position),
-            destination_data_name=self._destination_data_name(position),
-            delete_in_source=self._delete_in_source(position))
-
-    def _gs_to_bq_config(self, position):
-        return Namespace(
-            source_data_name=self._source_data_name(position),
-            destination_data_name=self._destination_data_name(position),
-            delete_in_source=self._delete_in_source(position),
             schema=self._bq_schema,
             write_disposition=self._write_disposition)
-
-    def _bq_to_query_config(self, position):
-        return Namespace(
-            source_data_name=self._source_data_name(position))
 
     @property
     def atomic_configs(self):
         res = dict()
         for i, n in enumerate(self._names_of_atomic_functions_to_call):
-            res[n] = self.__dict__[n + '_config'](i)
+            atomic_config_name = '_' + n + '_config'
+            if atomic_config_name in self.__dict__:
+                res[n] = self.__dict__[atomic_config_name]()
+            else:
+                res[n] = Namespace()
+            res[n].data_name = self.data_name
+            source, destination = n.split('_to_')
+            res[n].source = source
+            res[n].destination = destination
+            if res[n].source in MIDDLE_LOCATIONS:
+                res[n].clear_source = (i != 0)
         return res

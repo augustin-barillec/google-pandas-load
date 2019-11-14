@@ -14,6 +14,7 @@ from google_pandas_load.utils import \
     union_keys
 from google_pandas_load.constants import \
     ATOMIC_FUNCTION_NAMES, \
+    BQ_CLIENT_ATOMIC_FUNCTION_NAMES, \
     MIDDLE_LOCATIONS
 
 logger_ = logging.getLogger(name='Loader')
@@ -129,16 +130,6 @@ class Loader:
         self._separator = separator
         self._chunk_size = chunk_size
         self._logger = logger
-        self._atomic_functions = [
-            self._query_to_bq,
-            self._bq_to_gs,
-            self._gs_to_local,
-            self._local_to_dataframe,
-            self._dataframe_to_local,
-            self._local_to_gs,
-            self._gs_to_bq,
-            self._bq_to_query
-        ]
 
     @property
     def bq_client(self):
@@ -233,24 +224,24 @@ class Loader:
         return self.__dict__['delete_in_{}'.format(location)][data_name]
 
     def _is_source_clear(self, config):
-        return self._exist(config.source, config.source_data_name)
+        return self._exist(config.source, config.data_name)
 
     def _is_destination_clear(self, config):
-        return self._exist(config.destination, config.destination_data_name)
+        return self._exist(config.destination, config.data_name)
 
     def _clear_source(self, config):
-        self._delete(config.source, config.source_data_name)
+        self._delete(config.source, config.data_name)
 
     def _clear_destination(self, config):
-        self._delete(config.destination, config.destination_data_name)
+        self._delete(config.destination, config.data_name)
 
     def _check_if_data_in_source(self, config):
-        n, s = config.source_data_name, config.source
+        n, s = config.data_name, config.source
         if self._is_source_clear(config):
             raise ValueError('There is no data {} in {}'.format(n, s))
 
     def _check_if_destination_clear(self, config):
-        n, d = config.destination_data_name, config.destination
+        n, d = config.data_name, config.destination
         if not self._is_destination_clear(config):
             raise ValueError('There is already data {} in {}'.format(n, d))
 
@@ -258,7 +249,7 @@ class Loader:
         config = query_to_bq_config
         job_config = bigquery.job.QueryJobConfig()
         job_config.destination = self._dataset_ref.table(
-            table_id=config.destination_data_name)
+            table_id=config.data_name)
         job_config.write_disposition = config.write_disposition
         job = self._bq_client.query(
             query=config.query,
@@ -267,11 +258,11 @@ class Loader:
 
     def _bq_to_gs_job(self, bq_to_gs_config):
         config = bq_to_gs_config
-        source = self._dataset_ref.table(table_id=config.source_data_name)
+        source = self._dataset_ref.table(table_id=config.data_name)
         job_config = bigquery.job.ExtractJobConfig()
         job_config.compression = self._bq_to_gs_compression
         destination_uri = (self._gs_dir_uri + '/'
-                           + config.destination_data_name
+                           + config.data_name
                            + self._bq_to_gs_ext)
         job_config.field_delimiter = self._separator
         job = self._bq_client.extract_table(
@@ -287,9 +278,9 @@ class Loader:
         job_config.schema = config.schema
         job_config.skip_leading_rows = 1
         job_config.write_disposition = config.write_disposition
-        source_uris = self.list_blob_uris(data_name=config.source_data_name)
+        source_uris = self.list_blob_uris(data_name=config.data_name)
         destination = self._dataset_ref.table(
-            table_id=config.destination_data_name)
+            table_id=config.data_name)
         job = self._bq_client.load_table_from_uri(
             source_uris=source_uris,
             destination=destination,
@@ -297,16 +288,17 @@ class Loader:
         return job
 
     def _blob_to_local_file(self, blob):
-        basename = os.path.basename(blob.name)
-        local_file_path = os.path.join(self._local_dir_path, basename)
-        blob.download_to_filename(local_file_path)
+        blob_basename = blob.name.split('/')[-1]
+        local_file_path = os.path.join(self._local_dir_path,
+                                       blob_basename)
+        blob.download_to_filename(filename=local_file_path)
 
     def _local_file_to_blob(self, local_file_path):
-        basename = os.path.basename(local_file_path)
+        local_file_basename = os.path.basename(local_file_path)
         if self._gs_dir_path is None:
-            blob_name = basename
+            blob_name = local_file_basename
         else:
-            blob_name = self._gs_dir_path + '/' + basename
+            blob_name = self._gs_dir_path + '/' + local_file_basename
         blob = storage.Blob(name=blob_name,
                             bucket=self._bucket,
                             chunk_size=self._chunk_size)
@@ -334,13 +326,51 @@ class Loader:
             self._dataset_ref.dataset_id,
             table_id)
 
-    def _launch_bq_client_job(self, config):
-        s = config.source
-        d = config.destination
-        job = self.__dict__['_{}_to_{}_job'.format(s, d)](config)
+    def _single_gs_to_local(self, gs_to_local_config):
+        data_name = gs_to_local_config.data_name
+        blobs = self.list_blobs(data_name=data_name)
+        map(self._blob_to_local_file, blobs)
+
+    def _single_local_to_gs(self, local_to_gs_config):
+        data_name = local_to_gs_config.data_name
+        local_file_paths = self.list_local_file_paths(data_name=data_name)
+        map(self._local_file_to_blob, local_file_paths)
+
+    def _single_local_to_dataframe(self, local_to_dataframe_config):
+        config = local_to_dataframe_config
+        data_name = config.data_name
+        local_file_paths = self.list_local_file_paths(data_name=data_name)
+        dataframes = map(
+            lambda local_file_path:
+            self._local_file_to_dataframe(
+                local_file_path,
+                config.dtype,
+                config.parse_dates,
+                config.infer_datetime_format),
+            local_file_paths)
+        dataframe = pandas.concat(dataframes)
+        return dataframe
+
+    def _single_dataframe_to_local(self, dataframe_to_local_config):
+        config = dataframe_to_local_config
+        data_name = config.data_name
+        ext = self._dataframe_to_local_ext
+        dataframe = config.dataframe
+        local_file_path = os.path.join(self._local_dir_path, data_name + ext)
+        self._dataframe_to_local_file(dataframe, local_file_path)
+
+    def _single_bq_to_query(self, bq_to_query_config):
+        data_name = bq_to_query_config.data_name
+        return self._table_id_to_query(table_id=data_name)
+
+    def _launch_bq_client_job(self, atomic_config):
+        s = atomic_config.source
+        d = atomic_config.destination
+        job = self.__dict__['_{}_to_{}_job'.format(s, d)](atomic_config)
         return job
 
-    def _execute_bq_client_jobs(self, configs):
+    def _execute_bq_client_jobs(self, atomic_configs):
+        configs = atomic_configs
         batch_size = self._max_concurrent_google_jobs
         nb_of_batches = len(configs) // batch_size + 1
         jobs = []
@@ -352,170 +382,58 @@ class Loader:
             wait_for_jobs(jobs=jobs)
         return jobs
 
-    def _execute_single_transfer(self, config):
-        s = config.source
-        d = config.destination
-        return self.__dict__['_single_{}_to_{}'.format(s, d)](config)
+    def _execute_non_bq_client_job(self, atomic_config):
+        s = atomic_config.source
+        d = atomic_config.destination
+        return self.__dict__['_single_{}_to_{}'.format(s, d)](atomic_config)
 
-    def _execute_transfers_sequentially(self, configs):
-        return map(self._execute_single_transfer, configs)
+    def _execute_non_bq_client_jobs(self, atomic_configs):
+        return list(map(self._execute_non_bq_client_job, atomic_configs))
 
-    def _transfer_helper(self, configs, pre_process, parallel, post_process):
-        start_timestamp = datetime.now()
-        if pre_process:
-            for config in configs:
-                if config.clear_destination:
-                    self._clear_destination(config)
-                else:
-                    self._check_if_destination_clear(config)
-
-        if parallel:
-            results = self._execute_bq_client_jobs(configs)
-        else:
-            results = self._execute_transfers_sequentially(configs)
-
-        if post_process:
-            for config in configs:
-                if config.clear_source:
-                    self._check_if_destination_clear(config)
-
-        end_timestamp = datetime.now()
-        duration = (end_timestamp - start_timestamp).seconds
-        return results, duration
-
-    def _common_transfer(
-            self,
-            configs,
-            pre_process,
-            parallel,
-            post_process,
-            return_results):
+    def _atomic_transfer(self, atomic_configs):
+        configs = atomic_configs
 
         source = configs[0].source
         destination = configs[0].destination
+        atomic_function_name = '{}_to_{}'.format(source, destination)
 
         self._logger.debug('Starting {} to {}...'.format(source, destination))
-        results, duration = self._transfer_helper(configs, pre_process,
-                                                  parallel, post_process)
-        self._logger.debug('Ended {} to {} [{}s]'.format(
-            source, destination, duration))
-        if return_results:
-            return results, duration
+
+        start_timestamp = datetime.now()
+        if destination in MIDDLE_LOCATIONS:
+            map(self._check_if_data_in_source, configs)
+            map(self._clear_destination, configs)
+
+        if atomic_function_name in BQ_CLIENT_ATOMIC_FUNCTION_NAMES:
+            load_results = self._execute_bq_client_jobs(configs)
         else:
-            return duration
+            load_results = self._execute_non_bq_client_jobs(configs)
 
-    def _query_to_bq(self, query_to_bq_configs):
-        self._logger.debug('Starting query to bq...')
-        jobs, duration = self._transfer_helper(
-            configs=query_to_bq_configs,
-            pre_process=False,
-            parallel=True,
-            post_process=False)
-        total_bytes_billed_list = [j.total_bytes_billed for j in jobs]
-        costs = [round(tbb / 10 ** 12 * 5, 5) for tbb in
-                 total_bytes_billed_list]
-        cost = sum(costs)
-        self._logger.debug('Ended query to bq [{}s, {}$]'.format(
-            duration, cost))
-        return duration, cost, costs
+        if source in MIDDLE_LOCATIONS:
+            for config in configs:
+                if config.clear_source:
+                    self._clear_source(config)
 
-    def _bq_to_gs(self, bq_to_gs_configs):
-        return self._common_transfer(
-            configs=bq_to_gs_configs,
-            pre_process=True,
-            parallel=True,
-            post_process=True,
-            return_results=False)
+        end_timestamp = datetime.now()
+        duration = (end_timestamp - start_timestamp).seconds
 
-    def _gs_to_local(self, gs_to_local_configs):
-        return self._common_transfer(
-            configs=gs_to_local_configs,
-            pre_process=True,
-            parallel=True,
-            post_process=True,
-            return_results=False)
+        res = {'load_results': load_results, 'duration': duration}
 
-    def _local_to_dataframe(self, local_to_dataframe_configs):
-        return self._common_transfer(
-            configs=local_to_dataframe_configs,
-            pre_process=False,
-            parallel=False,
-            post_process=True,
-            return_results=True)
+        if atomic_function_name != 'query_to_bq':
+            msg = 'Ended {} to {} [{}s]'.format(source, destination, duration)
+            self._logger.debug(msg)
+        else:
+            jobs = load_results
+            total_bytes_billed_list = [j.total_bytes_billed for j in jobs]
+            costs = [round(tbb / 10 ** 12 * 5, 5)
+                     for tbb in total_bytes_billed_list]
+            cost = sum(costs)
+            msg = 'Ended source to bq [{}s, {}$]'.format(duration, cost)
+            self._logger.debug(msg)
+            res['cost'] = cost
+            res['costs'] = costs
 
-    def _dataframe_to_local(self, dataframe_to_local_configs):
-        return self._common_transfer(
-            configs=dataframe_to_local_configs,
-            pre_process=True,
-            parallel=False,
-            post_process=False,
-            return_results=False)
-
-    def _local_to_gs(self, local_to_gs_configs):
-        return self._common_transfer(
-            configs=local_to_gs_configs,
-            pre_process=True,
-            parallel=False,
-            post_process=True,
-            return_results=False)
-
-    def _gs_to_bq(self, gs_to_bq_configs):
-        return self._common_transfer(
-            configs=gs_to_bq_configs,
-            pre_process=False,
-            parallel=True,
-            post_process=True,
-            return_results=False)
-
-    def _bq_to_query(self, bq_to_query_configs):
-        return self._common_transfer(
-            configs=bq_to_query_configs,
-            pre_process=False,
-            parallel=False,
-            post_process=False,
-            return_results=True)
-
-    def _single_local_to_gs(self, local_to_gs_config):
-        data_name = local_to_gs_config.data_name
-        local_file_paths = self.list_local_file_paths(data_name=data_name)
-        map(self._local_file_to_blob, local_file_paths)
-
-    def _one_local_to_dataframe(self, local_to_dataframe_config):
-        config = local_to_dataframe_config
-        data_name = config.data_name
-        local_file_paths = self.list_local_file_paths(data_name=data_name)
-        dataframes = map(
-            lambda local_file_path:
-                self._local_file_to_dataframe(
-                    local_file_path,
-                    config.dtype,
-                    config.parse_dates,
-                    config.infer_datetime_format),
-            local_file_paths)
-        dataframe = pandas.concat(dataframes)
-        return dataframe
-
-    def _one_dataframe_to_local(self, dataframe_to_local_config):
-        config = dataframe_to_local_config
-        data_name = config.data_name
-        ext = self._dataframe_to_local_ext
-        dataframe = config.dataframe
-        local_file_path = os.path.join(self._local_dir_path, data_name + ext)
-        self._dataframe_to_local_file(dataframe, local_file_path)
-
-    def _one_bq_to_query(self, bq_to_query_config):
-        data_name = bq_to_query_config.data_name
-        return self._table_id_to_query(table_id=data_name)
-
-
-
-
-
-
-
-
-
-
+        return res
 
     def _fill_missing_data_names(self, configs):
         for config in configs:
@@ -579,18 +497,9 @@ class Loader:
               costs in US dollars of the mload. The i-th element is the
               query cost of the load job configured by configs[i].
         """
-
-
         for config in configs:
-            if config._source in MIDDLE_LOCATIONS:
+            if config.source in MIDDLE_LOCATIONS:
                 self._check_if_data_in_source(config)
-
-            if not config._overwrite:
-                self._check_if_destination_clear(config)
-
-
-
-            self.check_if_destination_empty(config)
 
         configs = [deepcopy(config) for config in configs]
         nb_of_configs = len(configs)
@@ -600,37 +509,40 @@ class Loader:
         atomic_configs = [config.atomic_configs for config in configs]
 
         names_of_atomic_functions_to_call = union_keys(dicts=atomic_configs)
-        self._check_required_resources(names_of_atomic_functions_to_call)
+        self._check_if_bq_client_missing(names_of_atomic_functions_to_call)
+        self._check_if_dataset_ref_missing(names_of_atomic_functions_to_call)
+        self._check_if_bucket_missing(names_of_atomic_functions_to_call)
+        self._check_if_local_dir_missing(names_of_atomic_functions_to_call)
 
         load_results = dict()
         duration = 0
         durations = dict()
         query_cost = None
         query_costs = dict()
-        for n, f in zip(ATOMIC_FUNCTION_NAMES, self._atomic_functions):
-            f_indices = []
-            f_configs = []
+        for n in ATOMIC_FUNCTION_NAMES:
+            n_indices = []
+            n_configs = []
             for i, s in enumerate(atomic_configs):
                 if n in s:
-                    f_indices.append(i)
-                    f_configs.append(s[n])
-            if not f_configs:
+                    n_indices.append(i)
+                    n_configs.append(s[n])
+            if not n_configs:
                 durations[n] = None
                 continue
-            res = f(configs=f_configs)
+            n_res = self._atomic_transfer(atomic_configs=n_configs)
+            n_load_results = n_res['load_results']
+            n_duration = n_res['duration']
             if n == 'query_to_bq':
-                f_duration, f_cost, f_costs = res
-                query_cost = f_cost
-                for i in f_indices:
-                    query_costs[i] = f_costs.pop(0)
+                n_cost = n_res['cost']
+                n_costs = n_res['costs']
+                query_cost = n_cost
+                for i in n_indices:
+                    query_costs[i] = n_costs.pop(0)
             elif n in ('local_to_dataframe', 'bq_to_query'):
-                f_duration, f_load_results = res
-                for i in f_indices:
-                    load_results[i] = f_load_results.pop(0)
-            else:
-                f_duration = res
-            durations[n] = f_duration
-            duration += f_duration
+                for i in n_indices:
+                    load_results[i] = n_load_results.pop(0)
+            durations[n] = n_duration
+            duration += n_duration
 
         load_results = [load_results.get(i) for i in range(nb_of_configs)]
         durations = Namespace(**durations)
