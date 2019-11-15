@@ -80,15 +80,15 @@ class LoadConfig:
             raise ValueError(msg)
 
     def _check_source_different_from_destination(self):
-        if self._source == self._destination:
+        if self.source == self.destination:
             raise ValueError('source must be different from destination')
 
     def _check_if_query_missing(self):
-        if self._source == 'query' and self._query is None:
+        if self.source == 'query' and self._query is None:
             raise ValueError("query must be given if source = 'query'")
 
     def _check_if_dataframe_missing(self):
-        if self._source == 'dataframe' and self._dataframe is None:
+        if self.source == 'dataframe' and self._dataframe is None:
             raise ValueError("dataframe must be given if source = 'dataframe'")
 
     def _check_if_data_name_missing(self):
@@ -97,25 +97,25 @@ class LoadConfig:
         or 'local'
         """
         condition_1 = self.data_name is None
-        condition_2 = self._source in MIDDLE_LOCATIONS
-        condition_3 = self._destination in MIDDLE_LOCATIONS
+        condition_2 = self.source in MIDDLE_LOCATIONS
+        condition_3 = self.destination in MIDDLE_LOCATIONS
 
         if condition_1 and (condition_2 or condition_3):
             raise ValueError(msg)
 
     def _check_if_bq_schema_missing(self):
-        condition_1 = self._source in ('local', 'gs')
-        condition_2 = self._destination in ('bq', 'query')
+        condition_1 = self.source in ('local', 'gs')
+        condition_2 = self.destination in ('bq', 'query')
         condition_3 = self._bq_schema is None
         if condition_1 and condition_2 and condition_3:
             raise ValueError('bq_schema is missing')
 
     @property
     def _names_of_atomic_functions_to_call(self):
-        index_source = LOCATIONS.index(self._source)
-        index_destination = LOCATIONS.index(self._destination)
-        rindex_source = REVERSED_LOCATIONS.index(self._source)
-        rindex_destination = REVERSED_LOCATIONS.index(self._destination)
+        index_source = LOCATIONS.index(self.source)
+        index_destination = LOCATIONS.index(self.destination)
+        rindex_source = REVERSED_LOCATIONS.index(self.source)
+        rindex_destination = REVERSED_LOCATIONS.index(self.destination)
         if index_source < index_destination:
             return build_atomic_function_names(
                 LOCATIONS[index_source: index_destination + 1])

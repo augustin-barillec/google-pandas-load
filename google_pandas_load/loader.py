@@ -89,24 +89,17 @@ class Loader:
             chunk_size=2**28,
             logger=logger_):
 
-        if (
-            gs_dir_path is not None
-            and gs_dir_path.endswith('/')
-        ):
-            raise ValueError('To ease Storage path concatenation, '
-                             'gs_dir_path must not end with /')
-
         self._bq_client = bq_client
         self._dataset_ref = dataset_ref
         self._bucket = bucket
         self._gs_dir_path = gs_dir_path
+        self._check_gs_dir_path_format()
         if self._bucket is not None:
             self._bucket_uri = 'gs://{}'.format(self._bucket.name)
             if self._gs_dir_path is None:
                 self._gs_dir_uri = self._bucket_uri
             else:
-                self._gs_dir_uri = (self._bucket_uri + '/'
-                                    + self._gs_dir_path)
+                self._gs_dir_uri = self._bucket_uri + '/' + self._gs_dir_path
         self._local_dir_path = local_dir_path
         self._generated_data_name_prefix = generated_data_name_prefix
         self._max_concurrent_google_jobs = max_concurrent_google_jobs
@@ -226,24 +219,11 @@ class Loader:
     def _is_source_clear(self, config):
         return self._exist(config.source, config.data_name)
 
-    def _is_destination_clear(self, config):
-        return self._exist(config.destination, config.data_name)
-
     def _clear_source(self, config):
         self._delete(config.source, config.data_name)
 
     def _clear_destination(self, config):
         self._delete(config.destination, config.data_name)
-
-    def _check_if_data_in_source(self, config):
-        n, s = config.data_name, config.source
-        if self._is_source_clear(config):
-            raise ValueError('There is no data {} in {}'.format(n, s))
-
-    def _check_if_destination_clear(self, config):
-        n, d = config.data_name, config.destination
-        if not self._is_destination_clear(config):
-            raise ValueError('There is already data {} in {}'.format(n, d))
 
     def _query_to_bq_job(self, query_to_bq_config):
         config = query_to_bq_config
@@ -382,19 +362,25 @@ class Loader:
             wait_for_jobs(jobs=jobs)
         return jobs
 
-    def _execute_non_bq_client_job(self, atomic_config):
+    def _execute_atomic_load(self, atomic_config):
         s = atomic_config.source
         d = atomic_config.destination
         return self.__dict__['_single_{}_to_{}'.format(s, d)](atomic_config)
 
-    def _execute_non_bq_client_jobs(self, atomic_configs):
-        return list(map(self._execute_non_bq_client_job, atomic_configs))
+    def _execute_atomic_loads(self, atomic_configs):
+        return list(map(self._execute_atomic_load, atomic_configs))
 
-    def _atomic_transfer(self, atomic_configs):
+    def _atomic_load(self, atomic_configs):
         configs = atomic_configs
 
         source = configs[0].source
         destination = configs[0].destination
+
+        if not all([c.source == source and c.destination == destination
+                    for c in configs]):
+            raise ValueError('All atomic configs given in the argument must '
+                             'have the same source and the same destination')
+
         atomic_function_name = '{}_to_{}'.format(source, destination)
 
         self._logger.debug('Starting {} to {}...'.format(source, destination))
@@ -405,9 +391,9 @@ class Loader:
             map(self._clear_destination, configs)
 
         if atomic_function_name in BQ_CLIENT_ATOMIC_FUNCTION_NAMES:
-            load_results = self._execute_bq_client_jobs(configs)
+            atomic_load_results = self._execute_bq_client_jobs(configs)
         else:
-            load_results = self._execute_non_bq_client_jobs(configs)
+            atomic_load_results = list(map(self._execute_atomic_load, configs))
 
         if source in MIDDLE_LOCATIONS:
             for config in configs:
@@ -417,13 +403,13 @@ class Loader:
         end_timestamp = datetime.now()
         duration = (end_timestamp - start_timestamp).seconds
 
-        res = {'load_results': load_results, 'duration': duration}
+        res = {'load_results': atomic_load_results, 'duration': duration}
 
         if atomic_function_name != 'query_to_bq':
             msg = 'Ended {} to {} [{}s]'.format(source, destination, duration)
             self._logger.debug(msg)
         else:
-            jobs = load_results
+            jobs = atomic_load_results
             total_bytes_billed_list = [j.total_bytes_billed for j in jobs]
             costs = [round(tbb / 10 ** 12 * 5, 5)
                      for tbb in total_bytes_billed_list]
@@ -440,6 +426,11 @@ class Loader:
             if config.data_name is None:
                 config.data_name = timestamp_randint_string(
                     prefix=self._generated_data_name_prefix)
+
+    def _check_gs_dir_path_format(self):
+        if self._gs_dir_path is not None and self._gs_dir_path.endswith('/'):
+                    raise ValueError('To ease Storage path concatenation, '
+                                     'gs_dir_path must not end with /')
 
     def _check_if_bq_client_missing(self, names_of_atomic_functions_to_call):
         if (self._bq_client is None
@@ -462,6 +453,11 @@ class Loader:
             and any('local' in n for n in names_of_atomic_functions_to_call)
         ):
             raise ValueError('local_dir_path must be given if local is used')
+
+    def _check_if_data_in_source(self, config):
+        n, s = config.data_name, config.source
+        if self._is_source_clear(config):
+            raise ValueError('There is no data {} in {}'.format(n, s))
 
     def xmload(self, configs):
         """It works like :meth:`google_pandas_load.loader.Loader.mload` but
@@ -529,7 +525,7 @@ class Loader:
             if not n_configs:
                 durations[n] = None
                 continue
-            n_res = self._atomic_transfer(atomic_configs=n_configs)
+            n_res = self._atomic_load(atomic_configs=n_configs)
             n_load_results = n_res['load_results']
             n_duration = n_res['duration']
             if n == 'query_to_bq':
