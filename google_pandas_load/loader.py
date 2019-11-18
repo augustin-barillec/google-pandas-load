@@ -94,12 +94,12 @@ class Loader:
         self._bucket = bucket
         self._gs_dir_path = gs_dir_path
         self._check_gs_dir_path_format()
-        if self._bucket is not None:
-            self._bucket_uri = 'gs://{}'.format(self._bucket.name)
-            if self._gs_dir_path is None:
+        if self.bucket is not None:
+            self._bucket_uri = 'gs://{}'.format(self.bucket.name)
+            if self.gs_dir_path is None:
                 self._gs_dir_uri = self._bucket_uri
             else:
-                self._gs_dir_uri = self._bucket_uri + '/' + self._gs_dir_path
+                self._gs_dir_uri = self._bucket_uri + '/' + self.gs_dir_path
         self._local_dir_path = local_dir_path
         self._generated_data_name_prefix = generated_data_name_prefix
         self._max_concurrent_google_jobs = max_concurrent_google_jobs
@@ -146,22 +146,58 @@ class Loader:
     @property
     def gs_dir_path(self):
         """str: The gs_dir_path given in the argument."""
-        return self._bucket
+        return self._gs_dir_path
 
     @property
     def local_dir_path(self):
         """str: The local_dir_path given in the argument."""
         return self._local_dir_path
 
+    def _fill_missing_data_names(self, configs):
+        for config in configs:
+            if config.data_name is None:
+                config.data_name = timestamp_randint_string(
+                    prefix=self._generated_data_name_prefix)
+
+    def _check_gs_dir_path_format(self):
+        if self.gs_dir_path is not None and self.gs_dir_path.endswith('/'):
+                    raise ValueError('To ease Storage path concatenation, '
+                                     'gs_dir_path must not end with /')
+
+    def _check_if_bq_client_missing(self, atomic_function_names):
+        names = atomic_function_names
+        if self.bq_client is None and any('bq' in n for n in names):
+            raise ValueError('bq_client must be given if bq is used')
+
+    def _check_if_dataset_ref_missing(self, atomic_function_names):
+        names = atomic_function_names
+        if self.dataset_ref is None and any('bq' in n for n in names):
+            raise ValueError('dataset_ref must be given if bq is used')
+
+    def _check_if_bucket_missing(self, atomic_function_names):
+        names = atomic_function_names
+        if self.bucket is None and any('gs' in n for n in names):
+            raise ValueError('bucket must be given if gs is used')
+
+    def _check_if_local_dir_missing(self, atomic_function_names):
+        names = atomic_function_names
+        if self._local_dir_path is None and any('local' in n for n in names):
+            raise ValueError('local_dir_path must be given if local is used')
+
+    def _check_if_data_in_source(self, atomic_config):
+        n, s = atomic_config.data_name, atomic_config.source
+        if self._is_source_clear(atomic_config):
+            raise ValueError('There is no data named {} in {}'.format(n, s))
+
     def list_blobs(self, data_name):
         """Return the data named_ data_name in Storage as a list of
         Storage blobs.
         """
-        if self._gs_dir_path is None:
+        if self.gs_dir_path is None:
             prefix = data_name
         else:
-            prefix = self._gs_dir_path + '/' + data_name
-        return list(self._bucket.list_blobs(prefix=prefix))
+            prefix = self.gs_dir_path + '/' + data_name
+        return list(self.bucket.list_blobs(prefix=prefix))
 
     def list_blob_uris(self, data_name):
         """Return the list of the uris of Storage blobs forming the data
@@ -180,8 +216,8 @@ class Loader:
 
     def exist_in_bq(self, data_name):
         """Return True if data named_ data_name exist in BigQuery."""
-        table_ref = self._dataset_ref.table(table_id=data_name)
-        return table_exists(client=self._bq_client, table_reference=table_ref)
+        table_ref = self.dataset_ref.table(table_id=data_name)
+        return table_exists(client=self.bq_client, table_reference=table_ref)
 
     def exist_in_gs(self, data_name):
         """Return True if data named_ data_name exist in Storage,"""
@@ -194,13 +230,13 @@ class Loader:
     def delete_in_bq(self, data_name):
         """Delete the data named_ data_name in BigQuery."""
         if self.exist_in_bq(data_name=data_name):
-            table_ref = self._dataset_ref.table(table_id=data_name)
-            self._bq_client.delete_table(table=table_ref)
+            table_ref = self.dataset_ref.table(table_id=data_name)
+            self.bq_client.delete_table(table=table_ref)
 
     def delete_in_gs(self, data_name):
         """Delete the data named_ data_name in Storage."""
         if self.exist_in_gs(data_name=data_name):
-            self._bucket.delete_blobs(
+            self.bucket.delete_blobs(
                 blobs=self.list_blobs(data_name=data_name))
 
     def delete_in_local(self, data_name):
@@ -211,76 +247,33 @@ class Loader:
                 os.remove(local_file_path)
 
     def _exist(self, location, data_name):
-        return self.__dict__['exist_in_{}'.format(location)][data_name]
+        return getattr(self, 'exist_in_{}'.format(location))(data_name)
 
     def _delete(self, location, data_name):
-        return self.__dict__['delete_in_{}'.format(location)][data_name]
+        return getattr(self, 'delete_in_{}'.format(location))(data_name)
 
-    def _is_source_clear(self, config):
-        return self._exist(config.source, config.data_name)
+    def _is_source_clear(self, atomic_config):
+        return not self._exist(atomic_config.source, atomic_config.data_name)
 
-    def _clear_source(self, config):
-        self._delete(config.source, config.data_name)
+    def _clear_source(self, atomic_config):
+        self._delete(atomic_config.source, atomic_config.data_name)
 
-    def _clear_destination(self, config):
-        self._delete(config.destination, config.data_name)
-
-    def _query_to_bq_job(self, query_to_bq_config):
-        config = query_to_bq_config
-        job_config = bigquery.job.QueryJobConfig()
-        job_config.destination = self._dataset_ref.table(
-            table_id=config.data_name)
-        job_config.write_disposition = config.write_disposition
-        job = self._bq_client.query(
-            query=config.query,
-            job_config=job_config)
-        return job
-
-    def _bq_to_gs_job(self, bq_to_gs_config):
-        config = bq_to_gs_config
-        source = self._dataset_ref.table(table_id=config.data_name)
-        job_config = bigquery.job.ExtractJobConfig()
-        job_config.compression = self._bq_to_gs_compression
-        destination_uri = (self._gs_dir_uri + '/'
-                           + config.data_name
-                           + self._bq_to_gs_ext)
-        job_config.field_delimiter = self._separator
-        job = self._bq_client.extract_table(
-            source=source,
-            destination_uris=destination_uri,
-            job_config=job_config)
-        return job
-
-    def _gs_to_bq_job(self, gs_to_bq_config):
-        config = gs_to_bq_config
-        job_config = bigquery.job.LoadJobConfig()
-        job_config.field_delimiter = self._separator
-        job_config.schema = config.schema
-        job_config.skip_leading_rows = 1
-        job_config.write_disposition = config.write_disposition
-        source_uris = self.list_blob_uris(data_name=config.data_name)
-        destination = self._dataset_ref.table(
-            table_id=config.data_name)
-        job = self._bq_client.load_table_from_uri(
-            source_uris=source_uris,
-            destination=destination,
-            job_config=job_config)
-        return job
+    def _clear_destination(self, atomic_config):
+        self._delete(atomic_config.destination, atomic_config.data_name)
 
     def _blob_to_local_file(self, blob):
         blob_basename = blob.name.split('/')[-1]
-        local_file_path = os.path.join(self._local_dir_path,
-                                       blob_basename)
+        local_file_path = os.path.join(self._local_dir_path, blob_basename)
         blob.download_to_filename(filename=local_file_path)
 
     def _local_file_to_blob(self, local_file_path):
         local_file_basename = os.path.basename(local_file_path)
-        if self._gs_dir_path is None:
+        if self.gs_dir_path is None:
             blob_name = local_file_basename
         else:
-            blob_name = self._gs_dir_path + '/' + local_file_basename
+            blob_name = self.gs_dir_path + '/' + local_file_basename
         blob = storage.Blob(name=blob_name,
-                            bucket=self._bucket,
+                            bucket=self.bucket,
                             chunk_size=self._chunk_size)
         blob.upload_from_filename(filename=local_file_path)
 
@@ -300,23 +293,61 @@ class Loader:
             index=False,
             compression=self._dataframe_to_local_compression)
 
-    def _table_id_to_query(self, table_id):
-        return 'select * from `{}.{}.{}`'.format(
-            self._dataset_ref.project,
-            self._dataset_ref.dataset_id,
-            table_id)
+    def _query_to_bq_job(self, query_to_bq_config):
+        config = query_to_bq_config
+        job_config = bigquery.job.QueryJobConfig()
+        job_config.destination = self.dataset_ref.table(
+            table_id=config.data_name)
+        job_config.write_disposition = config.write_disposition
+        job = self.bq_client.query(
+            query=config.query,
+            job_config=job_config)
+        return job
 
-    def _single_gs_to_local(self, gs_to_local_config):
+    def _bq_to_gs_job(self, bq_to_gs_config):
+        config = bq_to_gs_config
+        source = self.dataset_ref.table(table_id=config.data_name)
+        job_config = bigquery.job.ExtractJobConfig()
+        job_config.compression = self._bq_to_gs_compression
+        destination_uri = (self._gs_dir_uri + '/'
+                           + config.data_name
+                           + self._bq_to_gs_ext)
+        job_config.field_delimiter = self._separator
+        job = self.bq_client.extract_table(
+            source=source,
+            destination_uris=destination_uri,
+            job_config=job_config)
+        return job
+
+    def _gs_to_bq_job(self, gs_to_bq_config):
+        config = gs_to_bq_config
+        job_config = bigquery.job.LoadJobConfig()
+        job_config.field_delimiter = self._separator
+        job_config.schema = config.schema
+        job_config.skip_leading_rows = 1
+        job_config.write_disposition = config.write_disposition
+        source_uris = self.list_blob_uris(data_name=config.data_name)
+        destination = self.dataset_ref.table(
+            table_id=config.data_name)
+        job = self.bq_client.load_table_from_uri(
+            source_uris=source_uris,
+            destination=destination,
+            job_config=job_config)
+        return job
+
+    def _gs_to_local(self, gs_to_local_config):
         data_name = gs_to_local_config.data_name
         blobs = self.list_blobs(data_name=data_name)
-        map(self._blob_to_local_file, blobs)
+        for b in blobs:
+            self._blob_to_local_file(b)
 
-    def _single_local_to_gs(self, local_to_gs_config):
+    def _local_to_gs(self, local_to_gs_config):
         data_name = local_to_gs_config.data_name
         local_file_paths = self.list_local_file_paths(data_name=data_name)
-        map(self._local_file_to_blob, local_file_paths)
+        for p in local_file_paths:
+            self._local_file_to_blob(p)
 
-    def _single_local_to_dataframe(self, local_to_dataframe_config):
+    def _local_to_dataframe(self, local_to_dataframe_config):
         config = local_to_dataframe_config
         data_name = config.data_name
         local_file_paths = self.list_local_file_paths(data_name=data_name)
@@ -331,7 +362,7 @@ class Loader:
         dataframe = pandas.concat(dataframes)
         return dataframe
 
-    def _single_dataframe_to_local(self, dataframe_to_local_config):
+    def _dataframe_to_local(self, dataframe_to_local_config):
         config = dataframe_to_local_config
         data_name = config.data_name
         ext = self._dataframe_to_local_ext
@@ -339,18 +370,15 @@ class Loader:
         local_file_path = os.path.join(self._local_dir_path, data_name + ext)
         self._dataframe_to_local_file(dataframe, local_file_path)
 
-    def _single_bq_to_query(self, bq_to_query_config):
-        data_name = bq_to_query_config.data_name
-        return self._table_id_to_query(table_id=data_name)
-
-    def _launch_bq_client_job(self, atomic_config):
-        s = atomic_config.source
-        d = atomic_config.destination
-        job = self.__dict__['_{}_to_{}_job'.format(s, d)](atomic_config)
+    def _launch_bq_client_job(self, bq_client_load_config):
+        config = bq_client_load_config
+        s = config.source
+        d = config.destination
+        job = getattr(self, '_{}_to_{}_job'.format(s, d))(config)
         return job
 
-    def _execute_bq_client_jobs(self, atomic_configs):
-        configs = atomic_configs
+    def _execute_bq_client_jobs(self, bq_client_load_configs):
+        configs = bq_client_load_configs
         batch_size = self._max_concurrent_google_jobs
         nb_of_batches = len(configs) // batch_size + 1
         jobs = []
@@ -362,13 +390,14 @@ class Loader:
             wait_for_jobs(jobs=jobs)
         return jobs
 
-    def _execute_atomic_load(self, atomic_config):
-        s = atomic_config.source
-        d = atomic_config.destination
-        return self.__dict__['_single_{}_to_{}'.format(s, d)](atomic_config)
+    def _execute_local_load(self, local_load_config):
+        config = local_load_config
+        s = config.source
+        d = config.destination
+        return getattr(self, '_{}_to_{}'.format(s, d))(config)
 
-    def _execute_atomic_loads(self, atomic_configs):
-        return list(map(self._execute_atomic_load, atomic_configs))
+    def _execute_local_loads(self, local_load_configs):
+        return list(map(self._execute_local_load, local_load_configs))
 
     def _atomic_load(self, atomic_configs):
         configs = atomic_configs
@@ -386,19 +415,24 @@ class Loader:
         self._logger.debug('Starting {} to {}...'.format(source, destination))
 
         start_timestamp = datetime.now()
-        if destination in MIDDLE_LOCATIONS:
-            map(self._check_if_data_in_source, configs)
-            map(self._clear_destination, configs)
+
+        if source in MIDDLE_LOCATIONS:
+            for c in configs:
+                self._check_if_data_in_source(c)
+
+        if destination in ['gs', 'local']:
+            for c in configs:
+                self._clear_destination(c)
 
         if atomic_function_name in BQ_CLIENT_ATOMIC_FUNCTION_NAMES:
             atomic_load_results = self._execute_bq_client_jobs(configs)
         else:
-            atomic_load_results = list(map(self._execute_atomic_load, configs))
+            atomic_load_results = self._execute_local_loads(configs)
 
         if source in MIDDLE_LOCATIONS:
-            for config in configs:
-                if config.clear_source:
-                    self._clear_source(config)
+            for c in configs:
+                if c.clear_source:
+                    self._clear_source(c)
 
         end_timestamp = datetime.now()
         duration = (end_timestamp - start_timestamp).seconds
@@ -420,44 +454,6 @@ class Loader:
             res['costs'] = costs
 
         return res
-
-    def _fill_missing_data_names(self, configs):
-        for config in configs:
-            if config.data_name is None:
-                config.data_name = timestamp_randint_string(
-                    prefix=self._generated_data_name_prefix)
-
-    def _check_gs_dir_path_format(self):
-        if self._gs_dir_path is not None and self._gs_dir_path.endswith('/'):
-                    raise ValueError('To ease Storage path concatenation, '
-                                     'gs_dir_path must not end with /')
-
-    def _check_if_bq_client_missing(self, names_of_atomic_functions_to_call):
-        if (self._bq_client is None
-                and any('bq' in n for n in names_of_atomic_functions_to_call)):
-            raise ValueError('bq_client must be given if bq is used')
-
-    def _check_if_dataset_ref_missing(self, names_of_atomic_functions_to_call):
-        if (self._dataset_ref is None
-                and any('bq' in n for n in names_of_atomic_functions_to_call)):
-            raise ValueError('dataset_ref must be given if bq is used')
-
-    def _check_if_bucket_missing(self, names_of_atomic_functions_to_call):
-        if (self._bucket is None
-                and any('gs' in n for n in names_of_atomic_functions_to_call)):
-            raise ValueError('bucket must be given if gs is used')
-
-    def _check_if_local_dir_missing(self, names_of_atomic_functions_to_call):
-        if (
-            self._local_dir_path is None
-            and any('local' in n for n in names_of_atomic_functions_to_call)
-        ):
-            raise ValueError('local_dir_path must be given if local is used')
-
-    def _check_if_data_in_source(self, config):
-        n, s = config.data_name, config.source
-        if self._is_source_clear(config):
-            raise ValueError('There is no data {} in {}'.format(n, s))
 
     def xmload(self, configs):
         """It works like :meth:`google_pandas_load.loader.Loader.mload` but
@@ -493,9 +489,6 @@ class Loader:
               costs in US dollars of the mload. The i-th element is the
               query cost of the load job configured by configs[i].
         """
-        for config in configs:
-            if config.source in MIDDLE_LOCATIONS:
-                self._check_if_data_in_source(config)
 
         configs = [deepcopy(config) for config in configs]
         nb_of_configs = len(configs)

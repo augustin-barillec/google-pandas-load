@@ -34,7 +34,8 @@ class BaseClassTest(unittest.TestCase):
         os.makedirs(local_dir_path)
 
     def tearDown(self):
-        clean()
+        pass
+        # clean()
 
 
 table_ids_default = tuple('a{}_bq'.format(i) for i in range(8, 12))

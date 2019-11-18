@@ -4,6 +4,14 @@ from random import randint
 from google.cloud.exceptions import NotFound
 
 
+def table_exists(client, table_reference):
+    try:
+        client.get_table(table_reference)
+        return True
+    except NotFound:
+        return False
+
+
 def wait_for_job(job):
     while True:
         job.reload()
@@ -19,21 +27,12 @@ def wait_for_jobs(jobs):
         wait_for_job(job)
 
 
-def table_exists(client, table_reference):
-    try:
-        client.get_table(table_reference)
-        return True
-    except NotFound:
-        return False
-
-
 def timestamp_randint_string(prefix=None):
     if prefix is None:
         prefix = ''
-    return (
-            prefix + datetime.now().strftime('%Y%m%d%H%M%S_%f')
-            + '_rand' + str(randint(0, 10**4))
-    )
+    datetime_str = datetime.now().strftime('%Y%m%d%H%M%S_%f')
+    random_value = '_rand' + str(randint(0, 10**4))
+    return prefix + datetime_str + random_value
 
 
 def build_atomic_function_names(locations):

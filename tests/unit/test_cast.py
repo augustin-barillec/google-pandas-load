@@ -20,8 +20,10 @@ class CastTest(BaseClassTest):
 
     def test_parse_dates(self):
         populate()
-        datetime1 = datetime.strptime('2012-11-14 14:32:30', '%Y-%m-%d %H:%M:%S')
-        datetime2 = datetime.strptime('2013-11-14 14:32:30.100121', '%Y-%m-%d %H:%M:%S.%f')
+        datetime1 = datetime.strptime('2012-11-14 14:32:30',
+                                      '%Y-%m-%d %H:%M:%S')
+        datetime2 = datetime.strptime('2013-11-14 14:32:30.100121',
+                                      '%Y-%m-%d %H:%M:%S.%f')
         date1 = datetime1.date()
         df0 = pandas.DataFrame(data={'x': [datetime1],
                                      'y': [datetime2],
@@ -43,8 +45,10 @@ class CastTest(BaseClassTest):
 
     def test_bq_schema_inferred(self):
         populate()
-        datetime1 = datetime.strptime('2012-11-14 14:32:30', '%Y-%m-%d %H:%M:%S')
-        datetime2 = datetime.strptime('2003-11-14 14:32:30.100121', '%Y-%m-%d %H:%M:%S.%f')
+        datetime1 = datetime.strptime('2012-11-14 14:32:30',
+                                      '%Y-%m-%d %H:%M:%S')
+        datetime2 = datetime.strptime('2003-11-14 14:32:30.100121',
+                                      '%Y-%m-%d %H:%M:%S.%f')
         date1 = datetime1.date()
         date2 = datetime2.date()
         df0 = pandas.DataFrame(data={'a': [date1, date2],

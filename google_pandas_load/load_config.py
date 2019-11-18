@@ -1,11 +1,10 @@
-import uuid
 from argparse import Namespace
 import numpy
 from google.cloud import bigquery
 from google_pandas_load.utils import build_atomic_function_names, \
     build_numpy_leaf_types
-from google_pandas_load.constants import LOCATIONS, REVERSED_LOCATIONS, \
-    MIDDLE_LOCATIONS
+from google_pandas_load.constants import LOCATIONS, SOURCE_LOCATIONS, \
+    DESTINATION_LOCATIONS, REVERSED_LOCATIONS, MIDDLE_LOCATIONS
 
 integer_numpy_leaf_types = build_numpy_leaf_types(dtype=numpy.integer)
 float_numpy_leaf_types = build_numpy_leaf_types(dtype=numpy.floating)
@@ -60,6 +59,7 @@ class LoadConfig:
         self._check_if_query_missing()
         self._check_if_dataframe_missing()
         self._check_if_data_name_missing()
+        self._check_if_bq_schema_missing()
 
         if self._bq_schema is None and self._dataframe is not None:
             self._infer_bq_schema_from_dataframe()
@@ -68,15 +68,14 @@ class LoadConfig:
         msg = """
         source must be one of 'query' or 'bq' or 'gs' or 'local' or 'dataframe
         """
-        if self.source not in LOCATIONS:
+        if self.source not in SOURCE_LOCATIONS:
             raise ValueError(msg)
 
     def _check_destination_value(self):
         msg = """
-        destination must be one of 'query' or 'bq' or 'gs' or'local' or 
-        'dataframe'
+        destination must be one of 'bq' or 'gs' or 'local' or 'dataframe'
         """
-        if self.destination not in LOCATIONS:
+        if self.destination not in DESTINATION_LOCATIONS:
             raise ValueError(msg)
 
     def _check_source_different_from_destination(self):
@@ -109,23 +108,6 @@ class LoadConfig:
         condition_3 = self._bq_schema is None
         if condition_1 and condition_2 and condition_3:
             raise ValueError('bq_schema is missing')
-
-    @property
-    def _names_of_atomic_functions_to_call(self):
-        index_source = LOCATIONS.index(self.source)
-        index_destination = LOCATIONS.index(self.destination)
-        rindex_source = REVERSED_LOCATIONS.index(self.source)
-        rindex_destination = REVERSED_LOCATIONS.index(self.destination)
-        if index_source < index_destination:
-            return build_atomic_function_names(
-                LOCATIONS[index_source: index_destination + 1])
-        else:
-            return build_atomic_function_names(
-                REVERSED_LOCATIONS[rindex_source: rindex_destination + 1])
-
-    @property
-    def _number_of_atomic_functions_to_call(self):
-        return len(self._names_of_atomic_functions_to_call)
 
     @staticmethod
     def bq_schema_inferred_from_dataframe(
@@ -195,6 +177,19 @@ class LoadConfig:
             timestamp_cols=self._timestamp_cols,
             date_cols=self._date_cols)
 
+    @property
+    def _names_of_atomic_functions_to_call(self):
+        index_source = LOCATIONS.index(self.source)
+        index_destination = LOCATIONS.index(self.destination)
+        rindex_source = REVERSED_LOCATIONS.index(self.source)
+        rindex_destination = REVERSED_LOCATIONS.index(self.destination)
+        if index_source < index_destination:
+            return build_atomic_function_names(
+                LOCATIONS[index_source: index_destination + 1])
+        else:
+            return build_atomic_function_names(
+                REVERSED_LOCATIONS[rindex_source: rindex_destination + 1])
+
     def _query_to_bq_config(self):
         return Namespace(
             query=self._query,
@@ -219,8 +214,8 @@ class LoadConfig:
         res = dict()
         for i, n in enumerate(self._names_of_atomic_functions_to_call):
             atomic_config_name = '_' + n + '_config'
-            if atomic_config_name in self.__dict__:
-                res[n] = self.__dict__[atomic_config_name]()
+            if atomic_config_name in dir(self):
+                res[n] = getattr(self, atomic_config_name)()
             else:
                 res[n] = Namespace()
             res[n].data_name = self.data_name
