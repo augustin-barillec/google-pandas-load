@@ -36,10 +36,8 @@ def timestamp_randint_string(prefix=None):
 
 
 def build_atomic_function_names(locations):
-    res = set()
-    for i in range(len(locations) - 1):
-        res.add(locations[i] + '_to_' + locations[i + 1])
-    return res
+    return [locations[i] + '_to_' + locations[i + 1]
+            for i in range(len(locations)-1)]
 
 
 def check_no_prefix(strings):

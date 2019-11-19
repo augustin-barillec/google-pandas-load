@@ -161,8 +161,9 @@ class Loader:
 
     def _check_gs_dir_path_format(self):
         if self.gs_dir_path is not None and self.gs_dir_path.endswith('/'):
-                    raise ValueError('To ease Storage path concatenation, '
-                                     'gs_dir_path must not end with /')
+            msg = ("To ease Storage path concatenation, gs_dir_path must "
+                   "not end with /")
+            raise ValueError(msg)
 
     def _check_if_bq_client_missing(self, atomic_function_names):
         names = atomic_function_names
@@ -495,9 +496,9 @@ class Loader:
         self._fill_missing_data_names(configs=configs)
         data_names = [config.data_name for config in configs]
         check_no_prefix(strings=data_names)
-        atomic_configs = [config.atomic_configs for config in configs]
+        sliced_configs = [config.sliced_config for config in configs]
 
-        names_of_atomic_functions_to_call = union_keys(dicts=atomic_configs)
+        names_of_atomic_functions_to_call = union_keys(dicts=sliced_configs)
         self._check_if_bq_client_missing(names_of_atomic_functions_to_call)
         self._check_if_dataset_ref_missing(names_of_atomic_functions_to_call)
         self._check_if_bucket_missing(names_of_atomic_functions_to_call)
@@ -511,7 +512,7 @@ class Loader:
         for n in ATOMIC_FUNCTION_NAMES:
             n_indices = []
             n_configs = []
-            for i, s in enumerate(atomic_configs):
+            for i, s in enumerate(sliced_configs):
                 if n in s:
                     n_indices.append(i)
                     n_configs.append(s[n])
@@ -527,7 +528,7 @@ class Loader:
                 query_cost = n_cost
                 for i in n_indices:
                     query_costs[i] = n_costs.pop(0)
-            elif n in ('local_to_dataframe', 'bq_to_query'):
+            elif n == 'local_to_dataframe':
                 for i in n_indices:
                     load_results[i] = n_load_results.pop(0)
             durations[n] = n_duration

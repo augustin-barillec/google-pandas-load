@@ -7,9 +7,15 @@ from tests.utils import *
 class ExtraInformationsTest(BaseClassTest):
 
     def test_xload(self):
-        xlr = gpl3.xload(source='query', destination='dataframe', query='select 3')
+        xlr = gpl3.xload(source='query', destination='dataframe',
+                         query='select 3')
 
-        self.assertEqual(set(vars(xlr)), {'load_result', 'data_name', 'duration', 'durations', 'query_cost'})
+        self.assertEqual(set(vars(xlr)),
+                         {'load_result',
+                          'data_name',
+                          'duration',
+                          'durations',
+                          'query_cost'})
 
         self.assertEqual(type(xlr.data_name), str)
 
@@ -28,7 +34,7 @@ class ExtraInformationsTest(BaseClassTest):
         df0 = pandas.DataFrame(data={'x': [4]})
         config1 = LoadConfig(
             source='dataframe',
-            destination='query',
+            destination='bq',
             data_name='e100',
             dataframe=df0)
         config2 = LoadConfig(
@@ -38,13 +44,14 @@ class ExtraInformationsTest(BaseClassTest):
             query='select 3')
         config3 = LoadConfig(
             source='dataframe',
-            destination='query',
+            destination='bq',
             data_name='e102',
             dataframe=df0)
         xmlr = gpl3.xmload(configs=[config1, config2, config3])
         self.assertEqual(
             set(vars(xmlr)),
-            {'load_results', 'data_names', 'duration', 'durations', 'query_cost', 'query_costs'})
+            {'load_results', 'data_names', 'duration', 'durations',
+             'query_cost', 'query_costs'})
 
         self.assertEqual(xmlr.data_names, ['e100', 'e101', 'e102'])
 

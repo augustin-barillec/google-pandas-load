@@ -26,7 +26,7 @@ class DataDeliveryTest(BaseClassTest):
             source='bq',
             destination='dataframe',
             data_name='a10_bq')
-        self.assertFalse(gpl4.exist_in_bq(data_name='a10_bq'))
+        self.assertTrue(gpl4.exist_in_bq(data_name='a10_bq'))
         self.assertTrue(df0.equals(df1))
 
     def test_gs_to_local(self):
@@ -69,7 +69,7 @@ class DataDeliveryTest(BaseClassTest):
             data_name='a',
             bq_schema=[bigquery.SchemaField('x', 'STRING')])
         self.assertTrue(gpl3.exist_in_local(data_name='a'))
-        self.assertTrue(gpl3.exist_in_gs(data_name='a'))
+        self.assertFalse(gpl3.exist_in_gs(data_name='a'))
         table_ref = dataset_ref.table(table_id='a')
         table = bq_client.get_table(table_ref)
         num_rows = table.num_rows
@@ -82,7 +82,7 @@ class DataDeliveryTest(BaseClassTest):
             destination='gs',
             data_name='b',
             dataframe=df)
-        self.assertTrue(gpl3.exist_in_local(data_name='b'))
+        self.assertFalse(gpl3.exist_in_local(data_name='b'))
         self.assertEqual(len(gpl3.list_blob_uris(data_name='b')), 1)
 
     def test_local_to_gs(self):
@@ -94,28 +94,19 @@ class DataDeliveryTest(BaseClassTest):
         self.assertTrue(gpl1.exist_in_local(data_name='a1'))
         self.assertEqual(len(gpl1.list_blob_uris(data_name='a1')), 4)
 
-    def test_bq_to_query(self):
-        populate_dataset()
-        query = gpl5.load(
-            source='bq',
-            destination='query',
-            data_name='a8_bq')
-        self.assertTrue(gpl5.exist_in_bq(data_name='a8_bq'))
-        self.assertEqual(query, 'select * from `{}.{}.{}`'.format(project_id, dataset_id, 'a8_bq'))
-
-    def test_dataframe_to_query(self):
+    def test_dataframe_to_bq(self):
         l0 = [3, 4, 7]
         df0 = pandas.DataFrame(data={'x': l0})
         populate()
-        query = gpl5.load(
+        gpl5.load(
             source='dataframe',
-            destination='query',
+            destination='bq',
             data_name='a',
             dataframe=df0)
         self.assertFalse(gpl5.exist_in_local(data_name='a'))
         self.assertFalse(gpl5.exist_in_gs(data_name='a'))
-        self.assertFalse(gpl5.exist_in_bq(data_name='a'))
-        self.assertEqual(query, 'select * from `{}.{}.{}`'.format(project_id, dataset_id, 'a'))
+        self.assertTrue(gpl5.exist_in_bq(data_name='a'))
+        query = 'select * from `{}.{}.{}`'.format(project_id, dataset_id, 'a')
         df1 = bq_client.query(query).to_dataframe()
         l1 = sorted(list(df1.x))
         self.assertEqual(l0, l1)
@@ -123,11 +114,12 @@ class DataDeliveryTest(BaseClassTest):
     def test_upload_download(self):
         df0 = pandas.DataFrame(data={'x': [1], 'y': [3]})
         populate()
-        query = gpl1.load(
+        gpl1.load(
             source='dataframe',
-            destination='query',
+            destination='bq',
             data_name='a9',
             dataframe=df0)
+        query = 'select * from `{}.{}.{}`'.format(project_id, dataset_id, 'a9')
         df1 = gpl1.load(
             source='query',
             destination='dataframe',
@@ -141,10 +133,12 @@ class DataDeliveryTest(BaseClassTest):
             destination='dataframe',
             query='select 3 as x')
         self.assertTrue(df0.equals(df1))
-        query = gpl2.load(
+        gpl2.load(
             source='dataframe',
-            destination='query',
+            destination='bq',
+            data_name='b8',
             dataframe=df1)
+        query = 'select * from `{}.{}.{}`'.format(project_id, dataset_id, 'b8')
         df2 = bq_client.query(query).to_dataframe()
         self.assertTrue(df0.equals(df2))
 
@@ -152,7 +146,7 @@ class DataDeliveryTest(BaseClassTest):
         populate()
         config1 = LoadConfig(
             source='dataframe',
-            destination='query',
+            destination='bq',
             data_name='a10',
             dataframe=pandas.DataFrame(data={'x': [3]}))
         config2 = LoadConfig(
@@ -166,8 +160,9 @@ class DataDeliveryTest(BaseClassTest):
             query='select 4 as y')
         load_results = gpl5.mload(configs=[config1, config2, config3])
         self.assertEqual(len(load_results), 3)
-        self.assertEqual(load_results[0], 'select * from `{}.{}.a10`'.format(project_id, dataset_id))
-        self.assertTrue(load_results[1].equals(pandas.DataFrame(data={'y': [4]})))
+        self.assertTrue(load_results[0] is None)
+        df2 = pandas.DataFrame(data={'y': [4]})
+        self.assertTrue(load_results[1].equals(df2))
         self.assertTrue(load_results[2] is None)
 
     def test_diamond(self):

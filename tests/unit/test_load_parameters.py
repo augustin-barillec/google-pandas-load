@@ -5,9 +5,12 @@ from tests.utils import *
 class LoadParametersTest(BaseClassTest):
 
     def test_wildcard(self):
-        gpl1.load(source='query', destination='gs', data_name='e0', query='select 2')
+        gpl1.load(source='query', destination='gs', data_name='e0',
+                  query='select 2')
         list_blob_uris = gpl1.list_blob_uris(data_name='e0')
-        self.assertEqual(list_blob_uris, ['gs://{}/e0-000000000000.csv.gz'.format(bucket_name)])
+        self.assertEqual(
+            list_blob_uris,
+            ['gs://{}/e0-000000000000.csv.gz'.format(bucket_name)])
 
     def test_write_append_dataframe_to_bq(self):
         populate()
@@ -45,5 +48,3 @@ class LoadParametersTest(BaseClassTest):
         table = bq_client.get_table(table_ref)
         num_rows = table.num_rows
         self.assertEqual(num_rows, 2)
-
-

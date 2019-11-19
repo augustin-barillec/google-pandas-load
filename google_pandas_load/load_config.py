@@ -65,16 +65,14 @@ class LoadConfig:
             self._infer_bq_schema_from_dataframe()
 
     def _check_source_value(self):
-        msg = """
-        source must be one of 'query' or 'bq' or 'gs' or 'local' or 'dataframe
-        """
+        msg = ("source must be one of 'query' or 'bq' or 'gs' or 'local' "
+               "or 'dataframe")
         if self.source not in SOURCE_LOCATIONS:
             raise ValueError(msg)
 
     def _check_destination_value(self):
-        msg = """
-        destination must be one of 'bq' or 'gs' or 'local' or 'dataframe'
-        """
+        msg = ("destination must be one of 'bq' or 'gs' or 'local' "
+               "or 'dataframe'")
         if self.destination not in DESTINATION_LOCATIONS:
             raise ValueError(msg)
 
@@ -91,10 +89,8 @@ class LoadConfig:
             raise ValueError("dataframe must be given if source = 'dataframe'")
 
     def _check_if_data_name_missing(self):
-        msg = """
-        data_name must be given if source or destination is one of 'bq' or 'gs' 
-        or 'local'
-        """
+        msg = ("data_name must be given if source or destination is one of "
+               "'bq' or 'gs' or 'local'")
         condition_1 = self.data_name is None
         condition_2 = self.source in MIDDLE_LOCATIONS
         condition_3 = self.destination in MIDDLE_LOCATIONS
@@ -141,9 +137,9 @@ class LoadConfig:
             schema.
         """
         if len(dataframe.columns) == 0:
-            raise ValueError(
-                'A non empty bq_schema cannot be inferred '
-                'from a dataframe with no columns')
+            msg = ('A non empty bq_schema cannot be inferred '
+                   'from a dataframe with no columns')
+            raise ValueError(msg)
         if timestamp_cols is None:
             timestamp_cols = []
         if date_cols is None:
@@ -210,7 +206,7 @@ class LoadConfig:
             write_disposition=self._write_disposition)
 
     @property
-    def atomic_configs(self):
+    def sliced_config(self):
         res = dict()
         for i, n in enumerate(self._names_of_atomic_functions_to_call):
             atomic_config_name = '_' + n + '_config'

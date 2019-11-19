@@ -6,8 +6,8 @@ not_propagating_logger = logging.getLogger(name='LoaderQuickSetup')
 not_propagating_logger.setLevel(level=logging.DEBUG)
 not_propagating_logger.propagate = False
 ch = logging.StreamHandler()
-formatter = logging.Formatter(
-    fmt='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+fmt = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+formatter = logging.Formatter(fmt=fmt)
 ch.setFormatter(fmt=formatter)
 not_propagating_logger.addHandler(hdlr=ch)
 
