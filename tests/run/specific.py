@@ -1,6 +1,6 @@
 import unittest
-from tests.unit.test_raise_error import LoadConfigRaiseErrorTest
+from tests.unit.test_load_parameters import LoadParametersTest
 
 suite = unittest.TestSuite()
-suite.addTest(LoadConfigRaiseErrorTest('test_raise_error_if_infer_bq_schema_from_no_columns_dataframe'))
+suite.addTest(LoadParametersTest('test_wildcard'))
 unittest.TextTestRunner(verbosity=2).run(suite)

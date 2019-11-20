@@ -47,7 +47,7 @@ class ExtraInformationsTest(BaseClassTest):
             destination='bq',
             data_name='e102',
             dataframe=df0)
-        xmlr = gpl3.xmload(configs=[config1, config2, config3])
+        xmlr = gpl3.xmload([config1, config2, config3])
         self.assertEqual(
             set(vars(xmlr)),
             {'load_results', 'data_names', 'duration', 'durations',
@@ -67,4 +67,3 @@ class ExtraInformationsTest(BaseClassTest):
         self.assertEqual(xmlr.query_cost, 0.0)
 
         self.assertEqual(xmlr.query_costs, [None, 0.0, None])
-

@@ -18,7 +18,7 @@ class CompressTest(BaseClassTest):
             destination='local',
             data_name='b10',
             query='select 5')
-        local_file_path = gpl1.list_local_file_paths(data_name='b10')[0]
+        local_file_path = gpl1.list_local_file_paths('b10')[0]
         self.assertEqual(local_file_path,
                          os.path.join(local_dir_path, 'b10.csv.gz'))
         self.assertTrue(is_gz_file(local_file_path))
@@ -28,7 +28,7 @@ class CompressTest(BaseClassTest):
             destination='local',
             data_name='a10',
             query='select 5')
-        local_file_path = gpl1.list_local_file_paths(data_name='a10')[0]
+        local_file_path = gpl1.list_local_file_paths('a10')[0]
         self.assertEqual(local_file_path,
                          os.path.join(local_dir_path, 'a10-000000000000.csv'))
         self.assertFalse(is_gz_file(local_file_path))
@@ -40,7 +40,7 @@ class CompressTest(BaseClassTest):
             destination='local',
             data_name='e111',
             dataframe=pandas.DataFrame(data={'x': [1]}))
-        local_file_path = gpl1.list_local_file_paths(data_name='e111')[0]
+        local_file_path = gpl1.list_local_file_paths('e111')[0]
         self.assertEqual(local_file_path,
                          os.path.join(local_dir_path, 'e111.csv.gz'))
         self.assertTrue(is_gz_file(local_file_path))
@@ -50,7 +50,7 @@ class CompressTest(BaseClassTest):
             destination='local',
             data_name='e112',
             dataframe=pandas.DataFrame(data={'x': [1]}))
-        local_file_path = gpl1.list_local_file_paths(data_name='e112')[0]
+        local_file_path = gpl1.list_local_file_paths('e112')[0]
         self.assertEqual(local_file_path,
                          os.path.join(local_dir_path, 'e112.csv'))
         self.assertFalse(is_gz_file(local_file_path))

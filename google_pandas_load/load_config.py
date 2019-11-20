@@ -30,7 +30,7 @@ class LoadConfig:
             query=None,
             dataframe=None,
 
-            write_disposition=None,
+            write_disposition='WRITE_TRUNCATE',
             dtype=None,
             parse_dates=None,
             infer_datetime_format=True,
@@ -56,9 +56,9 @@ class LoadConfig:
         self._check_source_value()
         self._check_destination_value()
         self._check_source_different_from_destination()
+        self._check_if_data_name_missing()
         self._check_if_query_missing()
         self._check_if_dataframe_missing()
-        self._check_if_data_name_missing()
         self._check_if_bq_schema_missing()
 
         if self._bq_schema is None and self._dataframe is not None:
@@ -80,14 +80,6 @@ class LoadConfig:
         if self.source == self.destination:
             raise ValueError('source must be different from destination')
 
-    def _check_if_query_missing(self):
-        if self.source == 'query' and self._query is None:
-            raise ValueError("query must be given if source = 'query'")
-
-    def _check_if_dataframe_missing(self):
-        if self.source == 'dataframe' and self._dataframe is None:
-            raise ValueError("dataframe must be given if source = 'dataframe'")
-
     def _check_if_data_name_missing(self):
         msg = ("data_name must be given if source or destination is one of "
                "'bq' or 'gs' or 'local'")
@@ -97,6 +89,14 @@ class LoadConfig:
 
         if condition_1 and (condition_2 or condition_3):
             raise ValueError(msg)
+
+    def _check_if_query_missing(self):
+        if self.source == 'query' and self._query is None:
+            raise ValueError("query must be given if source = 'query'")
+
+    def _check_if_dataframe_missing(self):
+        if self.source == 'dataframe' and self._dataframe is None:
+            raise ValueError("dataframe must be given if source = 'dataframe'")
 
     def _check_if_bq_schema_missing(self):
         condition_1 = self.source in ('local', 'gs')

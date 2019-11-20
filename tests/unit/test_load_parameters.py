@@ -7,10 +7,17 @@ class LoadParametersTest(BaseClassTest):
     def test_wildcard(self):
         gpl1.load(source='query', destination='gs', data_name='e0',
                   query='select 2')
-        list_blob_uris = gpl1.list_blob_uris(data_name='e0')
+        list_blob_uris = gpl1.list_blob_uris('e0')
         self.assertEqual(
             list_blob_uris,
             ['gs://{}/e0-000000000000.csv.gz'.format(bucket_name)])
+
+        gpl2.load(source='query', destination='gs', data_name='e1',
+                  query='select 2')
+        list_blob_uris = gpl2.list_blob_uris('e1')
+        self.assertEqual(
+            list_blob_uris,
+            ['gs://{}/dir/subdir/e1.csv.gz'.format(bucket_name)])
 
     def test_write_append_dataframe_to_bq(self):
         populate()

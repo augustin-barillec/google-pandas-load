@@ -26,7 +26,7 @@ class DataDeliveryTest(BaseClassTest):
             source='bq',
             destination='dataframe',
             data_name='a10_bq')
-        self.assertTrue(gpl4.exist_in_bq(data_name='a10_bq'))
+        self.assertTrue(gpl4.exist_in_bq('a10_bq'))
         self.assertTrue(df0.equals(df1))
 
     def test_gs_to_local(self):
@@ -35,8 +35,8 @@ class DataDeliveryTest(BaseClassTest):
             source='gs',
             destination='local',
             data_name='a7')
-        self.assertEqual(len(gpl2.list_blob_uris(data_name='a7')), 1)
-        self.assertEqual(len(gpl2.list_local_file_paths(data_name='a7')), 1)
+        self.assertEqual(len(gpl2.list_blob_uris('a7')), 1)
+        self.assertEqual(len(gpl2.list_local_file_paths('a7')), 1)
 
     def test_local_to_dataframe(self):
         l0 = ['data_a{}_local'.format(i) for i in range(10, 14)]
@@ -56,9 +56,9 @@ class DataDeliveryTest(BaseClassTest):
             destination='dataframe',
             query='select 1 as x union all select 1 as x',
             data_name='a1')
-        self.assertFalse(gpl2.exist_in_bq(data_name='a1'))
-        self.assertFalse(gpl2.exist_in_gs(data_name='a1'))
-        self.assertFalse(gpl2.exist_in_local(data_name='a1'))
+        self.assertFalse(gpl2.exist_in_bq('a1'))
+        self.assertFalse(gpl2.exist_in_gs('a1'))
+        self.assertFalse(gpl2.exist_in_local('a1'))
         self.assertTrue(df0.equals(df1))
 
     def test_local_to_bq(self):
@@ -68,8 +68,8 @@ class DataDeliveryTest(BaseClassTest):
             destination='bq',
             data_name='a',
             bq_schema=[bigquery.SchemaField('x', 'STRING')])
-        self.assertTrue(gpl3.exist_in_local(data_name='a'))
-        self.assertFalse(gpl3.exist_in_gs(data_name='a'))
+        self.assertTrue(gpl3.exist_in_local('a'))
+        self.assertFalse(gpl3.exist_in_gs('a'))
         table_ref = dataset_ref.table(table_id='a')
         table = bq_client.get_table(table_ref)
         num_rows = table.num_rows
@@ -82,8 +82,8 @@ class DataDeliveryTest(BaseClassTest):
             destination='gs',
             data_name='b',
             dataframe=df)
-        self.assertFalse(gpl3.exist_in_local(data_name='b'))
-        self.assertEqual(len(gpl3.list_blob_uris(data_name='b')), 1)
+        self.assertFalse(gpl3.exist_in_local('b'))
+        self.assertEqual(len(gpl3.list_blob_uris('b')), 1)
 
     def test_local_to_gs(self):
         populate()
@@ -91,8 +91,8 @@ class DataDeliveryTest(BaseClassTest):
             source='local',
             destination='gs',
             data_name='a1')
-        self.assertTrue(gpl1.exist_in_local(data_name='a1'))
-        self.assertEqual(len(gpl1.list_blob_uris(data_name='a1')), 4)
+        self.assertTrue(gpl1.exist_in_local('a1'))
+        self.assertEqual(len(gpl1.list_blob_uris('a1')), 4)
 
     def test_dataframe_to_bq(self):
         l0 = [3, 4, 7]
@@ -103,9 +103,9 @@ class DataDeliveryTest(BaseClassTest):
             destination='bq',
             data_name='a',
             dataframe=df0)
-        self.assertFalse(gpl5.exist_in_local(data_name='a'))
-        self.assertFalse(gpl5.exist_in_gs(data_name='a'))
-        self.assertTrue(gpl5.exist_in_bq(data_name='a'))
+        self.assertFalse(gpl5.exist_in_local('a'))
+        self.assertFalse(gpl5.exist_in_gs('a'))
+        self.assertTrue(gpl5.exist_in_bq('a'))
         query = 'select * from `{}.{}.{}`'.format(project_id, dataset_id, 'a')
         df1 = bq_client.query(query).to_dataframe()
         l1 = sorted(list(df1.x))
@@ -158,7 +158,7 @@ class DataDeliveryTest(BaseClassTest):
             destination='gs',
             data_name='e0',
             query='select 4 as y')
-        load_results = gpl5.mload(configs=[config1, config2, config3])
+        load_results = gpl5.mload([config1, config2, config3])
         self.assertEqual(len(load_results), 3)
         self.assertTrue(load_results[0] is None)
         df2 = pandas.DataFrame(data={'y': [4]})
@@ -177,7 +177,7 @@ class DataDeliveryTest(BaseClassTest):
             source='query',
             destination='dataframe',
             query=query)
-        df2 = gpl5.mload(configs=[config])[0]
+        df2 = gpl5.mload([config])[0]
         self.assertTrue(df0.equals(df1))
         self.assertTrue(df0.equals(df2))
 

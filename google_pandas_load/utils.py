@@ -31,7 +31,7 @@ def timestamp_randint_string(prefix=None):
     if prefix is None:
         prefix = ''
     datetime_str = datetime.now().strftime('%Y%m%d%H%M%S_%f')
-    random_value = '_rand' + str(randint(0, 10**4))
+    random_value = '_rand' + str(randint(0, 10**6))
     return prefix + datetime_str + random_value
 
 

@@ -11,44 +11,48 @@ class UtilsRaiseErrorTest(BaseClassTest):
                       query='selectt 3')
 
 
-class LoadConfigRaiseErrorTest(unittest.TestCase):
+class LoadConfigRaiseErrorTest(BaseClassTest):
 
     def test_raise_error_if_invalid_source(self):
         with self.assertRaises(ValueError) as cm:
-            LoadConfig(source='queryy', destination='dataframe')
+            LoadConfig(source='queryy', destination='dataframe',
+                       query='select 3')
         msg = ("source must be one of 'query' or 'bq' or 'gs' or 'local' "
                "or 'dataframe")
         self.assertEqual(str(cm.exception), msg)
 
     def test_raise_error_if_invalid_destination(self):
+        df = pandas.DataFrame(data={'x': [1]})
         with self.assertRaises(ValueError) as cm:
-            LoadConfig(source='bq', destination='query')
+            LoadConfig(source='dataframe', destination='query',
+                       dataframe=df)
         msg = ("destination must be one of 'bq' or 'gs' or 'local' "
                "or 'dataframe'")
         self.assertEqual(str(cm.exception), msg)
 
     def test_raise_error_if_source_is_equal_to_destination(self):
         with self.assertRaises(ValueError) as cm:
-            LoadConfig(source='local', destination='local')
+            LoadConfig(source='local', destination='local',
+                       data_name='a')
         self.assertEqual(str(cm.exception),
                          'source must be different from destination')
 
     def test_raise_error_if_missing_required_values(self):
+        with self.assertRaises(ValueError) as cm:
+            LoadConfig(source='query', destination='gs', query='select 3')
+        msg = ("data_name must be given if source or destination is one of "
+               "'bq' or 'gs' or 'local'")
+        self.assertEqual(str(cm.exception), msg)
+
         with self.assertRaises(ValueError) as cm:
             LoadConfig(source='query', destination='dataframe')
         self.assertEqual(str(cm.exception),
                          "query must be given if source = 'query'")
 
         with self.assertRaises(ValueError) as cm:
-            LoadConfig(source='dataframe', destination='local')
+            LoadConfig(source='dataframe', destination='local', data_name='a1')
         self.assertEqual(str(cm.exception),
                          "dataframe must be given if source = 'dataframe'")
-
-        with self.assertRaises(ValueError) as cm:
-            LoadConfig(source='query', destination='gs', query='select 3')
-        msg = ("data_name must be given if source or destination is one of "
-               "'bq' or 'gs' or 'local'")
-        self.assertEqual(str(cm.exception), msg)
 
         with self.assertRaises(ValueError) as cm:
             LoadConfig(source='gs', destination='bq', data_name='e0')
@@ -116,6 +120,8 @@ class LoadRaiseErrorTest(BaseClassTest):
                          'There is no data named e0 in local')
 
     def test_raise_error_if_missing_required_resources(self):
+        populate()
+
         with self.assertRaises(ValueError) as cm:
             gpl_no_bq_client.load(source='query', destination='bq',
                                   query='select 3', data_name='e0')
@@ -130,12 +136,12 @@ class LoadRaiseErrorTest(BaseClassTest):
 
         with self.assertRaises(ValueError) as cm:
             gpl_no_bucket.load(source='gs', destination='local',
-                               data_name='e0')
+                               data_name='a')
         self.assertEqual(str(cm.exception),
                          'bucket must be given if gs is used')
 
         with self.assertRaises(ValueError) as cm:
             gpl_no_local_dir_path.load(source='local', destination='gs',
-                                       data_name='e0')
+                                       data_name='a')
         self.assertEqual(str(cm.exception),
                          'local_dir_path must be given if local is used')

@@ -56,13 +56,9 @@ For further information about how to authenticate to Google Cloud Platform with 
 Transfer data seamlessly from and to various locations:
 
 .. warning::
-   In general, data is moved, not copied! The precise behavior is stated `here <Loader.html#moved>`__.
-
-.. warning::
-   In general, before data is moved to any location, the loader will delete
-   any prior existing data having the same name in
-   the location. This ensures a clean space for the upcoming data.
-   The precise behavior is stated `here <Loader.html#pre-deletion>`__.
+   In general, before data is loaded to any location, **transitional** or
+   final, the loader will delete any prior existing data having the same name
+   in the location. The precise behavior is stated `here <Loader.html#pre-deletion>`__.
 
 .. code-block:: python
 

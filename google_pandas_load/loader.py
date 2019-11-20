@@ -7,15 +7,16 @@ from copy import deepcopy
 from google.cloud import bigquery, storage
 from google_pandas_load.load_config import LoadConfig
 from google_pandas_load.utils import \
-    wait_for_jobs, \
     table_exists, \
+    wait_for_jobs, \
     timestamp_randint_string, \
     check_no_prefix, \
     union_keys
 from google_pandas_load.constants import \
+    MIDDLE_LOCATIONS, \
+    DESTINATIONS_TO_ALWAYS_CLEAR, \
     ATOMIC_FUNCTION_NAMES, \
-    BQ_CLIENT_ATOMIC_FUNCTION_NAMES, \
-    MIDDLE_LOCATIONS
+    BQ_CLIENT_ATOMIC_FUNCTION_NAMES
 
 logger_ = logging.getLogger(name='Loader')
 
@@ -103,7 +104,6 @@ class Loader:
         self._local_dir_path = local_dir_path
         self._generated_data_name_prefix = generated_data_name_prefix
         self._max_concurrent_google_jobs = max_concurrent_google_jobs
-
         self._use_wildcard = use_wildcard
         if self._use_wildcard:
             self._bq_to_gs_ext = '-*.csv'
@@ -119,7 +119,6 @@ class Loader:
         else:
             self._bq_to_gs_compression = None
             self._dataframe_to_local_compression = None
-
         self._separator = separator
         self._chunk_size = chunk_size
         self._logger = logger
@@ -182,7 +181,7 @@ class Loader:
 
     def _check_if_local_dir_missing(self, atomic_function_names):
         names = atomic_function_names
-        if self._local_dir_path is None and any('local' in n for n in names):
+        if self.local_dir_path is None and any('local' in n for n in names):
             raise ValueError('local_dir_path must be given if local is used')
 
     def _check_if_data_in_source(self, atomic_config):
@@ -205,14 +204,14 @@ class Loader:
         named_ data_name in Storage.
         """
         return [self._bucket_uri + '/' + blob.name
-                for blob in self.list_blobs(data_name=data_name)]
+                for blob in self.list_blobs(data_name)]
 
     def list_local_file_paths(self, data_name):
         """Return the list of the paths of the files forming the data named_
         data_name in local.
         """
-        return [os.path.join(self._local_dir_path, basename)
-                for basename in os.listdir(self._local_dir_path)
+        return [os.path.join(self.local_dir_path, basename)
+                for basename in os.listdir(self.local_dir_path)
                 if basename.startswith(data_name)]
 
     def exist_in_bq(self, data_name):
@@ -222,29 +221,27 @@ class Loader:
 
     def exist_in_gs(self, data_name):
         """Return True if data named_ data_name exist in Storage,"""
-        return len(self.list_blobs(data_name=data_name)) > 0
+        return len(self.list_blobs(data_name)) > 0
 
     def exist_in_local(self, data_name):
         """Return True if data named_ data_name exist in local."""
-        return len(self.list_local_file_paths(data_name=data_name)) > 0
+        return len(self.list_local_file_paths(data_name)) > 0
 
     def delete_in_bq(self, data_name):
         """Delete the data named_ data_name in BigQuery."""
-        if self.exist_in_bq(data_name=data_name):
+        if self.exist_in_bq(data_name):
             table_ref = self.dataset_ref.table(table_id=data_name)
             self.bq_client.delete_table(table=table_ref)
 
     def delete_in_gs(self, data_name):
         """Delete the data named_ data_name in Storage."""
-        if self.exist_in_gs(data_name=data_name):
-            self.bucket.delete_blobs(
-                blobs=self.list_blobs(data_name=data_name))
+        if self.exist_in_gs(data_name):
+            self.bucket.delete_blobs(blobs=self.list_blobs(data_name))
 
     def delete_in_local(self, data_name):
         """Delete the data named_ data_name in local."""
-        if self.exist_in_local(data_name=data_name):
-            for local_file_path in self.list_local_file_paths(
-                    data_name=data_name):
+        if self.exist_in_local(data_name):
+            for local_file_path in self.list_local_file_paths(data_name):
                 os.remove(local_file_path)
 
     def _exist(self, location, data_name):
@@ -264,7 +261,7 @@ class Loader:
 
     def _blob_to_local_file(self, blob):
         blob_basename = blob.name.split('/')[-1]
-        local_file_path = os.path.join(self._local_dir_path, blob_basename)
+        local_file_path = os.path.join(self.local_dir_path, blob_basename)
         blob.download_to_filename(filename=local_file_path)
 
     def _local_file_to_blob(self, local_file_path):
@@ -327,7 +324,7 @@ class Loader:
         job_config.schema = config.schema
         job_config.skip_leading_rows = 1
         job_config.write_disposition = config.write_disposition
-        source_uris = self.list_blob_uris(data_name=config.data_name)
+        source_uris = self.list_blob_uris(config.data_name)
         destination = self.dataset_ref.table(
             table_id=config.data_name)
         job = self.bq_client.load_table_from_uri(
@@ -338,20 +335,20 @@ class Loader:
 
     def _gs_to_local(self, gs_to_local_config):
         data_name = gs_to_local_config.data_name
-        blobs = self.list_blobs(data_name=data_name)
+        blobs = self.list_blobs(data_name)
         for b in blobs:
             self._blob_to_local_file(b)
 
     def _local_to_gs(self, local_to_gs_config):
         data_name = local_to_gs_config.data_name
-        local_file_paths = self.list_local_file_paths(data_name=data_name)
+        local_file_paths = self.list_local_file_paths(data_name)
         for p in local_file_paths:
             self._local_file_to_blob(p)
 
     def _local_to_dataframe(self, local_to_dataframe_config):
         config = local_to_dataframe_config
         data_name = config.data_name
-        local_file_paths = self.list_local_file_paths(data_name=data_name)
+        local_file_paths = self.list_local_file_paths(data_name)
         dataframes = map(
             lambda local_file_path:
             self._local_file_to_dataframe(
@@ -368,7 +365,7 @@ class Loader:
         data_name = config.data_name
         ext = self._dataframe_to_local_ext
         dataframe = config.dataframe
-        local_file_path = os.path.join(self._local_dir_path, data_name + ext)
+        local_file_path = os.path.join(self.local_dir_path, data_name + ext)
         self._dataframe_to_local_file(dataframe, local_file_path)
 
     def _launch_bq_client_job(self, bq_client_load_config):
@@ -387,8 +384,8 @@ class Loader:
             configs_to_process = configs[i * batch_size:(i + 1) * batch_size]
             jobs_to_process = [self._launch_bq_client_job(c)
                                for c in configs_to_process]
+            wait_for_jobs(jobs=jobs_to_process)
             jobs += jobs_to_process
-            wait_for_jobs(jobs=jobs)
         return jobs
 
     def _execute_local_load(self, local_load_config):
@@ -406,10 +403,8 @@ class Loader:
         source = configs[0].source
         destination = configs[0].destination
 
-        if not all([c.source == source and c.destination == destination
-                    for c in configs]):
-            raise ValueError('All atomic configs given in the argument must '
-                             'have the same source and the same destination')
+        assert all([c.source == source and c.destination == destination
+                    for c in configs])
 
         atomic_function_name = '{}_to_{}'.format(source, destination)
 
@@ -421,14 +416,14 @@ class Loader:
             for c in configs:
                 self._check_if_data_in_source(c)
 
-        if destination in ['gs', 'local']:
+        if destination in DESTINATIONS_TO_ALWAYS_CLEAR:
             for c in configs:
                 self._clear_destination(c)
 
         if atomic_function_name in BQ_CLIENT_ATOMIC_FUNCTION_NAMES:
-            atomic_load_results = self._execute_bq_client_jobs(configs)
+            load_results = self._execute_bq_client_jobs(configs)
         else:
-            atomic_load_results = self._execute_local_loads(configs)
+            load_results = self._execute_local_loads(configs)
 
         if source in MIDDLE_LOCATIONS:
             for c in configs:
@@ -438,13 +433,13 @@ class Loader:
         end_timestamp = datetime.now()
         duration = (end_timestamp - start_timestamp).seconds
 
-        res = {'load_results': atomic_load_results, 'duration': duration}
+        res = {'load_results': load_results, 'duration': duration}
 
         if atomic_function_name != 'query_to_bq':
             msg = 'Ended {} to {} [{}s]'.format(source, destination, duration)
             self._logger.debug(msg)
         else:
-            jobs = atomic_load_results
+            jobs = load_results
             total_bytes_billed_list = [j.total_bytes_billed for j in jobs]
             costs = [round(tbb / 10 ** 12 * 5, 5)
                      for tbb in total_bytes_billed_list]
@@ -470,7 +465,7 @@ class Loader:
             args.Namespace: The xmload result res with the following
             attributes:
 
-            - res.load_results (list of (str or NoneType or pandas.DataFrame)):
+            - res.load_results (list of (pandas.DataFrame or NoneType)):
               A list of load results.
 
             - res.data_names (list of str): The names of the data.
@@ -493,12 +488,12 @@ class Loader:
 
         configs = [deepcopy(config) for config in configs]
         nb_of_configs = len(configs)
-        self._fill_missing_data_names(configs=configs)
+        self._fill_missing_data_names(configs)
         data_names = [config.data_name for config in configs]
-        check_no_prefix(strings=data_names)
+        check_no_prefix(data_names)
         sliced_configs = [config.sliced_config for config in configs]
 
-        names_of_atomic_functions_to_call = union_keys(dicts=sliced_configs)
+        names_of_atomic_functions_to_call = union_keys(sliced_configs)
         self._check_if_bq_client_missing(names_of_atomic_functions_to_call)
         self._check_if_dataset_ref_missing(names_of_atomic_functions_to_call)
         self._check_if_bucket_missing(names_of_atomic_functions_to_call)
@@ -519,7 +514,7 @@ class Loader:
             if not n_configs:
                 durations[n] = None
                 continue
-            n_res = self._atomic_load(atomic_configs=n_configs)
+            n_res = self._atomic_load(n_configs)
             n_load_results = n_res['load_results']
             n_duration = n_res['duration']
             if n == 'query_to_bq':
@@ -561,7 +556,7 @@ class Loader:
                 format of one configuration.
 
         Returns:
-            list of (str or NoneType or pandas.DataFrame): A list of of load
+            list of (pandas.DataFrame or NoneType): A list of of load
             results. The i-th element is the result of the load job configured
             by configs[i]. See :meth:`google_pandas_load.loader.Loader.load`
             for the format of one load result.
@@ -592,7 +587,7 @@ class Loader:
             argparse.Namespace: A xload result res with the following
             attributes:
 
-            - res.load_result (str or NoneType or pandas.DataFrame): The result
+            - res.load_result (pandas.DataFrame or NoneType): The result
               of the load job.
 
             - res.data_name (str): The `name <named_>`_ of the loaded data.
@@ -624,16 +619,13 @@ class Loader:
               * res.durations.gs_to_bq (int or NoneType): the duration in
                 seconds of the gs_to_bq part if any.
 
-              * res.durations.bq_to_query (int or NoneType): the duration in
-                seconds of the bq_to_query part if any.
-
             - res.query_cost (float or NoneType): The query cost in US dollars
               of the query_to_bq part if any.
          """
 
         config = LoadConfig(
-            source,
-            destination,
+            source=source,
+            destination=destination,
 
             data_name=data_name,
             query=query,
@@ -676,54 +668,38 @@ class Loader:
         """Execute a load job whose configuration is specified by the
         arguments.
 
-        The data is transferred from source to destination. The valid values
-        for the source and the destination are: 'query', 'bq', 'gs', 'local'
-        and 'dataframe'.
+        The data is transferred from source to destination.
+
+        The valid values for source are 'query', 'bq', 'gs', 'local' and
+        'dataframe'.
+        The valid values for the destination are 'bq', 'gs', 'local' and
+        'dataframe'.
 
         Downloading follows the path:
-        'query' -> 'bq' -> 'gs' -> 'local' -> 'dataframe' while uploading goes
-        in the opposite direction.
-
-        .. _moved:
-
-        Warning:
-            **In general, data is moved, not copied!**
-
-            Once the load job has been executed, the data usually does not
-            exist anymore in the source and in any transitional locations.
-
-            However two exceptions exist:
-
-            - When source = 'dataframe', the dataframe is not deleted in RAM.
-            - When destination = ‘query’, the data is not deleted in BigQuery,
-              so that it still exists somewhere. Indeed, in this case, the
-              load job returns a simple query which represents the data but
-              does not contain it.
-
-            Use the delete_in_bq, delete_in_gs and delete_in_local parameters
-            to control the data deletion, during the execution of the load
-            job.
-
+        'query' -> 'bq' -> 'gs' -> 'local' -> 'dataframe'.
+        Uploading follows the path: 'dataframe' -> 'local' -> 'gs' -> 'bq'.
 
         .. _pre-deletion:
 
         Warning:
             **In general, pre-existing data is deleted!**
 
-            Before new data is moved to any location, the loader will usually
-            delete any prior data bearing the same name to prevent any
-            conflict.
+            Before new data is loaded to Storage or the local folder,
+            the loader will delete any prior data having the same name.
+            This applies whether the location is **transitional** or final.
 
-            There is one exception:
 
-            - When destination = ‘bq’ and the write_dispostion parameter is
-              set to ‘WRITE_APPEND’, new data is appended to pre-existing one
-              with the same name.
+
+
+            When new data is loaded to BigQuery, the parameter
+            write_disposition specifies the action that occurs if any prior
+            table having the same name exists in the dataset. Its default
+            value is 'WRITE_TRUNCATE', which means that the loader will
+            overwrite the table.
 
         Args:
             source (str): one of 'query', 'bq', 'gs', 'local', 'dataframe'.
-            destination (str): one of 'query', 'bq', 'gs', 'local',
-                'dataframe'.
+            destination (str): one of 'bq', 'gs', 'local', 'dataframe'.
 
             data_name (str, optional): The `name <named_>`_ of the data. If
                 not passed, a name is generated by concatenating the
@@ -731,7 +707,6 @@ class Loader:
                 timestamp and a random integer. This is useful when
                 source = 'query' and destination = 'dataframe' because the user
                 may not need to know the data_name.
-
             query (str, optional): A BigQuery Standard Sql query. Required if
                 source = 'query'.
             dataframe (pandas.DataFrame, optional): A pandas dataframe.
@@ -764,19 +739,16 @@ class Loader:
                 an inferred value from the dataframe with `this method <LoadConfig.html#google_pandas_load.load_config.LoadConfig.bq_schema_inferred_from_dataframe>`__.
 
         Returns:
-            str or pandas.DataFrame or NoneType: The result of the load job:
+            pandas.DataFrame or NoneType: The result of the load job:
 
-            - When destination = 'query', it returns the BigQuery standard
-              SQL query: "select * from \`project_id.dataset_id.data_name\`",
-              where the project_id is the dataset's one.
             - When destination = 'dataframe', it returns a pandas dataframe
               populated with the data specified by the arguments.
             - In all other cases, it returns None.
         """
 
         return self.xload(
-                    source,
-                    destination,
+                    source=source,
+                    destination=destination,
 
                     data_name=data_name,
                     query=query,
