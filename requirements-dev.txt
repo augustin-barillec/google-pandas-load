@@ -1,11 +1,15 @@
 -r requirements.txt
 
-setuptools==40.*
+setuptools==41.*
 
 coverage==4.*
 
 sphinx==2.*
 ipykernel==5.*
 nbsphinx==0.*
+
+jupyter==1.*
+
+google-cloud-bigquery-storage[pandas,fastavro]==0.*
 
 pyarrow==0.*

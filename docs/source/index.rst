@@ -56,8 +56,8 @@ For further information about how to authenticate to Google Cloud Platform with 
 Transfer data seamlessly from and to various locations:
 
 .. warning::
-   In general, before data is loaded to any location, **transitional** or
-   final, the loader will delete any prior existing data having the same name
+   By default, before data is loaded to any location, even **transitional**,
+   the loader will delete any prior existing data having the same name
    in the location. The precise behavior is stated `here <Loader.html#pre-deletion>`__.
 
 .. code-block:: python
@@ -83,16 +83,12 @@ Transfer data seamlessly from and to various locations:
         source='bq',
         destination='gs',
         data_name='a0')
-    # The data is not in BigQuery anymore.
-    # See warning above.
 
     # Download the data to the local folder
-    # without deleting it in Storage.
     gpl.load(
         source='gs',
         destination='local',
-        data_name='a0',
-        delete_in_gs=False)
+        data_name='a0')
 
 Launch simultaneously several load jobs with massive parallelization of the query_to_bq and bq_to_gs steps.
 This is made possible by BigQuery.
