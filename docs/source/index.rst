@@ -58,7 +58,15 @@ Transfer data seamlessly from and to various locations:
 .. warning::
    By default, before data is loaded to any location, even **transitional**,
    the loader will delete any prior existing data having the same name
-   in the location. The precise behavior is stated `here <Loader.html#pre-deletion>`__.
+   in the location.
+
+   For instance, in the second load example below, where the data goes
+   through a local folder, Storage and finally populates a BigQuery table,
+   for each location X among these three locations, prior
+   data `named <Loader.html#named>`__ a0 is deleted in X before new data is
+   loaded in X.
+
+   More details `here <Loader.html#pre-deletion>`__.
 
 .. code-block:: python
 

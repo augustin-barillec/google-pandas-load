@@ -700,12 +700,12 @@ class Loader:
             having the name data_name in the location in order to avoid
             any conflict.
 
+            For instance (TO DO)
+
             This default behavior cannot be modified when the location is
             Storage or the local folder. It can be modified when the location
-            is BigQuery, with the parameter write_disposition. It specifies
-            the action that occurs if any prior table having the same name
-            exists in the dataset. Its default value is 'WRITE_TRUNCATE', which
-            means that the loader will overwrite the table.
+            is BigQuery, with the parameter write_disposition (see below
+            for the parameter description).
 
         Note:
             **Data is removed from a transitional location, once loaded in the
