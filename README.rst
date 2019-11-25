@@ -1,8 +1,6 @@
 google-pandas-load
 ==================
 
-Release v\ |release|.
-
 .. image:: https://img.shields.io/pypi/l/google-pandas-load.svg
     :target: https://pypi.org/project/google-pandas-load/
 
