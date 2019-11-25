@@ -711,9 +711,9 @@ class Loader:
                     dataframe=df)
 
             where the data goes through a local folder, Storage and finally
-            populates a BigQuery table, for each location X among these three
-            locations, prior data `named <Loader.html#named>`__ a0 is deleted
-            in X just before new data is loaded in X.
+            populates a BigQuery table, prior data
+            `named <Loader.html#named>`__ a0 is deleted in these three
+            locations.
 
             This default behavior cannot be modified when the location is
             Storage or the local folder. It can be modified when the location
