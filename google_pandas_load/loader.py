@@ -700,7 +700,20 @@ class Loader:
             having the name data_name in the location in order to avoid
             any conflict.
 
-            For instance (TO DO)
+            For instance, in the following load:
+
+            .. code-block:: python
+
+                loader.load(
+                    source='dataframe',
+                    destination='bq',
+                    data_name='a0',
+                    dataframe=df)
+
+            where the data goes through a local folder, Storage and finally
+            populates a BigQuery table, for each location X among these three
+            locations, prior data `named <Loader.html#named>`__ a0 is deleted
+            in X just before new data is loaded in X.
 
             This default behavior cannot be modified when the location is
             Storage or the local folder. It can be modified when the location

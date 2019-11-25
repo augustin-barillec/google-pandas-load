@@ -63,10 +63,10 @@ Transfer data seamlessly from and to various locations:
    For instance, in the second load example below, where the data goes
    through a local folder, Storage and finally populates a BigQuery table,
    for each location X among these three locations, prior
-   data `named <Loader.html#named>`__ a0 is deleted in X before new data is
-   loaded in X.
+   data `named <Loader.html#named>`__ a0 is deleted in X just before new data
+   is loaded in X.
 
-   More details `here <Loader.html#pre-deletion>`__.
+   The reason for this design choice is explained `here <Loader.html#pre-deletion>`__.
 
 .. code-block:: python
 
