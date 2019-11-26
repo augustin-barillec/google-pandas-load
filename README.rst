@@ -1,6 +1,9 @@
 google-pandas-load
 ==================
 
+.. image:: https://img.shields.io/pypi/v/google-pandas-load
+    :target: https://pypi.org/project/google-pandas-load/
+
 .. image:: https://img.shields.io/pypi/l/google-pandas-load.svg
     :target: https://pypi.org/project/google-pandas-load/
 
