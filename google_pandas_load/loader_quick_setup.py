@@ -94,21 +94,25 @@ class LoaderQuickSetup(Loader):
             separator='|',
             chunk_size=2 ** 28,
             logger=not_propagating_logger):
+        self._project_id = project_id
+        self._dataset_id = dataset_id
+        self._bucket_name = bucket_name
+
         self._bq_client = None
         self._dataset_ref = None
         self._gs_client = None
         self._bucket = None
-        if project_id is not None:
+        if self.project_id is not None:
             self._bq_client = bigquery.Client(
-                project=project_id, credentials=credentials)
-            if dataset_id is not None:
+                project=self.project_id, credentials=credentials)
+            if self.dataset_id is not None:
                 self._dataset_ref = bigquery.dataset.DatasetReference(
-                    project=project_id, dataset_id=dataset_id)
-            if bucket_name is not None:
+                    project=self.project_id, dataset_id=self.dataset_id)
+            if self.bucket_name is not None:
                 self._gs_client = storage.Client(
-                    project=project_id, credentials=credentials)
+                    project=self.project_id, credentials=credentials)
                 self._bucket = storage.bucket.Bucket(
-                    client=self.gs_client, name=bucket_name)
+                    client=self.gs_client, name=self.bucket_name)
 
         super().__init__(bq_client=self.bq_client,
                          dataset_ref=self.dataset_ref,
@@ -122,6 +126,21 @@ class LoaderQuickSetup(Loader):
                          separator=separator,
                          chunk_size=chunk_size,
                          logger=logger)
+
+    @property
+    def project_id(self):
+        """str: The project_id given in the argument."""
+        return self._project_id
+
+    @property
+    def dataset_id(self):
+        """str: The dataset_id given in the argument."""
+        return self._dataset_id
+
+    @property
+    def bucket_name(self):
+        """str: The bucket_name givent in the argument."""
+        return self._bucket_name
 
     @property
     def gs_client(self):

@@ -3,7 +3,7 @@
 History
 =======
 
-2.0.0 (2019-11-27)
+2.0.0 (2019-11-29)
 ------------------
 
 API Changes
@@ -23,6 +23,14 @@ API Changes
 
 * The gs_dir_path_in_bucket parameter of :class:`google_pandas_load.loader.Loader`
   has been renamed gs_dir_path. It is shorter and equally understandable.
+
+* :meth:`google_pandas_load.loader.Loader.load` has now properties: bq_client,
+  dataset_ref, bucket, gs_dir_path and local_dir_path. They return the
+  homonym arguments of the class.
+
+* :meth:`google_pandas_load.loader.LoaderQuickSetup.load` has three new
+  properties: project_id, dataset_id and bucket_name. They return the
+  homonym arguments of the class.
 
 * Deleted the renaming of the modules of the three main classes (Loader,
   LoaderQuickSetup and LoadConfig) in the __init__.py. This renaming
