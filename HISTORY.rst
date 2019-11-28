@@ -32,6 +32,11 @@ API Changes
   properties: project_id, dataset_id and bucket_name. They return the
   homonym arguments of the class.
 
+* The prefix of a automatically generated data_name is still the timestamp
+  of the load job execution. But the random suffix is not
+  random.randint(0, 10**4) anymore. Instead, uuid.uuid4().int is used.
+  It decreases the risk of data_name collisions.
+
 * Deleted the renaming of the modules of the three main classes (Loader,
   LoaderQuickSetup and LoadConfig) in the __init__.py. This renaming
   shortened the references to these classes in the documentation but

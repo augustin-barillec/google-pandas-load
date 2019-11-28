@@ -1,6 +1,6 @@
 import time
+import uuid
 from datetime import datetime
-from random import randint
 from google.cloud.exceptions import NotFound
 
 
@@ -31,7 +31,7 @@ def timestamp_randint_string(prefix=None):
     if prefix is None:
         prefix = ''
     datetime_str = datetime.now().strftime('%Y%m%d%H%M%S_%f')
-    random_value = '_rand' + str(randint(0, 10**6))
+    random_value = '_rand' + str(uuid.uuid4().int)
     return prefix + datetime_str + random_value
 
 
