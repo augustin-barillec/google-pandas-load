@@ -3,15 +3,16 @@
 History
 =======
 
-2.0.0 (2019-11-29)
-------------------
+2.0.0 (??)
+----------
 
 API Changes
 ^^^^^^^^^^^
 * The parameters delete_in_bq, delete_in_gs and delete_in_local of the load
-  methods do not exist anymore. The fixed behavior is now the following:
+  methods do not exist anymore. They were used to choose if data should be
+  deleted once loaded. The fixed behavior is now the following:
 
-  - The data is not deleted in the source during the execution of a load job.
+  - The data is kept in the source.
   - The data is not kept in transitional locations.
 
   This fixed behavior is safer, simpler and fits the general usecases.
@@ -32,23 +33,12 @@ API Changes
   properties: project_id, dataset_id and bucket_name. They return the
   homonym arguments of the class.
 
-* The prefix of a automatically generated data_name is still the timestamp
-  of the load job execution. But the random suffix is not
-  random.randint(0, 10**4) anymore. Instead, uuid.uuid4().int is used.
-  It decreases the risk of data_name collisions.
-
-* Deleted the renaming of the modules of the three main classes (Loader,
-  LoaderQuickSetup and LoadConfig) in the __init__.py. This renaming
-  shortened the references to these classes in the documentation but
-  it also made them less explicit.
-
 Bugfixes
 ^^^^^^^^
 * The method `google.cloud.bigquery.job.QueryJob.result()`_ was used to wait
   for a google job to be completed. It is not used anymore because it could lead
   to a timeout if the google job was too long. Instead, the google job is
   reloaded each second until is is finished.
-
 
 1.0.0 (2019-04-11)
 ------------------

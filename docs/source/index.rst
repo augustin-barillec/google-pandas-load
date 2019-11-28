@@ -63,9 +63,8 @@ For further information about how to authenticate to Google Cloud Platform with 
 Transfer data seamlessly from and to various locations:
 
 .. warning::
-   By default, before data is loaded to any location, even **transitional**,
-   the loader will delete any prior existing data having the same name
-   in the location.
+   By default, the loader will delete any prior existing data having the
+   same name in transitional and final locations.
 
    For instance, in the second load example below, where the data goes
    through a local folder, Storage and finally populates a BigQuery table,

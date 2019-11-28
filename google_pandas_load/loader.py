@@ -654,16 +654,17 @@ class Loader:
         """Execute a load job whose configuration is specified by the
         arguments.
 
-        The data is loaded from source to destination and it is not deleted
-        in the source.
+        The data is loaded from source to destination.
 
         The valid values for source are 'query', 'bq', 'gs', 'local' and
         'dataframe'.
+
         The valid values for the destination are 'bq', 'gs', 'local' and
         'dataframe'.
 
         Downloading follows the path:
         'query' -> 'bq' -> 'gs' -> 'local' -> 'dataframe'.
+
         Uploading follows the path: 'dataframe' -> 'local' -> 'gs' -> 'bq'.
 
         .. _named:
@@ -691,8 +692,8 @@ class Loader:
         .. _pre-deletion:
 
         Warning:
-            **By default, pre-existing data is deleted even in transitional
-            locations!**
+            **By default, pre-existing data is deleted in transitional and
+            final locations !**
 
             By default, before data named_ data_name is loaded in a location,
             whether it is transitional or final, as the data is not renamed
@@ -715,16 +716,11 @@ class Loader:
             these three locations.
 
             This default behavior cannot be modified when the location is
-            Storage or the local folder. It can be modified when the location
-            is BigQuery, with the parameter write_disposition (see below
-            for the parameter description).
+            Storage or the local folder.
 
-        Note:
-            **Data is removed from a transitional location, once loaded in the
-            next location.**
-
-            Just after data has been loaded from transitional location A to
-            location B, it is deleted in A.
+            It can be modified when the location is BigQuery, with the
+            parameter write_disposition (see below for the parameter
+            description).
 
         Args:
             source (str): one of 'query', 'bq', 'gs', 'local', 'dataframe'.
