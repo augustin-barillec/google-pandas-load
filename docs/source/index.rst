@@ -63,15 +63,10 @@ For further information about how to authenticate to Google Cloud Platform with 
 Transfer data seamlessly from and to various locations:
 
 .. warning::
-   By default, the loader will delete any prior existing data having the
-   same name in transitional and final locations.
+   The loader will delete any prior existing data having the same name in any
+   location it will go through or at.
 
-   For instance, in the second load example below, where the data goes
-   through a local folder, Storage and finally populates a BigQuery table,
-   prior data `named <Loader.html#named>`__ a0 is deleted in these three
-   locations.
-
-   The reason for this design choice is explained `here <Loader.html#pre-deletion>`__.
+   Explanation for this choice and one example can be found `here <Loader.html#pre-deletion>`__.
 
 .. code-block:: python
 

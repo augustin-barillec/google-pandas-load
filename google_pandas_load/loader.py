@@ -684,24 +684,19 @@ class Loader:
         Note:
             **Data is not renamed**
 
-            Data is not renamed when it is loaded in a location, whether it is
-            transitional or final. This choice is made for simplicity. It is
-            indeed difficult to rename data identified by a prefix (see note
-            just above).
+            Since renaming the data by a prefix rise unnecessary difficulties
+            (see previous note), choice has been made to keep its original name
 
         .. _pre-deletion:
 
         Warning:
-            **By default, pre-existing data is deleted in transitional and
-            final locations !**
+            **By default, pre-existing data is deleted !**
 
-            By default, before data named_ data_name is loaded in a location,
-            whether it is transitional or final, as the data is not renamed
-            (see note just above), the loader will delete any prior data
-            having the name data_name in the location in order to avoid
-            any conflict.
+            Since data is not renamed  (see note above), the loader deletes any
+            prior data having the same name before loading the new data. This
+            is done in order to prevent any conflict.
 
-            For instance, in the following load:
+            To illustrate this process, consider the following load:
 
             .. code-block:: python
 
@@ -711,16 +706,14 @@ class Loader:
                     data_name='a0',
                     dataframe=df)
 
-            where the data goes through a local folder, Storage and finally
-            populates a BigQuery table, prior data named_ a0 is deleted in
-            these three locations.
+            Before populating a BigQuery table, data goes through a local
+            folder and Storage. If some existing data was named ‘a0’ prior the
+            load job in any of these three locations, it is going to be erased
+            first.
 
-            This default behavior cannot be modified when the location is
-            Storage or the local folder.
-
-            It can be modified when the location is BigQuery, with the
-            parameter write_disposition (see below for the parameter
-            description).
+            Default behaviour can only be modified in the BigQuery location.
+            To do this, the default value of the write_disposition parameter
+            has to be changed.
 
         Args:
             source (str): one of 'query', 'bq', 'gs', 'local', 'dataframe'.
