@@ -354,15 +354,15 @@ class Loader:
         local_file_path = os.path.join(self.local_dir_path, data_name + ext)
         self._dataframe_to_local_file(dataframe, local_file_path)
 
-    def _launch_bq_client_job(self, bq_client_load_config):
-        config = bq_client_load_config
-        s = config.source
-        d = config.destination
-        job = getattr(self, '_{}_to_{}_job'.format(s, d))(config)
+    def _launch_bq_client_job(self, atomic_config):
+        s = atomic_config.source
+        d = atomic_config.destination
+        assert s == 'bq' or d == 'bq'
+        job = getattr(self, '_{}_to_{}_job'.format(s, d))(atomic_config)
         return job
 
-    def _execute_bq_client_jobs(self, bq_client_load_configs):
-        configs = bq_client_load_configs
+    def _execute_bq_client_jobs(self, atomic_configs):
+        configs = atomic_configs
         batch_size = self._max_concurrent_google_jobs
         nb_of_batches = len(configs) // batch_size + 1
         jobs = []
@@ -374,14 +374,14 @@ class Loader:
             jobs += jobs_to_process
         return jobs
 
-    def _execute_local_load(self, local_load_config):
-        config = local_load_config
-        s = config.source
-        d = config.destination
-        return getattr(self, '_{}_to_{}'.format(s, d))(config)
+    def _execute_local_load(self, atomic_config):
+        s = atomic_config.source
+        d = atomic_config.destination
+        assert s == 'local' or d == 'local'
+        return getattr(self, '_{}_to_{}'.format(s, d))(atomic_config)
 
-    def _execute_local_loads(self, local_load_configs):
-        return list(map(self._execute_local_load, local_load_configs))
+    def _execute_local_loads(self, atomic_configs):
+        return list(map(self._execute_local_load, atomic_configs))
 
     def _atomic_load(self, atomic_configs):
         configs = atomic_configs
