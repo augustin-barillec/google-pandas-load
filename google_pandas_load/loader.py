@@ -684,17 +684,18 @@ class Loader:
         Note:
             **Data is not renamed**
 
-            Since renaming the data by a prefix rise unnecessary difficulties
-            (see previous note), choice has been made to keep its original name
+            Since renaming the data identified by a prefix (see previous note)
+            rises too much difficulties, choice has been made to keep its
+            original name.
 
         .. _pre-deletion:
 
         Warning:
             **By default, pre-existing data is deleted !**
 
-            Since data is not renamed  (see note above), the loader deletes any
-            prior data having the same name before loading the new data. This
-            is done in order to prevent any conflict.
+            Since data is not renamed  (see previous note), the loader deletes
+            any prior data having the same name before loading the new data.
+            This is done in order to prevent any conflict.
 
             To illustrate this process, consider the following load:
 
@@ -750,11 +751,11 @@ class Loader:
                 indicate which columns of a pandas dataframe should have the
                 BigQuery type TIMESTAMP.
             bq_schema (list of google.cloud.bigquery.schema.SchemaField, optional):
-                The table's schema in BigQuery. Used when
-                destination = 'bq' and source != 'query'. When
-                source = 'query', the bq_schema is inferred from the query.
-                If not passed and source = 'dataframe', falls back to
-                an inferred value from the dataframe with `this method <LoadConfig.html#google_pandas_load.load_config.LoadConfig.bq_schema_inferred_from_dataframe>`_.
+                The table's schema in BigQuery. Used when destination = 'bq'
+                and source != 'query'. When source = 'query', the bq_schema is
+                inferred from the query. If source = 'dataframe' and the
+                bq_schema is not passed, it falls back to an inferred value
+                from the dataframe with `this method <LoadConfig.html#google_pandas_load.load_config.LoadConfig.bq_schema_inferred_from_dataframe>`_.
 
         Returns:
             pandas.DataFrame or NoneType: The result of the load job:

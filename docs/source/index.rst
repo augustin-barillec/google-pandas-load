@@ -47,7 +47,7 @@ Set up a loader.
 In the following code, the credentials are inferred from the environment.
 For further information about how to authenticate to Google Cloud Platform with the
 `Google Cloud Client Library for Python`_, have a look
-`here <https://googleapis.github.io/google-cloud-python/latest/core/auth.html?highlight=defaults/>`__.
+`here <https://googleapis.dev/python/google-api-core/latest/auth.html>`__.
 
 .. code-block:: python
 
@@ -131,7 +131,7 @@ Main features
 The basic mechanism
 -------------------
 
-This code essentially chains transferring data functions from the `Google Cloud Client Library for Python`_
+This code essentially chains transferring data functions from the `Python Client for Google BigQuery`_
 and from pandas_.
 
 To download, the following functions are chained:
@@ -166,24 +166,22 @@ Table of Contents
    API
    history
 
-
-.. _Python Client for Google BigQuery: https://googleapis.github.io/google-cloud-python/latest/bigquery/index.html
+.. _Ysance: https://www.ysance.com/data-services/fr/home/
 
 .. _Speed Comparison: Speed_comparison.ipynb
 
-.. _Ysance: https://www.ysance.com/data-services/fr/home/
-
-.. _google.cloud.bigquery.job.QueryJob.to_dataframe(): https://google-cloud.readthedocs.io/en/latest/bigquery/generated/google.cloud.bigquery.job.QueryJob.to_dataframe.html#google.cloud.bigquery.job.QueryJob.to_dataframe
-.. _google.cloud.bigquery.client.Client.load_table_from_dataframe(): https://google-cloud.readthedocs.io/en/latest/bigquery/generated/google.cloud.bigquery.client.Client.load_table_from_dataframe.html#google.cloud.bigquery.client.Client.load_table_from_dataframe
-
-.. _Google Cloud Client Library for Python: https://googleapis.github.io/google-cloud-python/latest/index.html
+.. _Google Cloud Client Library for Python: https://github.com/googleapis/google-cloud-python#google-cloud-python-client
+.. _Python Client for Google BigQuery: https://googleapis.dev/python/bigquery/latest/index.html
 .. _pandas: https://pandas.pydata.org/pandas-docs/stable/index.html
 
-.. _google.cloud.bigquery.client.query(): https://googleapis.github.io/google-cloud-python/latest/bigquery/generated/google.cloud.bigquery.client.Client.html#google.cloud.bigquery.client.Client.query
-.. _google.cloud.bigquery.client.extract_table(): https://googleapis.github.io/google-cloud-python/latest/bigquery/generated/google.cloud.bigquery.client.Client.html#google.cloud.bigquery.client.Client.extract_table
-.. _google.cloud.storage.blob.Blob.download_to_filename(): https://googleapis.github.io/google-cloud-python/latest/storage/blobs.html#google.cloud.storage.blob.Blob.download_to_filename
+.. _google.cloud.bigquery.job.QueryJob.to_dataframe(): https://googleapis.dev/python/bigquery/latest/generated/google.cloud.bigquery.job.QueryJob.html#google.cloud.bigquery.job.QueryJob.to_dataframe
+.. _google.cloud.bigquery.client.Client.load_table_from_dataframe(): https://googleapis.dev/python/bigquery/latest/generated/google.cloud.bigquery.client.Client.html#google.cloud.bigquery.client.Client.load_table_from_dataframe
+
+.. _google.cloud.bigquery.client.query(): https://googleapis.dev/python/bigquery/latest/generated/google.cloud.bigquery.client.Client.html#google.cloud.bigquery.client.Client.query
+.. _google.cloud.bigquery.client.extract_table(): https://googleapis.dev/python/bigquery/latest/generated/google.cloud.bigquery.client.Client.html#google.cloud.bigquery.client.Client.extract_table
+.. _google.cloud.storage.blob.Blob.download_to_filename(): https://googleapis.dev/python/storage/latest/blobs.html#google.cloud.storage.blob.Blob.download_to_filename
 .. _pandas.read_csv(): https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.read_csv.html
 
 .. _pandas.DataFrame.to_csv(): https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.to_csv.html
-.. _google.cloud.storage.blob.Blob.upload_from_filename(): https://googleapis.github.io/google-cloud-python/latest/storage/blobs.html#google.cloud.storage.blob.Blob.upload_from_filename
-.. _google.cloud.bigquery.client.load_table_from_uri(): https://googleapis.github.io/google-cloud-python/latest/bigquery/generated/google.cloud.bigquery.client.Client.html#google.cloud.bigquery.client.Client.load_table_from_uri
+.. _google.cloud.storage.blob.Blob.upload_from_filename(): https://googleapis.dev/python/storage/latest/blobs.html#google.cloud.storage.blob.Blob.upload_from_filename
+.. _google.cloud.bigquery.client.load_table_from_uri(): https://googleapis.dev/python/bigquery/latest/generated/google.cloud.bigquery.client.Client.html#google.cloud.bigquery.client.Client.load_table_from_uri

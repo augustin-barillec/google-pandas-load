@@ -10,7 +10,8 @@ API Changes
 ^^^^^^^^^^^
 * The parameters delete_in_bq, delete_in_gs and delete_in_local of the load
   methods do not exist anymore. There were used to choose if data had to be
-  deleted once loaded to a new location. The new behavior is now the following:
+  deleted once loaded to the next location. The new behavior is now the
+  following:
 
   - The data is kept in the source.
   - The data is deleted in transitional locations after being transferred.
