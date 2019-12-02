@@ -131,7 +131,7 @@ Main features
 The basic mechanism
 -------------------
 
-This code essentially chains transferring data functions from the `Python Client for Google BigQuery`_
+This code essentially chains transferring data functions from the `Google Cloud Client Library for Python`_
 and from pandas_.
 
 To download, the following functions are chained:
