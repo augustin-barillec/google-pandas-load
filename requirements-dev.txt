@@ -9,5 +9,5 @@ jupyter==1.*
 sphinx==2.*
 nbsphinx==0.*
 
-google-cloud-bigquery-storage[pandas,fastavro]==0.*
+google-cloud-bigquery-storage[fastavro]==0.*
 pyarrow==0.*
