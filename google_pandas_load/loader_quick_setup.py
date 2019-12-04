@@ -41,13 +41,13 @@ class LoaderQuickSetup(Loader):
         bq_client = google.cloud.bigquery.Client(
             project=project_id,
             credentials=credentials)
-        dataset_ref = google.cloud.bigquery.dataset.DatasetReference(
+        dataset_ref = google.cloud.bigquery.DatasetReference(
             project=project_id,
             dataset_id=dataset_id)
         gs_client = google.cloud.storage.Client(
             project=project_id,
             credentials=credentials)
-        bucket = google.cloud.storage.bucket.Bucket(
+        bucket = google.cloud.storage.Bucket(
             client=gs_client,
             name=bucket_name)
 

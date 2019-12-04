@@ -100,7 +100,7 @@ class LoadConfig:
 
     def _check_if_bq_schema_missing(self):
         condition_1 = self.source in ('local', 'gs')
-        condition_2 = self.destination in ('bq', 'query')
+        condition_2 = self.destination == 'bq'
         condition_3 = self._bq_schema is None
         if condition_1 and condition_2 and condition_3:
             raise ValueError('bq_schema is missing')
@@ -115,7 +115,7 @@ class LoadConfig:
 
         - if its name is listed in the date_cols parameter, its type in
           BigQuery should be DATE.
-        - elif  its name is listed in the timestamp_cols parameter, its type
+        - elif its name is listed in the timestamp_cols parameter, its type
           in BigQuery should be TIMESTAMP.
         - elif its pandas dtype is equal to numpy.bool, its type in BigQuery
           is BOOLEAN.

@@ -34,7 +34,6 @@ Acknowledgements
 I am grateful to my employer Ysance_ for providing me the resources to develop this library and for allowing me
 to publish it.
 
-
 Installation
 ------------
 
@@ -125,7 +124,7 @@ This is made possible by BigQuery.
 Main features
 -------------
 
-- Transfer big data faster (see `Speed Comparison`_).
+- Download big data faster (see `Speed Comparison`_).
 - Transfer data seamlessly from and to various locations.
 - Launch several load jobs simultaneously.
 - Massive parallelization of the cloud steps with BigQuery.

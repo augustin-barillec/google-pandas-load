@@ -46,8 +46,8 @@ class Loader:
             concurrent google jobs allowed to be launched by the BigQuery
             Client. Defaults to 10.
         use_wildcard (bool, optional): If set to True, data moving from
-            BigQuery to Storage will be split in several
-            files whose basenames match a wildcard pattern. Defaults to True.
+            BigQuery to Storage will be split in several files whose basenames
+            match a wildcard pattern. Defaults to True.
         compress (bool, optional): If set to True, data is compressed when
             loaded from BigQuery to Storage or from pandas to the local folder.
             Defaults to True.
@@ -55,7 +55,7 @@ class Loader:
             the data. Defaults to '|'.
         chunk_size (int, optional): The chunk size of a Storage blob created
             when data comes from the local folder. See
-            `here <https://googleapis.github.io/google-cloud-python/latest/storage/blobs.html>`_
+            `here <https://googleapis.dev/python/storage/latest/blobs.html>`_
             for more information. Defaults to 2**28.
         logger (logging.Logger, optional): The logger creating the log records
             of this class. Defaults to a logger called Loader.
@@ -468,7 +468,7 @@ class Loader:
               US dollars of the query_to_bq part if any.
 
             - res.query_costs (list of (float or NoneType)): The query
-              costs in US dollars of the mload. The i-th element is the
+              costs in US dollars of the mload job. The i-th element is the
               query cost of the load job configured by configs[i].
         """
 
@@ -478,8 +478,8 @@ class Loader:
         data_names = [config.data_name for config in configs]
         check_no_prefix(data_names)
         sliced_configs = [config.sliced_config for config in configs]
-
         names_of_atomic_functions_to_call = union_keys(sliced_configs)
+
         self._check_if_bq_client_missing(names_of_atomic_functions_to_call)
         self._check_if_dataset_ref_missing(names_of_atomic_functions_to_call)
         self._check_if_bucket_missing(names_of_atomic_functions_to_call)
@@ -537,7 +537,7 @@ class Loader:
         batch of size max_concurrent_google_jobs.
 
         Args:
-            configs (list of google_pandas_load.LoadConfig):
+            configs (list of google_pandas_load.load_config.LoadConfig):
                 See :class:`google_pandas_load.load_config.LoadConfig` for the
                 format of one configuration.
 
