@@ -19,10 +19,13 @@ google-pandas-load documentation
 google-pandas-load is a wrapper library for transferring big data from A to B, where A and B are distinct
 and chosen between BigQuery, Storage, a local folder and pandas.
 
-This library enables faster data transfer than those performed by `Python Client for Google BigQuery`_'s methods:
+As of 2019/12/03, this library enables much faster downloads than:
 
-- `google.cloud.bigquery.job.QueryJob.to_dataframe()`_
-- `google.cloud.bigquery.client.Client.load_table_from_dataframe()`_
+    - `google.cloud.bigquery.job.QueryJob.to_dataframe()`_
+
+but slightly slower uploads than:
+
+    - `google.cloud.bigquery.client.Client.load_table_from_dataframe()`_.
 
 See `Speed Comparison`_.
 
@@ -171,7 +174,6 @@ Table of Contents
 .. _Speed Comparison: Speed_comparison.ipynb
 
 .. _Google Cloud Client Library for Python: https://github.com/googleapis/google-cloud-python#google-cloud-python-client
-.. _Python Client for Google BigQuery: https://googleapis.dev/python/bigquery/latest/index.html
 .. _pandas: https://pandas.pydata.org/pandas-docs/stable/index.html
 
 .. _google.cloud.bigquery.job.QueryJob.to_dataframe(): https://googleapis.dev/python/bigquery/latest/generated/google.cloud.bigquery.job.QueryJob.html#google.cloud.bigquery.job.QueryJob.to_dataframe
