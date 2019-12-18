@@ -1,3 +1,4 @@
+from google.api_core.exceptions import BadRequest
 from google_pandas_load import LoadConfig
 from tests.context.loaders import *
 from tests.utils import *
@@ -5,8 +6,8 @@ from tests.utils import *
 
 class UtilsRaiseErrorTest(BaseClassTest):
 
-    def test_wait_for_job_runtime_error(self):
-        with self.assertRaises(RuntimeError):
+    def test_wait_for_jobs_runtime_error(self):
+        with self.assertRaises(BadRequest):
             gpl1.load(source='query', destination='bq', data_name='a3',
                       query='selectt 3')
 

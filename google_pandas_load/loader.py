@@ -430,7 +430,7 @@ class Loader:
             costs = [round(tbb / 10 ** 12 * 5, 5)
                      for tbb in total_bytes_billed_list]
             cost = sum(costs)
-            msg = 'Ended source to bq [{}s, {}$]'.format(duration, cost)
+            msg = 'Ended query to bq [{}s, {}$]'.format(duration, cost)
             self._logger.debug(msg)
             res['cost'] = cost
             res['costs'] = costs

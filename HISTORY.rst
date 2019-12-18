@@ -3,8 +3,24 @@
 History
 =======
 
+2.0.1 (2019-12-19)
+------------------
+
+Bugfixes
+^^^^^^^^
+* The Speed Comparison in the documentation was using redundant data too
+  easily compressed. More realistic data is now used.
+
+* The method `google.cloud.bigquery.job.QueryJob.result()`_ is used again
+  to wait for a google job to be completed. The timeout bug described in
+  the previous "bugfixes" is in fact probaly due to a Docker configuration
+  problem.
+
+* The end of a step "query_to_bq" produced the log: "Ended source to bq".
+  It has been corrected to "Ended query to bq".
+
 2.0.0 (2019-12-04)
-----------
+------------------
 
 API Changes
 ^^^^^^^^^^^
@@ -37,8 +53,8 @@ Bugfixes
 ^^^^^^^^
 * The method `google.cloud.bigquery.job.QueryJob.result()`_ was used to wait
   for a google job to be completed. It appeared it could lead to a timeout if
-  the Google job was too long to run and is threfore no longer used. Instead,
-  the Google job is reloaded every second until it is completed.
+  the google job was too long to run and is threfore no longer used. Instead,
+  the google job is reloaded every second until it is completed.
 
 1.0.0 (2019-04-11)
 ------------------
