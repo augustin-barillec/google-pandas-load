@@ -1,4 +1,4 @@
-from google.api_core.exceptions import BadRequest
+from google.cloud.exceptions import BadRequest
 from google_pandas_load import LoadConfig
 from tests.context.loaders import *
 from tests.utils import *

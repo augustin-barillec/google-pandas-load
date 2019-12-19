@@ -17,6 +17,6 @@ google-pandas-load
     :target: https://pepy.tech/project/google-pandas-load
 
 google-pandas-load is a wrapper library for transferring big data from A to B, where A and B are distinct
-and chosen between BigQuery, Storage, a local folder and pandas.
+and chosen between BigQuery, Storage, a local folder and pandas DataFrame.
 
 Documentation is available at https://google-pandas-load.readthedocs.io/en/latest/.

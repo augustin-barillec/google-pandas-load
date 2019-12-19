@@ -6,15 +6,15 @@ History
 2.0.1 (2019-12-19)
 ------------------
 
+Improvement
+^^^^^^^^^^^
+* The data is deleted in transitional locations even if its transfer fails.
+
 Bugfixes
 ^^^^^^^^
-* The Speed Comparison in the documentation was using redundant data too
-  easily compressed. More realistic data is now used.
-
 * The method `google.cloud.bigquery.job.QueryJob.result()`_ is used again
   to wait for a google job to be completed. The timeout bug described in
-  the previous "bugfixes" is in fact probaly due to a Docker configuration
-  problem.
+  the previous "bugfixes" seems to be due to a Docker configuration problem.
 
 * The end of a step "query_to_bq" produced the log: "Ended source to bq".
   It has been corrected to "Ended query to bq".

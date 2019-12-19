@@ -203,7 +203,7 @@ class Loader:
     def exist_in_bq(self, data_name):
         """Return True if data named_ data_name exist in BigQuery."""
         table_ref = self.dataset_ref.table(table_id=data_name)
-        return table_exists(client=self.bq_client, table_reference=table_ref)
+        return table_exists(self.bq_client, table_ref)
 
     def exist_in_gs(self, data_name):
         """Return True if data named_ data_name exist in Storage,"""
@@ -217,7 +217,7 @@ class Loader:
         """Delete the data named_ data_name in BigQuery."""
         if self.exist_in_bq(data_name):
             table_ref = self.dataset_ref.table(table_id=data_name)
-            self.bq_client.delete_table(table=table_ref)
+            self.bq_client.delete_table(table_ref)
 
     def delete_in_gs(self, data_name):
         """Delete the data named_ data_name in Storage."""
@@ -406,15 +406,16 @@ class Loader:
             for c in configs:
                 self._clear_destination(c)
 
-        if atomic_function_name in BQ_CLIENT_ATOMIC_FUNCTION_NAMES:
-            load_results = self._execute_bq_client_jobs(configs)
-        else:
-            load_results = self._execute_local_loads(configs)
-
-        if source in MIDDLE_LOCATIONS:
-            for c in configs:
-                if c.clear_source:
-                    self._clear_source(c)
+        try:
+            if atomic_function_name in BQ_CLIENT_ATOMIC_FUNCTION_NAMES:
+                load_results = self._execute_bq_client_jobs(configs)
+            else:
+                load_results = self._execute_local_loads(configs)
+        finally:
+            if source in MIDDLE_LOCATIONS:
+                for c in configs:
+                    if c.clear_source:
+                        self._clear_source(c)
 
         end_timestamp = datetime.now()
         duration = (end_timestamp - start_timestamp).seconds

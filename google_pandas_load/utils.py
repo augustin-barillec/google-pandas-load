@@ -3,9 +3,9 @@ from datetime import datetime
 from google.cloud.exceptions import NotFound
 
 
-def table_exists(client, table_reference):
+def table_exists(bq_client, table_reference):
     try:
-        client.get_table(table_reference)
+        bq_client.get_table(table_reference)
         return True
     except NotFound:
         return False
