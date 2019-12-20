@@ -1,6 +1,7 @@
 -r requirements.txt
 
 setuptools==42.*
+twine==3.*
 
 coverage==5.*
 codecov==2.*
