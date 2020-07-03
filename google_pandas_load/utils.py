@@ -3,9 +3,9 @@ from datetime import datetime
 from google.cloud.exceptions import NotFound
 
 
-def table_exists(bq_client, table_reference):
+def table_exists(bq_client, table_ref):
     try:
-        bq_client.get_table(table_reference)
+        bq_client.get_table(table_ref)
         return True
     except NotFound:
         return False
@@ -40,14 +40,4 @@ def union_keys(dicts):
     res = set()
     for d in dicts:
         res = res.union(d.keys())
-    return res
-
-
-def build_numpy_leaf_types(dtype):
-    subs = dtype.__subclasses__()
-    if not subs:
-        return [dtype]
-    res = []
-    for dt in subs:
-        res += build_numpy_leaf_types(dt)
     return res

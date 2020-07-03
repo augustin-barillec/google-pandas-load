@@ -1,13 +1,9 @@
 from argparse import Namespace
-import numpy
 from google.cloud import bigquery
-from google_pandas_load.utils import build_atomic_function_names, \
-    build_numpy_leaf_types
+from pandas.api.types import infer_dtype
+from google_pandas_load.utils import build_atomic_function_names
 from google_pandas_load.constants import LOCATIONS, SOURCE_LOCATIONS, \
     DESTINATION_LOCATIONS, REVERSED_LOCATIONS, MIDDLE_LOCATIONS
-
-integer_numpy_leaf_types = build_numpy_leaf_types(dtype=numpy.integer)
-float_numpy_leaf_types = build_numpy_leaf_types(dtype=numpy.floating)
 
 
 class LoadConfig:
@@ -146,20 +142,20 @@ class LoadConfig:
             date_cols = []
         bq_schema = []
         for col in dataframe.columns:
-            dtype = dataframe[col].dtype
+            dtype_description = infer_dtype(dataframe[col], True)
             if col in date_cols:
                 bq_schema.append(bigquery.SchemaField(name=col,
                                                       field_type='DATE'))
             elif col in timestamp_cols:
                 bq_schema.append(bigquery.SchemaField(name=col,
                                                       field_type='TIMESTAMP'))
-            elif dtype == numpy.bool:
+            elif dtype_description == 'boolean':
                 bq_schema.append(bigquery.SchemaField(name=col,
                                                       field_type='BOOLEAN'))
-            elif dtype in integer_numpy_leaf_types:
+            elif dtype_description == 'integer':
                 bq_schema.append(bigquery.SchemaField(name=col,
                                                       field_type='INTEGER'))
-            elif dtype in float_numpy_leaf_types:
+            elif dtype_description == 'floating':
                 bq_schema.append(bigquery.SchemaField(name=col,
                                                       field_type='FLOAT'))
             else:

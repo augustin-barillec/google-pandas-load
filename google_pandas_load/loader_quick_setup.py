@@ -43,7 +43,7 @@ class LoaderQuickSetup(Loader):
             credentials=credentials)
         dataset_ref = google.cloud.bigquery.DatasetReference(
             project=project_id,
-            dataset_id=dataset_id)
+            dataset_id=dataset_name)
         gs_client = google.cloud.storage.Client(
             project=project_id,
             credentials=credentials)
@@ -53,7 +53,7 @@ class LoaderQuickSetup(Loader):
 
     Args:
         project_id (str, optional): The project id.
-        dataset_id (str, optional): The dataset id.
+        dataset_name (str, optional): The dataset name.
         bucket_name (str, optional): The bucket name.
         gs_dir_path (str, optional): See base class.
         credentials (google.auth.credentials.Credentials): Credentials used to
@@ -82,7 +82,7 @@ class LoaderQuickSetup(Loader):
     def __init__(
             self,
             project_id=None,
-            dataset_id=None,
+            dataset_name=None,
             bucket_name=None,
             gs_dir_path=None,
             credentials=None,
@@ -95,7 +95,7 @@ class LoaderQuickSetup(Loader):
             chunk_size=2 ** 28,
             logger=not_propagating_logger):
         self._project_id = project_id
-        self._dataset_id = dataset_id
+        self._dataset_name = dataset_name
         self._bucket_name = bucket_name
 
         self._bq_client = None
@@ -105,9 +105,9 @@ class LoaderQuickSetup(Loader):
         if self.project_id is not None:
             self._bq_client = bigquery.Client(
                 project=self.project_id, credentials=credentials)
-            if self.dataset_id is not None:
+            if self.dataset_name is not None:
                 self._dataset_ref = bigquery.dataset.DatasetReference(
-                    project=self.project_id, dataset_id=self.dataset_id)
+                    project=self.project_id, dataset_id=self._dataset_name)
             if self.bucket_name is not None:
                 self._gs_client = storage.Client(
                     project=self.project_id, credentials=credentials)
@@ -133,9 +133,9 @@ class LoaderQuickSetup(Loader):
         return self._project_id
 
     @property
-    def dataset_id(self):
-        """str: The dataset_id given in the argument."""
-        return self._dataset_id
+    def dataset_name(self):
+        """str: The dataset_name given in the argument."""
+        return self._dataset_name
 
     @property
     def bucket_name(self):

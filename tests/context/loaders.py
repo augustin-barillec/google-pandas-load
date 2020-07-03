@@ -55,7 +55,7 @@ gpl4 = Loader(
 
 gpl5 = LoaderQuickSetup(
     project_id=project_id,
-    dataset_id=dataset_id,
+    dataset_name=dataset_name,
     bucket_name=bucket_name,
     local_dir_path=local_dir_path)
 
