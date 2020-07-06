@@ -307,8 +307,11 @@ class Loader:
         config = gs_to_bq_config
         job_config = bigquery.job.LoadJobConfig()
         job_config.field_delimiter = self._separator
-        job_config.schema = config.schema
-        job_config.skip_leading_rows = 1
+        if config.schema is None:
+            job_config.autodetect = True
+        else:
+            job_config.schema = config.schema
+            job_config.skip_leading_rows = 1
         job_config.write_disposition = config.write_disposition
         source_uris = self.list_blob_uris(config.data_name)
         destination = self.dataset_ref.table(

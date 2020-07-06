@@ -55,10 +55,6 @@ class LoadConfigRaiseErrorTest(BaseClassTest):
         self.assertEqual(str(cm.exception),
                          "dataframe must be given if source = 'dataframe'")
 
-        with self.assertRaises(ValueError) as cm:
-            LoadConfig(source='gs', destination='bq', data_name='e0')
-        self.assertEqual(str(cm.exception), 'bq_schema is missing')
-
     def test_raise_error_if_infer_bq_schema_from_no_columns_dataframe(self):
         with self.assertRaises(ValueError) as cm:
             LoadConfig.bq_schema_inferred_from_dataframe(

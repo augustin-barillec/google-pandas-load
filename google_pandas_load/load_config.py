@@ -55,7 +55,6 @@ class LoadConfig:
         self._check_if_data_name_missing()
         self._check_if_query_missing()
         self._check_if_dataframe_missing()
-        self._check_if_bq_schema_missing()
 
         if self._bq_schema is None and self._dataframe is not None:
             self._infer_bq_schema_from_dataframe()
@@ -93,13 +92,6 @@ class LoadConfig:
     def _check_if_dataframe_missing(self):
         if self.source == 'dataframe' and self._dataframe is None:
             raise ValueError("dataframe must be given if source = 'dataframe'")
-
-    def _check_if_bq_schema_missing(self):
-        condition_1 = self.source in ('local', 'gs')
-        condition_2 = self.destination == 'bq'
-        condition_3 = self._bq_schema is None
-        if condition_1 and condition_2 and condition_3:
-            raise ValueError('bq_schema is missing')
 
     @staticmethod
     def bq_schema_inferred_from_dataframe(
