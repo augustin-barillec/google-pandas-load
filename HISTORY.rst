@@ -3,6 +3,38 @@
 History
 =======
 
+3.0.0 (2020-07-08)
+------------------
+
+API Changes
+^^^^^^^^^^^
+* pandas==1.* is now required.
+
+* For :class:`google_pandas_load.loader_quick_setup.LoaderQuickSetup`, the
+  parameter dataset_id is replaced by the parameter dataset_name. The reason
+  for this choice is explained in the note below.
+
+Improvement
+^^^^^^^^^^^
+* For :meth:`google_pandas_load.loader.Loader.load`, when the parameter
+  destination is set to 'query' and the parameter source is set to 'gs' or
+  'local', the bq_schema parameter is not required anymore. If it is not
+  passed, it falls back to an inferred value from the CSV with
+  `google.cloud.bigquery.job.LoadJobConfig.autodetect`_.
+
+
+Notes
+^^^^^
+* We use new conventions for naming some BigQuery objects (which has one ).Let us describe them with an example. Suppose we
+  have a BigQuery table whose address is project1.dataset1.table1. We say that:
+
+  - project1 is a project_id.
+  - project1.dataset1 is a dataset_id.
+  - project1.dataset1.table1 is a table_id.
+  - dataset1 is a dataset_name.
+  - table1 is a table_name.
+
+
 2.0.1 (2019-12-20)
 ------------------
 
@@ -24,10 +56,10 @@ Bugfixes
 
 API Changes
 ^^^^^^^^^^^
-* The parameters delete_in_bq, delete_in_gs and delete_in_local of the load
-  methods do not exist anymore. There were used to choose if data had to be
-  deleted once loaded to the next location. The new behavior is now the
-  following:
+* The parameters delete_in_bq, delete_in_gs and delete_in_local of
+  of :meth:`google_pandas_load.loader.Loader.load` do not exist anymore.
+  There were used to choose if data had to be deleted once loaded to the next
+  location. The new behavior is now the following:
 
   - The data is kept in the source.
   - The data is deleted in transitional locations after being transferred.
@@ -62,3 +94,7 @@ Bugfixes
 
 
 .. _google.cloud.bigquery.job.QueryJob.result(): https://googleapis.dev/python/bigquery/latest/generated/google.cloud.bigquery.job.QueryJob.html#google.cloud.bigquery.job.QueryJob.result
+.. _google.cloud.bigquery.job.LoadJobConfig.autodetect: https://googleapis.dev/python/bigquery/latest/generated/google.cloud.bigquery.job.LoadJobConfig.html#google.cloud.bigquery.job.LoadJobConfig
+
+
+

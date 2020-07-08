@@ -1,6 +1,13 @@
 #!/bin/bash
 
-./sonar_clean.sh
+echo "Start sonarqube..."
 ./sonarqube.sh
-./sonar-scanner.sh
+echo "Ended sonarqube"
 
+echo "Start sleep 30..."
+sleep 30
+echo "Ended sleep 30"
+
+echo "Start sonar-scanner..."
+./sonar-scanner.sh
+echo "Ended sonar-scanner"

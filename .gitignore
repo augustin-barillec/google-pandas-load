@@ -5,7 +5,7 @@ dist
 google_pandas_load.egg-info
 
 tests/coverage
-tests/context/ressource_names
+tests/run/.coverage
 
 .scannerwork
 sonar-project.properties

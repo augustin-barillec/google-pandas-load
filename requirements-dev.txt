@@ -9,5 +9,4 @@ codecov==2.*
 jupyter==1.*
 
 sphinx==2.*
-#nbsphinx needs pandoc => sudo apt-get install pandoc
 nbsphinx==0.*

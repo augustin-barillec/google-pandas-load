@@ -1,5 +1,7 @@
 #!/bin/bash
 
+source clean.sh
+clean_docs
 cd docs
-
-rm -rf build && make html && google-chrome build/html/index.html
+make html
+google-chrome build/html/index.html

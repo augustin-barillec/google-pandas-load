@@ -98,6 +98,8 @@ class LoadConfig:
             dataframe, date_cols=None, timestamp_cols=None):
         """Return a BigQuery schema that is inferred from a pandas dataframe.
 
+        Let infer_dtype(column) = `pandas.api.types.infer_dtype <https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.api.types.infer_dtype.html>`__ (column).
+
         In BigQuery, a column is given its type according to the following
         rule:
 
@@ -105,12 +107,12 @@ class LoadConfig:
           BigQuery should be DATE.
         - elif its name is listed in the timestamp_cols parameter, its type
           in BigQuery should be TIMESTAMP.
-        - elif its pandas dtype is equal to numpy.bool, its type in BigQuery
-          is BOOLEAN.
-        - elif its pandas dtype has numpy.integer dtype as ancestor, its type
-          in BigQuery is INTEGER.
-        - elif its pandas dtype has numpy.floating dtype as ancestor, its type
-          in BigQuery is FLOAT.
+        - elif infer_dtype(column) = 'boolean', its type in BigQuery is
+          BOOLEAN.
+        - elif infer_dtype(column) = 'integer', its type in BigQuery is
+          INTEGER.
+        - elif infer_dtype(column) = 'floating', its type in BigQuery is
+          FLOAT.
         - else its type in BigQuery is STRING.
 
         Args:
@@ -134,7 +136,7 @@ class LoadConfig:
             date_cols = []
         bq_schema = []
         for col in dataframe.columns:
-            dtype_description = infer_dtype(dataframe[col], True)
+            dtype_description = infer_dtype(dataframe[col])
             if col in date_cols:
                 bq_schema.append(bigquery.SchemaField(name=col,
                                                       field_type='DATE'))

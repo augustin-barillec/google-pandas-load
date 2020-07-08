@@ -757,9 +757,12 @@ class Loader:
             bq_schema (list of google.cloud.bigquery.schema.SchemaField, optional):
                 The table's schema in BigQuery. Used when destination = 'bq'
                 and source != 'query'. When source = 'query', the bq_schema is
-                inferred from the query. If source = 'dataframe' and the
+                inferred from the query. If source is one of 'gs' or 'local'
+                and the bq_schema is not passed, it falls back to an inferred
+                value from the CSV with `google.cloud.bigquery.job.LoadJobConfig.autodetect <https://googleapis.dev/python/bigquery/latest/generated/google.cloud.bigquery.job.LoadJobConfig.html#google.cloud.bigquery.job.LoadJobConfig>`__.
+                If source = 'dataframe' and the
                 bq_schema is not passed, it falls back to an inferred value
-                from the dataframe with `this method <LoadConfig.html#google_pandas_load.load_config.LoadConfig.bq_schema_inferred_from_dataframe>`_.
+                from the dataframe with `this method <LoadConfig.html#google_pandas_load.load_config.LoadConfig.bq_schema_inferred_from_dataframe>`__.
 
         Returns:
             pandas.DataFrame or NoneType: The result of the load job:
