@@ -50,5 +50,5 @@ function clean_all(){
   clean_daily
   clean_sonarqube
   clean_editable
-  delete_venv
+  clean_venv
 }
