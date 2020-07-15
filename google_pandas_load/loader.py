@@ -387,6 +387,8 @@ class Loader:
         return list(map(self._execute_local_load, atomic_configs))
 
     def _atomic_load(self, atomic_configs):
+        assert len(atomic_configs) > 0
+
         configs = atomic_configs
 
         source = configs[0].source
@@ -730,7 +732,7 @@ class Loader:
                 timestamp and a random integer. This is useful when
                 source = 'query' and destination = 'dataframe' because the user
                 may not need to know the data_name.
-            query (str, optional): A BigQuery Standard Sql query. Required if
+            query (str, optional): A BigQuery Standard SQL query. Required if
                 source = 'query'.
             dataframe (pandas.DataFrame, optional): A pandas dataframe.
                 Required if source = 'dataframe'.

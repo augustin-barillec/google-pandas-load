@@ -1,6 +1,6 @@
 -r requirements.txt
 
-setuptools==42.*
+setuptools==49.*
 twine==3.*
 
 coverage==5.*
@@ -8,5 +8,5 @@ codecov==2.*
 
 jupyter==1.*
 
-sphinx==2.*
+sphinx==3.*
 nbsphinx==0.*

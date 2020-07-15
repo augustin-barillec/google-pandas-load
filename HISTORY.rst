@@ -3,8 +3,8 @@
 History
 =======
 
-3.0.0 (2020-07-08)
-------------------
+3.0 (2020-07-15)
+----------------
 
 API Changes
 ^^^^^^^^^^^
@@ -12,12 +12,12 @@ API Changes
 
 * For :class:`google_pandas_load.loader_quick_setup.LoaderQuickSetup`, the
   parameter dataset_id is replaced by the parameter dataset_name. The reason
-  for this choice is explained in the note below.
+  for this choice is explained in the first entry of the Notes section below.
 
 Improvement
 ^^^^^^^^^^^
 * For :meth:`google_pandas_load.loader.Loader.load`, when the parameter
-  destination is set to 'query' and the parameter source is set to 'gs' or
+  destination is set to 'bq' and the parameter source is set to 'gs' or
   'local', the bq_schema parameter is not required anymore. If it is not
   passed, it falls back to an inferred value from the CSV with
   `google.cloud.bigquery.job.LoadJobConfig.autodetect`_.
@@ -25,14 +25,18 @@ Improvement
 
 Notes
 ^^^^^
-* We use new conventions for naming some BigQuery objects (which has one ).Let us describe them with an example. Suppose we
-  have a BigQuery table whose address is project1.dataset1.table1. We say that:
+* We use new conventions for naming some BigQuery objects. This causes only one
+  API change (the second one in the API Changes section above). Let us describe
+  the new conventions with an example. Suppose we have a BigQuery table whose
+  address is project1.dataset1.table1. We say that:
 
   - project1 is a project_id.
   - project1.dataset1 is a dataset_id.
   - project1.dataset1.table1 is a table_id.
   - dataset1 is a dataset_name.
   - table1 is a table_name.
+
+* We now use a "major.minor" scheme for the version identifier.
 
 
 2.0.1 (2019-12-20)

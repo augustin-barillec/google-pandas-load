@@ -30,10 +30,10 @@ def build_atomic_function_names(locations):
 
 
 def check_no_prefix(strings):
-    for i, dn1 in enumerate(strings):
-        for j, dn2 in enumerate(strings):
-            if i != j and dn2.startswith(dn1):
-                raise ValueError('{} is a prefix of {}'.format(dn1, dn2))
+    for i, s1 in enumerate(strings):
+        for j, s2 in enumerate(strings):
+            if i != j and s2.startswith(s1):
+                raise ValueError('{} is a prefix of {}'.format(s1, s2))
 
 
 def union_keys(dicts):

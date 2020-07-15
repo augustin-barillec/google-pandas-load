@@ -2,10 +2,11 @@
 
 set -e
 
-echo "Deleting venv..."
+echo "Cleaning venv and editable..."
 source clean.sh
 clean_venv
-echo "Deleted venv"
+clean_editable
+echo "Cleaned venv and editable"
 
 echo "Creating venv..."
 python3 -m venv venv
