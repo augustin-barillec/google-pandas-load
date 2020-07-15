@@ -8,7 +8,6 @@ tests/coverage
 tests/run/.coverage
 
 .scannerwork
-sonar-project.properties
 
 docs/build
 docs/source/.ipynb_checkpoints
