@@ -48,7 +48,7 @@ function clean_daily(){
 
 function clean_all(){
   clean_daily
-  clean_sonarqube
   clean_editable
   clean_venv
+  clean_sonarqube
 }
