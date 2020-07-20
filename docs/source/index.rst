@@ -47,7 +47,7 @@ For further information about how to authenticate to Google Cloud Platform with 
 
     gpl = LoaderQuickSetup(
         project_id='pi',
-        dataset_id='di',
+        dataset_name='di',
         bucket_name='bn',
         local_dir_path='/tmp',
         credentials=None)
