@@ -6,6 +6,7 @@ google_pandas_load.egg-info
 
 tests/coverage
 tests/run/.coverage
+tests/context/resource_names.py
 
 .scannerwork
 
