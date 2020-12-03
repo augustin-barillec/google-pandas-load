@@ -1,3 +1,4 @@
+import pytz
 import numpy
 from datetime import datetime
 from tests.context.loaders import *
@@ -20,10 +21,10 @@ class CastTest(BaseClassTest):
 
     def test_parse_dates(self):
         populate()
-        datetime1 = datetime.strptime('2012-11-14 14:32:30',
-                                      '%Y-%m-%d %H:%M:%S')
-        datetime2 = datetime.strptime('2013-11-14 14:32:30.100121',
-                                      '%Y-%m-%d %H:%M:%S.%f')
+
+        datetime1 = datetime(2012, 11, 14, 14, 32, 30, tzinfo=pytz.UTC)
+        datetime2 = datetime(2013, 11, 14, 14, 32, 30, 100121)
+
         date1 = datetime1.date()
         df0 = pandas.DataFrame(data={'x': [datetime1],
                                      'y': [datetime2],

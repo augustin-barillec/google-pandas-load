@@ -2,8 +2,10 @@ import os
 import shutil
 import unittest
 import pandas
+from google.cloud import bigquery, storage
 from google_pandas_load.utils import wait_for_jobs
-from tests.context.resources import *
+from tests.context.resources import bq_client, dataset_ref, bucket, \
+    local_dir_path
 
 
 def empty_dataset():
@@ -13,7 +15,7 @@ def empty_dataset():
 
 
 def empty_bucket():
-    blobs = bucket.list_blobs()
+    blobs = list(bucket.list_blobs())
     bucket.delete_blobs(blobs=blobs)
 
 

@@ -1,5 +1,6 @@
 from google_pandas_load import Loader, LoaderQuickSetup
-from tests.context.resources import *
+from tests.context.resources import project_id, bq_client, dataset_name, \
+    dataset_ref, bucket_name, bucket, local_dir_path
 
 gpl1 = Loader(
     bq_client=bq_client,
