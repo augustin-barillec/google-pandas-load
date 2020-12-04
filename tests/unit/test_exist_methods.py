@@ -1,5 +1,6 @@
-from tests.context.loaders import *
-from tests.utils import *
+from tests.context.loaders import gpl1, gpl2, gpl4, gpl5
+from tests.utils import BaseClassTest, populate_dataset, \
+    populate_bucket, populate_local_folder
 
 
 class ExistMethodsTest(BaseClassTest):

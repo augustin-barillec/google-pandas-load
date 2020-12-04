@@ -102,45 +102,36 @@ class LoaderQuickSetup(Loader):
         self._dataset_ref = None
         self._gs_client = None
         self._bucket = None
-        if self.project_id is not None:
+        if self._project_id is not None:
             self._bq_client = bigquery.Client(
-                project=self.project_id, credentials=credentials)
-            if self.dataset_name is not None:
-                self._dataset_ref = bigquery.dataset.DatasetReference(
-                    project=self.project_id, dataset_id=self._dataset_name)
-            if self.bucket_name is not None:
+                project=self._project_id, credentials=credentials)
+            if self._dataset_name is not None:
+                self._dataset_ref = bigquery.DatasetReference(
+                    project=self._project_id, dataset_id=self._dataset_name)
+            if self._bucket_name is not None:
                 self._gs_client = storage.Client(
-                    project=self.project_id, credentials=credentials)
-                self._bucket = storage.bucket.Bucket(
-                    client=self.gs_client, name=self.bucket_name)
+                    project=self._project_id, credentials=credentials)
+                self._bucket = storage.Bucket(
+                    client=self._gs_client, name=self._bucket_name)
 
-        super().__init__(bq_client=self.bq_client,
-                         dataset_ref=self.dataset_ref,
-                         bucket=self.bucket,
-                         gs_dir_path=gs_dir_path,
-                         local_dir_path=local_dir_path,
-                         generated_data_name_prefix=generated_data_name_prefix,
-                         max_concurrent_google_jobs=max_concurrent_google_jobs,
-                         use_wildcard=use_wildcard,
-                         compress=compress,
-                         separator=separator,
-                         chunk_size=chunk_size,
-                         logger=logger)
+        super().__init__(
+            bq_client=self._bq_client,
+            dataset_ref=self._dataset_ref,
+            bucket=self._bucket,
+            gs_dir_path=gs_dir_path,
+            local_dir_path=local_dir_path,
+            generated_data_name_prefix=generated_data_name_prefix,
+            max_concurrent_google_jobs=max_concurrent_google_jobs,
+            use_wildcard=use_wildcard,
+            compress=compress,
+            separator=separator,
+            chunk_size=chunk_size,
+            logger=logger)
 
     @property
     def project_id(self):
         """str: The project_id given in the argument."""
         return self._project_id
-
-    @property
-    def dataset_name(self):
-        """str: The dataset_name given in the argument."""
-        return self._dataset_name
-
-    @property
-    def bucket_name(self):
-        """str: The bucket_name givent in the argument."""
-        return self._bucket_name
 
     @property
     def gs_client(self):

@@ -1,5 +1,7 @@
-from tests.context.loaders import *
-from tests.utils import *
+import pandas
+from tests.context.loaders import gpl1, gpl2
+from tests.context.resources import bq_client, dataset_ref, bucket_name
+from tests.utils import BaseClassTest, populate_dataset, populate
 
 
 class LoadParametersTest(BaseClassTest):

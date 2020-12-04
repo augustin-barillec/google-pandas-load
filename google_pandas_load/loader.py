@@ -81,12 +81,12 @@ class Loader:
         self._bucket = bucket
         self._gs_dir_path = gs_dir_path
         self._check_gs_dir_path_format()
-        if self.bucket is not None:
+        if self._bucket is not None:
             self._bucket_uri = 'gs://{}'.format(self.bucket.name)
-            if self.gs_dir_path is None:
+            if self._gs_dir_path is None:
                 self._gs_dir_uri = self._bucket_uri
             else:
-                self._gs_dir_uri = self._bucket_uri + '/' + self.gs_dir_path
+                self._gs_dir_uri = self._bucket_uri + '/' + self._gs_dir_path
         self._local_dir_path = local_dir_path
         self._generated_data_name_prefix = generated_data_name_prefix
         self._max_concurrent_google_jobs = max_concurrent_google_jobs
@@ -123,10 +123,20 @@ class Loader:
         return self._dataset_ref
 
     @property
+    def dataset_name(self):
+        """str: The name of the dataset_ref given in the argument."""
+        return self._dataset_ref.dataset_id
+
+    @property
     def bucket(self):
         """google.cloud.storage.bucket.Bucket: The bucket given in the
         argument."""
         return self._bucket
+
+    @property
+    def bucket_name(self):
+        """str: The name of the bucket given in the argument."""
+        return self._bucket.name
 
     @property
     def gs_dir_path(self):
@@ -279,7 +289,7 @@ class Loader:
 
     def _query_to_bq_job(self, query_to_bq_config):
         config = query_to_bq_config
-        job_config = bigquery.job.QueryJobConfig()
+        job_config = bigquery.QueryJobConfig()
         job_config.destination = self.dataset_ref.table(
             table_id=config.data_name)
         job_config.write_disposition = config.write_disposition
@@ -291,7 +301,7 @@ class Loader:
     def _bq_to_gs_job(self, bq_to_gs_config):
         config = bq_to_gs_config
         source = self.dataset_ref.table(table_id=config.data_name)
-        job_config = bigquery.job.ExtractJobConfig()
+        job_config = bigquery.ExtractJobConfig()
         job_config.compression = self._bq_to_gs_compression
         destination_uri = (self._gs_dir_uri + '/'
                            + config.data_name
@@ -305,7 +315,7 @@ class Loader:
 
     def _gs_to_bq_job(self, gs_to_bq_config):
         config = gs_to_bq_config
-        job_config = bigquery.job.LoadJobConfig()
+        job_config = bigquery.LoadJobConfig()
         job_config.field_delimiter = self._separator
         if config.schema is None:
             job_config.autodetect = True

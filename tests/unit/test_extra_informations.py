@@ -1,7 +1,8 @@
+import pandas
 from google_pandas_load.constants import ATOMIC_FUNCTION_NAMES
 from google_pandas_load import LoadConfig
-from tests.context.loaders import *
-from tests.utils import *
+from tests.context.loaders import gpl3
+from tests.utils import BaseClassTest
 
 
 class ExtraInformationsTest(BaseClassTest):

@@ -1,6 +1,9 @@
+import os
 import binascii
-from tests.context.loaders import *
-from tests.utils import *
+import pandas
+from tests.context.loaders import gpl1, gpl2, gpl3, gpl4
+from tests.context.resources import local_dir_path
+from tests.utils import BaseClassTest, populate
 
 
 def is_gz_file(filepath):

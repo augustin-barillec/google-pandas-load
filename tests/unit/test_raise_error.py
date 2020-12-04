@@ -1,7 +1,10 @@
+import pandas
+from google.cloud import bigquery
 from google.cloud.exceptions import BadRequest
-from google_pandas_load import LoadConfig
-from tests.context.loaders import *
-from tests.utils import *
+from google_pandas_load import Loader, LoadConfig
+from tests.context.loaders import gpl1, gpl2, gpl_no_bq_client, \
+    gpl_no_dataset_ref, gpl_no_bucket, gpl_no_local_dir_path
+from tests.utils import BaseClassTest, populate
 
 
 class UtilsRaiseErrorTest(BaseClassTest):
