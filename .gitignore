@@ -1,16 +1,15 @@
-.idea
+/.idea/
 
-build
-dist
-google_pandas_load.egg-info
+/build/
+/dist/
+/google_pandas_load.egg-info
 
-tests/coverage
-tests/run/.coverage
-tests/context/resource_names.py
+/tests/coverage/
+/tests/run/.coverage
 
-.scannerwork
+/.scannerwork/
 
-docs/build
-docs/source/.ipynb_checkpoints
+/docs/build/
+/docs/source/.ipynb_checkpoints/
 
-venv
+/venv/
