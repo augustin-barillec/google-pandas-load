@@ -3,6 +3,22 @@
 History
 =======
 
+4.0.0 (2020-12-31)
+------------------
+
+API Changes
+^^^^^^^^^^^
+* google-cloud-bigquery==2.* is now required.
+
+Improvement
+^^^^^^^^^^^
+* :class:`google_pandas_load.loader_quick_setup.Loader` has now 8 getter functions:
+  bq_client, dataset_ref, bucket, bq_client, dataset_name, bucket_name, gs_dir_path
+  and local_dir_path.
+
+* Its child class :class:`google_pandas_load.loader_quick_setup.LoaderQuickSetup` has
+  in addition 2 getter functions: project_id and gs_client.
+
 3.0.0 (2020-07-15)
 ------------------
 

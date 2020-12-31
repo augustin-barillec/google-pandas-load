@@ -17,5 +17,5 @@ class CallGetters(unittest.TestCase):
         self.assertEqual(gpl2.local_dir_path, local_dir_path)
 
     def test_call_loader_quick_setup_getters(self):
-        self.assertIsNotNone(gpl5.gs_client)
         self.assertEqual(gpl5.project_id, project_id)
+        self.assertIsNotNone(gpl5.gs_client)
