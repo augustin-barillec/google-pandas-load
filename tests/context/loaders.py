@@ -13,7 +13,7 @@ gpl1 = Loader(
     use_wildcard=True,
     compress=True,
     separator='|',
-    chunk_size=2 ** 28)
+    chunk_size=2**28)
 
 gpl2 = Loader(
     bq_client=bq_client,
@@ -26,7 +26,7 @@ gpl2 = Loader(
     use_wildcard=False,
     compress=True,
     separator='@',
-    chunk_size=2 ** 29)
+    chunk_size=2**29)
 
 gpl3 = Loader(
     bq_client=bq_client,
@@ -39,7 +39,7 @@ gpl3 = Loader(
     use_wildcard=True,
     compress=False,
     separator='|',
-    chunk_size=2 ** 28)
+    chunk_size=2**28)
 
 gpl4 = Loader(
     bq_client=bq_client,
@@ -52,7 +52,7 @@ gpl4 = Loader(
     use_wildcard=False,
     compress=False,
     separator='|',
-    chunk_size=2 ** 28)
+    chunk_size=2**28)
 
 gpl5 = LoaderQuickSetup(
     project_id=project_id,

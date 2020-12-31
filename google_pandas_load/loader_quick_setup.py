@@ -95,29 +95,26 @@ class LoaderQuickSetup(Loader):
             chunk_size=2 ** 28,
             logger=not_propagating_logger):
         self._project_id = project_id
-        self._dataset_name = dataset_name
-        self._bucket_name = bucket_name
-
-        self._bq_client = None
-        self._dataset_ref = None
+        bq_client = None
+        dataset_ref = None
         self._gs_client = None
-        self._bucket = None
+        bucket = None
         if self._project_id is not None:
-            self._bq_client = bigquery.Client(
+            bq_client = bigquery.Client(
                 project=self._project_id, credentials=credentials)
-            if self._dataset_name is not None:
-                self._dataset_ref = bigquery.DatasetReference(
-                    project=self._project_id, dataset_id=self._dataset_name)
-            if self._bucket_name is not None:
+            if dataset_name is not None:
+                dataset_ref = bigquery.DatasetReference(
+                    project=self._project_id, dataset_id=dataset_name)
+            if bucket_name is not None:
                 self._gs_client = storage.Client(
                     project=self._project_id, credentials=credentials)
-                self._bucket = storage.Bucket(
-                    client=self._gs_client, name=self._bucket_name)
+                bucket = storage.Bucket(
+                    client=self._gs_client, name=bucket_name)
 
         super().__init__(
-            bq_client=self._bq_client,
-            dataset_ref=self._dataset_ref,
-            bucket=self._bucket,
+            bq_client=bq_client,
+            dataset_ref=dataset_ref,
+            bucket=bucket,
             gs_dir_path=gs_dir_path,
             local_dir_path=local_dir_path,
             generated_data_name_prefix=generated_data_name_prefix,

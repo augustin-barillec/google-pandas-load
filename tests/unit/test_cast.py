@@ -80,7 +80,6 @@ class CastTest(BaseClassTest):
         df0['i'] = df0['i'].astype(pandas.UInt32Dtype())
         df0['j'] = df0['j'].astype(pandas.StringDtype())
         df0['k'] = df0['k'].astype(pandas.CategoricalDtype())
-
         df0['l'] = df0['l'].astype(pandas.BooleanDtype())
 
         gpl3.load(
