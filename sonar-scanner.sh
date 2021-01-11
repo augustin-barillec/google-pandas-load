@@ -14,11 +14,3 @@ docker run \
     -v "$PROJECT_DIR:/usr/src" \
     sonarsource/sonar-scanner-cli
 echo "Ended sonar-scanner"
-
-echo "Start sonar-scanner.."
-docker run \
-    --rm \
-    --network="host" \
-    -v "$PROJECT_DIR:/usr/src" \
-    sonarsource/sonar-scanner-cli
-echo "Ended sonar-scanner"
