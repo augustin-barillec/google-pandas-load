@@ -12,8 +12,12 @@ function clean_scannerwork(){
   rm -rf .scannerwork
 }
 
-function clean_sonarqube(){
+function stop_sonarqube(){
   docker ps -aqf name="sonarqube" | xargs docker stop
+}
+
+function clean_sonarqube(){
+  stop_sonarqube
   docker ps -aqf name="sonarqube" | xargs docker rm
 }
 
@@ -32,7 +36,6 @@ function clean_build(){
 function clean_editable(){
   rm -rf google_pandas_load.egg-info
 }
-
 
 function clean_venv(){
   clean_editable
