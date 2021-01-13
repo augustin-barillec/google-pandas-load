@@ -26,10 +26,6 @@ class LoaderQuickSetup(Loader):
          bucket=bucket
          gs_dir_path=gs_dir_path
          local_dir_path=local_dir_path
-         generated_data_name_prefix=generated_data_name_prefix
-         max_concurrent_google_jobs=max_concurrent_google_jobs
-         use_wildcard=use_wildcard
-         compress=compress
          separator=separator
          chunk_size=chunk_size
          logger=logger
@@ -60,15 +56,6 @@ class LoaderQuickSetup(Loader):
             build the bq_client and the bucket. If not passed, falls back to
             the default inferred from the environment.
         local_dir_path (str, optional): See base class.
-        generated_data_name_prefix (str, optional): See base class.
-        max_concurrent_google_jobs (int, optional): See base class.
-            Default value is 40 while the default value for the base class is
-            10. The first value is intended for a notebook environment whereas
-            the second one for a production environment. In the latter case
-            the amount of google computing resources is usually shared by
-            several programs running in production.
-        use_wildcard (bool, optional): See base class.
-        compress (bool, optional): See base class.
         separator (str, optional): See base class.
         chunk_size (int, optional): See base class.
         logger (logging.Logger, optional): See base class. Default value is a
@@ -87,10 +74,6 @@ class LoaderQuickSetup(Loader):
             gs_dir_path=None,
             credentials=None,
             local_dir_path=None,
-            generated_data_name_prefix=None,
-            max_concurrent_google_jobs=40,
-            use_wildcard=True,
-            compress=True,
             separator='|',
             chunk_size=2 ** 28,
             logger=not_propagating_logger):
@@ -117,10 +100,6 @@ class LoaderQuickSetup(Loader):
             bucket=bucket,
             gs_dir_path=gs_dir_path,
             local_dir_path=local_dir_path,
-            generated_data_name_prefix=generated_data_name_prefix,
-            max_concurrent_google_jobs=max_concurrent_google_jobs,
-            use_wildcard=use_wildcard,
-            compress=compress,
             separator=separator,
             chunk_size=chunk_size,
             logger=logger)

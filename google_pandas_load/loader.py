@@ -38,19 +38,6 @@ class Loader:
         gs_dir_path (str, optional): The path of the directory in
             the bucket.
         local_dir_path (str, optional): The path of the local folder.
-        generated_data_name_prefix (str, optional): The prefix added to any
-            generated data name in case the user does not give a name to the
-            loaded data. It is a useful feature  to quickly find loaded data
-            when debugging the code.
-        max_concurrent_google_jobs (int, optional): The maximum number of
-            concurrent google jobs allowed to be launched by the BigQuery
-            Client. Defaults to 10.
-        use_wildcard (bool, optional): If set to True, data moving from
-            BigQuery to Storage will be split in several files whose basenames
-            match a wildcard pattern. Defaults to True.
-        compress (bool, optional): If set to True, data is compressed when
-            loaded from BigQuery to Storage or from pandas to the local folder.
-            Defaults to True.
         separator (str, optional): The character which separates the columns of
             the data. Defaults to '|'.
         chunk_size (int, optional): The chunk size of a Storage blob created
@@ -68,10 +55,6 @@ class Loader:
             bucket=None,
             gs_dir_path=None,
             local_dir_path=None,
-            generated_data_name_prefix=None,
-            max_concurrent_google_jobs=10,
-            use_wildcard=True,
-            compress=True,
             separator='|',
             chunk_size=2**28,
             logger=logger_):
@@ -88,23 +71,12 @@ class Loader:
             else:
                 self._gs_dir_uri = self._bucket_uri + '/' + self._gs_dir_path
         self._local_dir_path = local_dir_path
-        self._generated_data_name_prefix = generated_data_name_prefix
-        self._max_concurrent_google_jobs = max_concurrent_google_jobs
-        self._use_wildcard = use_wildcard
-        if self._use_wildcard:
-            self._bq_to_gs_ext = '-*.csv'
-        else:
-            self._bq_to_gs_ext = '.csv'
+        self._bq_to_gs_ext = '-*.csv'
         self._dataframe_to_local_ext = '.csv'
-        self._compress = compress
-        if self._compress:
-            self._bq_to_gs_ext += '.gz'
-            self._bq_to_gs_compression = 'GZIP'
-            self._dataframe_to_local_ext += '.gz'
-            self._dataframe_to_local_compression = 'gzip'
-        else:
-            self._bq_to_gs_compression = None
-            self._dataframe_to_local_compression = None
+        self._bq_to_gs_ext += '.gz'
+        self._bq_to_gs_compression = 'GZIP'
+        self._dataframe_to_local_ext += '.gz'
+        self._dataframe_to_local_compression = 'gzip'
         self._separator = separator
         self._chunk_size = chunk_size
         self._logger = logger
@@ -148,11 +120,11 @@ class Loader:
         """str: The local_dir_path given in the argument."""
         return self._local_dir_path
 
-    def _fill_missing_data_names(self, configs):
+    @staticmethod
+    def _fill_missing_data_names(configs):
         for config in configs:
             if config.data_name is None:
-                config.data_name = timestamp_randint_string(
-                    prefix=self._generated_data_name_prefix)
+                config.data_name = timestamp_randint_string()
 
     def _check_gs_dir_path_format(self):
         if self.gs_dir_path is not None and self.gs_dir_path.endswith('/'):
@@ -271,8 +243,8 @@ class Loader:
                             chunk_size=self._chunk_size)
         blob.upload_from_filename(filename=local_file_path)
 
-    def _local_file_to_dataframe(self, local_file_path, dtype, parse_dates,
-                                 infer_datetime_format):
+    def _local_file_to_dataframe(
+            self, local_file_path, dtype, parse_dates, infer_datetime_format):
         return pandas.read_csv(
             filepath_or_buffer=local_file_path,
             sep=self._separator,
@@ -376,15 +348,8 @@ class Loader:
 
     def _execute_bq_client_jobs(self, atomic_configs):
         configs = atomic_configs
-        batch_size = self._max_concurrent_google_jobs
-        nb_of_batches = len(configs) // batch_size + 1
-        jobs = []
-        for i in range(nb_of_batches):
-            configs_to_process = configs[i * batch_size:(i + 1) * batch_size]
-            jobs_to_process = [self._launch_bq_client_job(c)
-                               for c in configs_to_process]
-            wait_for_jobs(jobs=jobs_to_process)
-            jobs += jobs_to_process
+        jobs = [self._launch_bq_client_job(c) for c in configs]
+        wait_for_jobs(jobs)
         return jobs
 
     def _execute_local_load(self, atomic_config):

@@ -16,12 +16,10 @@ def wait_for_jobs(jobs):
         job.result()
 
 
-def timestamp_randint_string(prefix=None):
-    if prefix is None:
-        prefix = ''
+def timestamp_randint_string():
     datetime_str = datetime.now().strftime('%Y%m%d%H%M%S_%f')
     random_value = '_rand' + str(uuid.uuid4().int)
-    return prefix + datetime_str + random_value
+    return datetime_str + random_value
 
 
 def build_atomic_function_names(locations):
