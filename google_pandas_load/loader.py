@@ -244,13 +244,13 @@ class Loader:
         blob.upload_from_filename(filename=local_file_path)
 
     def _local_file_to_dataframe(
-            self, local_file_path, dtype, parse_dates, infer_datetime_format):
+            self, local_file_path, dtype, parse_dates):
         return pandas.read_csv(
             filepath_or_buffer=local_file_path,
             sep=self._separator,
             dtype=dtype,
             parse_dates=parse_dates,
-            infer_datetime_format=infer_datetime_format)
+            infer_datetime_format=True)
 
     def _dataframe_to_local_file(self, dataframe, local_file_path):
         dataframe.to_csv(
@@ -325,8 +325,7 @@ class Loader:
             self._local_file_to_dataframe(
                 local_file_path,
                 config.dtype,
-                config.parse_dates,
-                config.infer_datetime_format),
+                config.parse_dates),
             local_file_paths)
         dataframe = pandas.concat(dataframes)
         return dataframe
@@ -542,7 +541,6 @@ class Loader:
             write_disposition='WRITE_TRUNCATE',
             dtype=None,
             parse_dates=None,
-            infer_datetime_format=True,
             date_cols=None,
             timestamp_cols=None,
             bq_schema=None):
@@ -601,7 +599,6 @@ class Loader:
             write_disposition=write_disposition,
             dtype=dtype,
             parse_dates=parse_dates,
-            infer_datetime_format=infer_datetime_format,
             date_cols=date_cols,
             timestamp_cols=timestamp_cols,
             bq_schema=bq_schema)
@@ -628,7 +625,6 @@ class Loader:
             write_disposition='WRITE_TRUNCATE',
             dtype=None,
             parse_dates=None,
-            infer_datetime_format=True,
             date_cols=None,
             timestamp_cols=None,
             bq_schema=None):
@@ -721,10 +717,6 @@ class Loader:
             parse_dates (list of str, optional): When
                 destination = 'dataframe', pandas.read_csv() is used and
                 parse_dates is one of its parameters.
-            infer_datetime_format (bool, optional): When
-                destination = 'dataframe', pandas.read_csv() is used and
-                infer_datetime_format is one of its parameters. Defaults to
-                True.
             date_cols (list of str, optional): If no bq_schema is passed,
                 indicate which columns of a pandas dataframe should have the
                 BigQuery type DATE.
@@ -760,7 +752,6 @@ class Loader:
                     write_disposition=write_disposition,
                     dtype=dtype,
                     parse_dates=parse_dates,
-                    infer_datetime_format=infer_datetime_format,
                     date_cols=date_cols,
                     timestamp_cols=timestamp_cols,
                     bq_schema=bq_schema).load_result

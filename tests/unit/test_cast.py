@@ -42,8 +42,7 @@ class CastTest(BaseClassTest):
             source='query',
             destination='dataframe',
             query=query,
-            parse_dates=['x', 'y', 'z'],
-            infer_datetime_format=True)
+            parse_dates=['x', 'y', 'z'])
         df1['z'] = df1['z'].apply(lambda z: z.date())
         self.assertTrue(df0.equals(df1))
 

@@ -29,7 +29,6 @@ class LoadConfig:
             write_disposition='WRITE_TRUNCATE',
             dtype=None,
             parse_dates=None,
-            infer_datetime_format=True,
             date_cols=None,
             timestamp_cols=None,
             bq_schema=None):
@@ -44,7 +43,6 @@ class LoadConfig:
         self._write_disposition = write_disposition
         self._dtype = dtype
         self._parse_dates = parse_dates
-        self._infer_datetime_format = infer_datetime_format
         self._timestamp_cols = timestamp_cols
         self._date_cols = date_cols
         self._bq_schema = bq_schema
@@ -184,8 +182,7 @@ class LoadConfig:
     def _local_to_dataframe_config(self):
         return Namespace(
             dtype=self._dtype,
-            parse_dates=self._parse_dates,
-            infer_datetime_format=self._infer_datetime_format)
+            parse_dates=self._parse_dates)
 
     def _dataframe_to_local_config(self):
         return Namespace(dataframe=self._dataframe)
