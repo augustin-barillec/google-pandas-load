@@ -121,6 +121,12 @@ class Loader:
         return self._local_dir_path
 
     @staticmethod
+    def _check_if_configs(configs):
+        if len(configs) == 0:
+            msg = 'configs must be a non-empty list'
+            raise ValueError(msg)
+
+    @staticmethod
     def _fill_missing_data_names(configs):
         for config in configs:
             if config.data_name is None:
@@ -188,7 +194,7 @@ class Loader:
         return table_exists(self.bq_client, table_ref)
 
     def exist_in_gs(self, data_name):
-        """Return True if data named_ data_name exist in Storage,"""
+        """Return True if data named_ data_name exist in Storage."""
         return len(self.list_blobs(data_name)) > 0
 
     def exist_in_local(self, data_name):
@@ -451,7 +457,7 @@ class Loader:
               costs in US dollars of the mload job. The i-th element is the
               query cost of the load job configured by configs[i].
         """
-
+        self._check_if_configs(configs)
         configs = [deepcopy(config) for config in configs]
         nb_of_configs = len(configs)
         self._fill_missing_data_names(configs)
