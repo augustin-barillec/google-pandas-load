@@ -79,10 +79,17 @@ class LoaderSetupRaiseErrorTest(BaseClassTest):
 
 class LoadRaiseErrorTest(BaseClassTest):
 
-    def test_raise_error_if_no_configs(self):
+    def test_raise_error_if_configs_is_not_a_list(self):
+        config = LoadConfig(
+            source='gs', destination='local', data_name='a1')
+        with self.assertRaises(ValueError) as cm:
+            gpl5.mload(configs={config})
+        self.assertEqual(str(cm.exception), 'configs must be list')
+
+    def test_raise_error_if_configs_is_empty(self):
         with self.assertRaises(ValueError) as cm:
             gpl5.mload(configs=[])
-        self.assertEqual(str(cm.exception), 'configs must be a non-empty list')
+        self.assertEqual(str(cm.exception), 'configs must be non-empty')
 
     def test_raise_error_if_prefix(self):
         config1 = LoadConfig(

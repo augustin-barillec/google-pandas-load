@@ -121,16 +121,20 @@ class Loader:
         return self._local_dir_path
 
     @staticmethod
-    def _check_if_configs(configs):
-        if len(configs) == 0:
-            msg = 'configs must be a non-empty list'
-            raise ValueError(msg)
-
-    @staticmethod
     def _fill_missing_data_names(configs):
         for config in configs:
             if config.data_name is None:
                 config.data_name = timestamp_randint_string()
+
+    @staticmethod
+    def _check_if_configs_is_a_list(configs):
+        if type(configs) != list:
+            raise ValueError('configs must be list')
+
+    @staticmethod
+    def _check_if_configs_empty(configs):
+        if len(configs) == 0:
+            raise ValueError('configs must be non-empty')
 
     def _check_gs_dir_path_format(self):
         if self.gs_dir_path is not None and self.gs_dir_path.endswith('/'):
@@ -457,7 +461,8 @@ class Loader:
               costs in US dollars of the mload job. The i-th element is the
               query cost of the load job configured by configs[i].
         """
-        self._check_if_configs(configs)
+        self._check_if_configs_is_a_list(configs)
+        self._check_if_configs_empty(configs)
         configs = [deepcopy(config) for config in configs]
         nb_of_configs = len(configs)
         self._fill_missing_data_names(configs)
