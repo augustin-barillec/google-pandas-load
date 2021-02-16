@@ -1,7 +1,7 @@
 import unittest
 from tests.context.loaders import gpl2, gpl5
 from tests.context.resources import project_id, \
-    dataset_name, bucket_name, local_dir_path
+    dataset_name, dataset_id, bucket_name, local_dir_path
 
 
 class CallGetters(unittest.TestCase):
@@ -11,6 +11,7 @@ class CallGetters(unittest.TestCase):
         self.assertIsNotNone(gpl2.dataset_ref)
         self.assertIsNotNone(gpl2.bucket)
         self.assertIsNotNone(gpl2.bq_client)
+        self.assertEqual(gpl2.dataset_id, dataset_id)
         self.assertEqual(gpl2.dataset_name, dataset_name)
         self.assertEqual(gpl2.bucket_name, bucket_name)
         self.assertEqual(gpl2.gs_dir_path, 'dir/subdir')

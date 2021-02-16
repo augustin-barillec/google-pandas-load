@@ -95,6 +95,11 @@ class Loader:
         return self._dataset_ref
 
     @property
+    def dataset_id(self):
+        """str: The id of the dataset_ref given in the argument."""
+        return '{}.{}'.format(self._dataset_ref.project, self.dataset_name)
+
+    @property
     def dataset_name(self):
         """str: The name of the dataset_ref given in the argument."""
         return self._dataset_ref.dataset_id

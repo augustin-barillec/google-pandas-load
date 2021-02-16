@@ -1,6 +1,6 @@
 import unittest
-from tests.unit.test_raise_error import LoadRaiseErrorTest
+from tests.unit.test_getters import CallGetters
 
 suite = unittest.TestSuite()
-suite.addTest(LoadRaiseErrorTest('test_raise_error_if_configs_is_empty'))
+suite.addTest(CallGetters('test_call_loader_getters'))
 unittest.TextTestRunner(verbosity=2).run(suite)

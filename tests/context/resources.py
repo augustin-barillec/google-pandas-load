@@ -5,6 +5,7 @@ from tests.context.resources_names import \
 
 project_id = PROJECT_ID
 dataset_name = DATASET_NAME
+dataset_id = '{}.{}'.format(project_id, dataset_name)
 bucket_name = BUCKET_NAME
 local_dir_path = LOCAL_DIR_PATH
 
