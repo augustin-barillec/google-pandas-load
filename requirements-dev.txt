@@ -3,6 +3,7 @@
 pyarrow==2.*
 
 setuptools==51.*
+wheel==0.*
 twine==3.*
 
 coverage==5.*

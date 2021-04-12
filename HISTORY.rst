@@ -3,12 +3,28 @@
 History
 =======
 
-4.0.0 (2020-12-31)
+4.0.0 (2021-04-12)
 ------------------
 
 API Changes
 ^^^^^^^^^^^
 * google-cloud-bigquery==2.* is now required.
+
+* infer_datetime_format is removed from the arguments of the load methods.
+  It is set to True for pandas.read_csv when data is loaded
+  from 'local' to 'dataframe'.
+
+* generated_data_name_prefix is removed from loader's arguments.
+  It is now impossible to add a custom prefix to generated data_names.
+
+* max_concurrent_google_jobs is removed from loader's arguments. Concurrency
+  of bq_client jobs are now handled only by google.
+
+* use_wildcard is removed from loader's arguments. A wildcard is now always used
+  when data is loaded from 'bq' to 'gs'.
+
+* compress is removed from loader's arguments. Data is now always compressed
+  when loaded from 'bq' to 'gs' or from 'dataframe' to 'local'.
 
 Improvement
 ^^^^^^^^^^^
@@ -18,6 +34,9 @@ Improvement
 
 * Its child class :class:`google_pandas_load.loader_quick_setup.LoaderQuickSetup`
   has in addition 2 getter functions: project_id and gs_client.
+
+* The argument removals described in the API Changes section above simplify
+  the use of this library.
 
 3.0.0 (2020-07-15)
 ------------------
@@ -108,9 +127,5 @@ Bugfixes
 ------------------
 * Initial release on PyPI.
 
-
-.. _google.cloud.bigquery.job.QueryJob.result(): https://googleapis.dev/python/bigquery/latest/generated/google.cloud.bigquery.job.QueryJob.html#google.cloud.bigquery.job.QueryJob.result
 .. _google.cloud.bigquery.job.LoadJobConfig.autodetect: https://googleapis.dev/python/bigquery/latest/generated/google.cloud.bigquery.job.LoadJobConfig.html#google.cloud.bigquery.job.LoadJobConfig
-
-
-
+.. _google.cloud.bigquery.job.QueryJob.result(): https://googleapis.dev/python/bigquery/latest/generated/google.cloud.bigquery.job.QueryJob.html#google.cloud.bigquery.job.QueryJob.result
