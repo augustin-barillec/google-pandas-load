@@ -22,11 +22,9 @@ function clean_sonarqube(){
 }
 
 function clean_coverage(){
-  cd tests
   rm -rf coverage
-  cd run
   rm -f .coverage
-  cd $PROJECT_DIR
+  rm -f coverage.xml
 }
 
 function clean_build(){
