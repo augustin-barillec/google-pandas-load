@@ -2,28 +2,23 @@
 
 set -e
 
-echo "Cleaning venv and editable..."
+echo 'Cleaning venv...'
 source clean.sh
 clean_venv
-clean_editable
-echo "Cleaned venv and editable"
+echo 'Cleaned venv'
 
-echo "Creating venv..."
+echo 'Creating venv...'
 python3 -m venv venv
-echo "Created venv"
+echo 'Created venv'
 
-echo "Activating venv..."
+echo 'Activating venv...'
 source venv/bin/activate
-echo "Activated venv"
+echo 'Activated venv'
 
-echo "Installing wheel..."
+echo 'Installing wheel...'
 pip install wheel
-echo "Installed wheel"
+echo 'Installed wheel'
 
-echo "Installing requirements-dev..."
+echo 'Installing requirements-dev...'
 pip install -r requirements-dev.txt
-echo "Installed requirements-dev"
-
-echo "Installing editable..."
-pip install -e .
-echo "Installed editable"
+echo 'Installed requirements-dev'

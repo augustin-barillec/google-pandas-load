@@ -1,5 +1,8 @@
 #!/bin/bash
 
+source get_value.sh
+VERSION=$(get_value_from_python_file version)
+
 function tag(){
   git tag -a v$VERSION -m "version $VERSION"
 }
