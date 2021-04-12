@@ -1,5 +1,5 @@
 import unittest
-from tests.unit.test_getters import CallGetters
+from tests.test_getters import CallGetters
 
 suite = unittest.TestSuite()
 suite.addTest(CallGetters('test_call_loader_getters'))

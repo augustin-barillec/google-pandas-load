@@ -4,8 +4,9 @@
 /dist/
 /google_pandas_load.egg-info
 
-/tests/coverage/
-/tests/run/.coverage
+/coverage/
+.coverage
+coverage.xml
 
 /.scannerwork/
 
