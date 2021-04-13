@@ -1,6 +1,8 @@
 -r requirements.txt
 
-setuptools==49.*
+pyarrow==2.*
+
+setuptools==51.*
 twine==3.*
 
 coverage==5.*

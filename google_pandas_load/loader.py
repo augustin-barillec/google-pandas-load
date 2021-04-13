@@ -38,19 +38,6 @@ class Loader:
         gs_dir_path (str, optional): The path of the directory in
             the bucket.
         local_dir_path (str, optional): The path of the local folder.
-        generated_data_name_prefix (str, optional): The prefix added to any
-            generated data name in case the user does not give a name to the
-            loaded data. It is a useful feature  to quickly find loaded data
-            when debugging the code.
-        max_concurrent_google_jobs (int, optional): The maximum number of
-            concurrent google jobs allowed to be launched by the BigQuery
-            Client. Defaults to 10.
-        use_wildcard (bool, optional): If set to True, data moving from
-            BigQuery to Storage will be split in several files whose basenames
-            match a wildcard pattern. Defaults to True.
-        compress (bool, optional): If set to True, data is compressed when
-            loaded from BigQuery to Storage or from pandas to the local folder.
-            Defaults to True.
         separator (str, optional): The character which separates the columns of
             the data. Defaults to '|'.
         chunk_size (int, optional): The chunk size of a Storage blob created
@@ -68,43 +55,31 @@ class Loader:
             bucket=None,
             gs_dir_path=None,
             local_dir_path=None,
-            generated_data_name_prefix=None,
-            max_concurrent_google_jobs=10,
-            use_wildcard=True,
-            compress=True,
             separator='|',
             chunk_size=2**28,
             logger=logger_):
 
         self._bq_client = bq_client
         self._dataset_ref = dataset_ref
+        if self._dataset_ref is not None:
+            self._dataset_name = self._dataset_ref.dataset_id
+            self._dataset_id = '{}.{}'.format(
+                self._dataset_ref.project, self._dataset_name)
         self._bucket = bucket
         self._gs_dir_path = gs_dir_path
         self._check_gs_dir_path_format()
-        if self.bucket is not None:
+        if self._bucket is not None:
+            self._bucket_name = self._bucket.name
             self._bucket_uri = 'gs://{}'.format(self.bucket.name)
-            if self.gs_dir_path is None:
+            if self._gs_dir_path is None:
                 self._gs_dir_uri = self._bucket_uri
             else:
-                self._gs_dir_uri = self._bucket_uri + '/' + self.gs_dir_path
+                self._gs_dir_uri = self._bucket_uri + '/' + self._gs_dir_path
         self._local_dir_path = local_dir_path
-        self._generated_data_name_prefix = generated_data_name_prefix
-        self._max_concurrent_google_jobs = max_concurrent_google_jobs
-        self._use_wildcard = use_wildcard
-        if self._use_wildcard:
-            self._bq_to_gs_ext = '-*.csv'
-        else:
-            self._bq_to_gs_ext = '.csv'
-        self._dataframe_to_local_ext = '.csv'
-        self._compress = compress
-        if self._compress:
-            self._bq_to_gs_ext += '.gz'
-            self._bq_to_gs_compression = 'GZIP'
-            self._dataframe_to_local_ext += '.gz'
-            self._dataframe_to_local_compression = 'gzip'
-        else:
-            self._bq_to_gs_compression = None
-            self._dataframe_to_local_compression = None
+        self._bq_to_gs_ext = '-*.csv.gz'
+        self._dataframe_to_local_ext = '.csv.gz'
+        self._bq_to_gs_compression = 'GZIP'
+        self._dataframe_to_local_compression = 'gzip'
         self._separator = separator
         self._chunk_size = chunk_size
         self._logger = logger
@@ -123,10 +98,25 @@ class Loader:
         return self._dataset_ref
 
     @property
+    def dataset_id(self):
+        """str: The id of the dataset_ref given in the argument."""
+        return self._dataset_id
+
+    @property
+    def dataset_name(self):
+        """str: The name of the dataset_ref given in the argument."""
+        return self._dataset_name
+
+    @property
     def bucket(self):
         """google.cloud.storage.bucket.Bucket: The bucket given in the
         argument."""
         return self._bucket
+
+    @property
+    def bucket_name(self):
+        """str: The name of the bucket given in the argument."""
+        return self._bucket_name
 
     @property
     def gs_dir_path(self):
@@ -138,36 +128,46 @@ class Loader:
         """str: The local_dir_path given in the argument."""
         return self._local_dir_path
 
-    def _fill_missing_data_names(self, configs):
+    @staticmethod
+    def _fill_missing_data_names(configs):
         for config in configs:
             if config.data_name is None:
-                config.data_name = timestamp_randint_string(
-                    prefix=self._generated_data_name_prefix)
+                config.data_name = timestamp_randint_string()
+
+    @staticmethod
+    def _check_if_configs_is_a_list(configs):
+        if type(configs) != list:
+            raise ValueError('configs must be list')
+
+    @staticmethod
+    def _check_if_configs_empty(configs):
+        if len(configs) == 0:
+            raise ValueError('configs must be non-empty')
 
     def _check_gs_dir_path_format(self):
-        if self.gs_dir_path is not None and self.gs_dir_path.endswith('/'):
+        if self._gs_dir_path is not None and self._gs_dir_path.endswith('/'):
             msg = ("To ease Storage path concatenation, gs_dir_path must "
                    "not end with /")
             raise ValueError(msg)
 
     def _check_if_bq_client_missing(self, atomic_function_names):
         names = atomic_function_names
-        if self.bq_client is None and any('bq' in n for n in names):
+        if self._bq_client is None and any('bq' in n for n in names):
             raise ValueError('bq_client must be given if bq is used')
 
     def _check_if_dataset_ref_missing(self, atomic_function_names):
         names = atomic_function_names
-        if self.dataset_ref is None and any('bq' in n for n in names):
+        if self._dataset_ref is None and any('bq' in n for n in names):
             raise ValueError('dataset_ref must be given if bq is used')
 
     def _check_if_bucket_missing(self, atomic_function_names):
         names = atomic_function_names
-        if self.bucket is None and any('gs' in n for n in names):
+        if self._bucket is None and any('gs' in n for n in names):
             raise ValueError('bucket must be given if gs is used')
 
     def _check_if_local_dir_missing(self, atomic_function_names):
         names = atomic_function_names
-        if self.local_dir_path is None and any('local' in n for n in names):
+        if self._local_dir_path is None and any('local' in n for n in names):
             raise ValueError('local_dir_path must be given if local is used')
 
     def _check_if_data_in_source(self, atomic_config):
@@ -179,11 +179,11 @@ class Loader:
         """Return the data named_ data_name in Storage as a list of
         Storage blobs.
         """
-        if self.gs_dir_path is None:
+        if self._gs_dir_path is None:
             prefix = data_name
         else:
-            prefix = self.gs_dir_path + '/' + data_name
-        return list(self.bucket.list_blobs(prefix=prefix))
+            prefix = self._gs_dir_path + '/' + data_name
+        return list(self._bucket.list_blobs(prefix=prefix))
 
     def list_blob_uris(self, data_name):
         """Return the list of the uris of Storage blobs forming the data
@@ -196,17 +196,17 @@ class Loader:
         """Return the list of the paths of the files forming the data named_
         data_name in local.
         """
-        return [os.path.join(self.local_dir_path, basename)
-                for basename in os.listdir(self.local_dir_path)
+        return [os.path.join(self._local_dir_path, basename)
+                for basename in os.listdir(self._local_dir_path)
                 if basename.startswith(data_name)]
 
     def exist_in_bq(self, data_name):
         """Return True if data named_ data_name exist in BigQuery."""
-        table_ref = self.dataset_ref.table(table_id=data_name)
-        return table_exists(self.bq_client, table_ref)
+        table_ref = self._dataset_ref.table(table_id=data_name)
+        return table_exists(self._bq_client, table_ref)
 
     def exist_in_gs(self, data_name):
-        """Return True if data named_ data_name exist in Storage,"""
+        """Return True if data named_ data_name exist in Storage."""
         return len(self.list_blobs(data_name)) > 0
 
     def exist_in_local(self, data_name):
@@ -216,13 +216,13 @@ class Loader:
     def delete_in_bq(self, data_name):
         """Delete the data named_ data_name in BigQuery."""
         if self.exist_in_bq(data_name):
-            table_ref = self.dataset_ref.table(table_id=data_name)
-            self.bq_client.delete_table(table_ref)
+            table_ref = self._dataset_ref.table(table_id=data_name)
+            self._bq_client.delete_table(table_ref)
 
     def delete_in_gs(self, data_name):
         """Delete the data named_ data_name in Storage."""
         if self.exist_in_gs(data_name):
-            self.bucket.delete_blobs(blobs=self.list_blobs(data_name))
+            self._bucket.delete_blobs(blobs=self.list_blobs(data_name))
 
     def delete_in_local(self, data_name):
         """Delete the data named_ data_name in local."""
@@ -247,28 +247,28 @@ class Loader:
 
     def _blob_to_local_file(self, blob):
         blob_basename = blob.name.split('/')[-1]
-        local_file_path = os.path.join(self.local_dir_path, blob_basename)
+        local_file_path = os.path.join(self._local_dir_path, blob_basename)
         blob.download_to_filename(filename=local_file_path)
 
     def _local_file_to_blob(self, local_file_path):
         local_file_basename = os.path.basename(local_file_path)
-        if self.gs_dir_path is None:
+        if self._gs_dir_path is None:
             blob_name = local_file_basename
         else:
-            blob_name = self.gs_dir_path + '/' + local_file_basename
+            blob_name = self._gs_dir_path + '/' + local_file_basename
         blob = storage.Blob(name=blob_name,
-                            bucket=self.bucket,
+                            bucket=self._bucket,
                             chunk_size=self._chunk_size)
         blob.upload_from_filename(filename=local_file_path)
 
-    def _local_file_to_dataframe(self, local_file_path, dtype, parse_dates,
-                                 infer_datetime_format):
+    def _local_file_to_dataframe(
+            self, local_file_path, dtype, parse_dates):
         return pandas.read_csv(
             filepath_or_buffer=local_file_path,
             sep=self._separator,
             dtype=dtype,
             parse_dates=parse_dates,
-            infer_datetime_format=infer_datetime_format)
+            infer_datetime_format=True)
 
     def _dataframe_to_local_file(self, dataframe, local_file_path):
         dataframe.to_csv(
@@ -279,25 +279,25 @@ class Loader:
 
     def _query_to_bq_job(self, query_to_bq_config):
         config = query_to_bq_config
-        job_config = bigquery.job.QueryJobConfig()
-        job_config.destination = self.dataset_ref.table(
+        job_config = bigquery.QueryJobConfig()
+        job_config.destination = self._dataset_ref.table(
             table_id=config.data_name)
         job_config.write_disposition = config.write_disposition
-        job = self.bq_client.query(
+        job = self._bq_client.query(
             query=config.query,
             job_config=job_config)
         return job
 
     def _bq_to_gs_job(self, bq_to_gs_config):
         config = bq_to_gs_config
-        source = self.dataset_ref.table(table_id=config.data_name)
-        job_config = bigquery.job.ExtractJobConfig()
+        source = self._dataset_ref.table(table_id=config.data_name)
+        job_config = bigquery.ExtractJobConfig()
         job_config.compression = self._bq_to_gs_compression
         destination_uri = (self._gs_dir_uri + '/'
                            + config.data_name
                            + self._bq_to_gs_ext)
         job_config.field_delimiter = self._separator
-        job = self.bq_client.extract_table(
+        job = self._bq_client.extract_table(
             source=source,
             destination_uris=destination_uri,
             job_config=job_config)
@@ -305,7 +305,7 @@ class Loader:
 
     def _gs_to_bq_job(self, gs_to_bq_config):
         config = gs_to_bq_config
-        job_config = bigquery.job.LoadJobConfig()
+        job_config = bigquery.LoadJobConfig()
         job_config.field_delimiter = self._separator
         if config.schema is None:
             job_config.autodetect = True
@@ -314,9 +314,9 @@ class Loader:
             job_config.skip_leading_rows = 1
         job_config.write_disposition = config.write_disposition
         source_uris = self.list_blob_uris(config.data_name)
-        destination = self.dataset_ref.table(
+        destination = self._dataset_ref.table(
             table_id=config.data_name)
-        job = self.bq_client.load_table_from_uri(
+        job = self._bq_client.load_table_from_uri(
             source_uris=source_uris,
             destination=destination,
             job_config=job_config)
@@ -343,8 +343,7 @@ class Loader:
             self._local_file_to_dataframe(
                 local_file_path,
                 config.dtype,
-                config.parse_dates,
-                config.infer_datetime_format),
+                config.parse_dates),
             local_file_paths)
         dataframe = pandas.concat(dataframes)
         return dataframe
@@ -354,7 +353,7 @@ class Loader:
         data_name = config.data_name
         ext = self._dataframe_to_local_ext
         dataframe = config.dataframe
-        local_file_path = os.path.join(self.local_dir_path, data_name + ext)
+        local_file_path = os.path.join(self._local_dir_path, data_name + ext)
         self._dataframe_to_local_file(dataframe, local_file_path)
 
     def _launch_bq_client_job(self, atomic_config):
@@ -366,15 +365,8 @@ class Loader:
 
     def _execute_bq_client_jobs(self, atomic_configs):
         configs = atomic_configs
-        batch_size = self._max_concurrent_google_jobs
-        nb_of_batches = len(configs) // batch_size + 1
-        jobs = []
-        for i in range(nb_of_batches):
-            configs_to_process = configs[i * batch_size:(i + 1) * batch_size]
-            jobs_to_process = [self._launch_bq_client_job(c)
-                               for c in configs_to_process]
-            wait_for_jobs(jobs=jobs_to_process)
-            jobs += jobs_to_process
+        jobs = [self._launch_bq_client_job(c) for c in configs]
+        wait_for_jobs(jobs)
         return jobs
 
     def _execute_local_load(self, atomic_config):
@@ -477,7 +469,8 @@ class Loader:
               costs in US dollars of the mload job. The i-th element is the
               query cost of the load job configured by configs[i].
         """
-
+        self._check_if_configs_is_a_list(configs)
+        self._check_if_configs_empty(configs)
         configs = [deepcopy(config) for config in configs]
         nb_of_configs = len(configs)
         self._fill_missing_data_names(configs)
@@ -539,8 +532,7 @@ class Loader:
         The prefix m means multi.
 
         The BigQuery Client executes simultaneously the query_to_bq parts
-        (resp. the bq_to_gs and gs_to_bq parts) from the configurations by
-        batch of size max_concurrent_google_jobs.
+        (resp. the bq_to_gs and gs_to_bq parts) from the configurations.
 
         Args:
             configs (list of google_pandas_load.load_config.LoadConfig):
@@ -548,7 +540,7 @@ class Loader:
                 format of one configuration.
 
         Returns:
-            list of (pandas.DataFrame or NoneType): A list of of load
+            list of (pandas.DataFrame or NoneType): A list of load
             results. The i-th element is the result of the load job configured
             by configs[i]. See :meth:`google_pandas_load.loader.Loader.load`
             for the format of one load result.
@@ -567,7 +559,6 @@ class Loader:
             write_disposition='WRITE_TRUNCATE',
             dtype=None,
             parse_dates=None,
-            infer_datetime_format=True,
             date_cols=None,
             timestamp_cols=None,
             bq_schema=None):
@@ -626,7 +617,6 @@ class Loader:
             write_disposition=write_disposition,
             dtype=dtype,
             parse_dates=parse_dates,
-            infer_datetime_format=infer_datetime_format,
             date_cols=date_cols,
             timestamp_cols=timestamp_cols,
             bq_schema=bq_schema)
@@ -653,7 +643,6 @@ class Loader:
             write_disposition='WRITE_TRUNCATE',
             dtype=None,
             parse_dates=None,
-            infer_datetime_format=True,
             date_cols=None,
             timestamp_cols=None,
             bq_schema=None):
@@ -678,7 +667,7 @@ class Loader:
         Note:
             **What is the data named data_name?**
 
-            - in BigQuery: the table in the dataset whose id is data_name.
+            - in BigQuery: the table in the dataset whose name is data_name.
             - in Storage: the blobs whose basename begins with data_name
               inside the bucket directory.
             - in local: the files whose basename begins with data_name inside
@@ -727,8 +716,7 @@ class Loader:
             destination (str): one of 'bq', 'gs', 'local', 'dataframe'.
 
             data_name (str, optional): The `name <named_>`_ of the data. If
-                not passed, a name is generated by concatenating the
-                generated_data_name_prefix of the loader, if any, the current
+                not passed, a name is generated by concatenating the current
                 timestamp and a random integer. This is useful when
                 source = 'query' and destination = 'dataframe' because the user
                 may not need to know the data_name.
@@ -746,10 +734,6 @@ class Loader:
             parse_dates (list of str, optional): When
                 destination = 'dataframe', pandas.read_csv() is used and
                 parse_dates is one of its parameters.
-            infer_datetime_format (bool, optional): When
-                destination = 'dataframe', pandas.read_csv() is used and
-                infer_datetime_format is one of its parameters. Defaults to
-                True.
             date_cols (list of str, optional): If no bq_schema is passed,
                 indicate which columns of a pandas dataframe should have the
                 BigQuery type DATE.
@@ -785,7 +769,6 @@ class Loader:
                     write_disposition=write_disposition,
                     dtype=dtype,
                     parse_dates=parse_dates,
-                    infer_datetime_format=infer_datetime_format,
                     date_cols=date_cols,
                     timestamp_cols=timestamp_cols,
                     bq_schema=bq_schema).load_result

@@ -1,4 +1,5 @@
 from setuptools import setup, find_namespace_packages
+from version import version
 
 with open('README.rst') as f:
     README = f.read()
@@ -8,7 +9,7 @@ with open('requirements.txt') as f:
 
 setup(
     name='google-pandas-load',
-    version='3.0.0',
+    version=version,
     author='Augustin Barillec',
     author_email='augustin.barillec@ysance.com',
     description=(

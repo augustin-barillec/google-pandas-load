@@ -1,9 +1,5 @@
 #!/bin/bash
 
-echo "Start clean_all..."
-bash -c "source clean.sh && clean_all"
-echo "Ended clean_all"
-
 echo "Starting update..."
 apt-get update
 echo "Ended update"

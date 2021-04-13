@@ -3,5 +3,5 @@
 source clean.sh
 clean_docs
 cd docs
-make html
-google-chrome build/html/index.html
+sphinx-build source build
+google-chrome build/index.html

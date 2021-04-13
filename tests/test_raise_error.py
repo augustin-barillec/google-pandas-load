@@ -1,7 +1,10 @@
+import pandas
+from google.cloud import bigquery
 from google.cloud.exceptions import BadRequest
-from google_pandas_load import LoadConfig
-from tests.context.loaders import *
-from tests.utils import *
+from google_pandas_load import Loader, LoadConfig
+from tests.context.loaders import gpl1, gpl2, gpl5, gpl_no_bq_client, \
+    gpl_no_dataset_ref, gpl_no_bucket, gpl_no_local_dir_path
+from tests.utils import BaseClassTest, populate
 
 
 class UtilsRaiseErrorTest(BaseClassTest):
@@ -75,6 +78,18 @@ class LoaderSetupRaiseErrorTest(BaseClassTest):
 
 
 class LoadRaiseErrorTest(BaseClassTest):
+
+    def test_raise_error_if_configs_is_not_a_list(self):
+        config = LoadConfig(
+            source='gs', destination='local', data_name='a1')
+        with self.assertRaises(ValueError) as cm:
+            gpl5.mload(configs={config})
+        self.assertEqual(str(cm.exception), 'configs must be list')
+
+    def test_raise_error_if_configs_is_empty(self):
+        with self.assertRaises(ValueError) as cm:
+            gpl5.mload(configs=[])
+        self.assertEqual(str(cm.exception), 'configs must be non-empty')
 
     def test_raise_error_if_prefix(self):
         config1 = LoadConfig(

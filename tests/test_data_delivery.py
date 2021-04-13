@@ -1,6 +1,11 @@
+import pandas
+from google.cloud import bigquery
 from google_pandas_load import LoadConfig
-from tests.context.loaders import *
-from tests.utils import *
+from tests.context.loaders import gpl1, gpl2, gpl3, gpl4, gpl5
+from tests.context.resources import project_id, bq_client, \
+    dataset_ref, dataset_name
+from tests.utils import BaseClassTest, populate_dataset, \
+    populate, populate_bucket, populate_local_folder
 
 
 class DataDeliveryTest(BaseClassTest):

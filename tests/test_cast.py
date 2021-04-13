@@ -1,8 +1,11 @@
 import pytz
 import numpy
+import pandas
 from datetime import datetime
-from tests.context.loaders import *
-from tests.utils import *
+from google.cloud import bigquery
+from tests.context.loaders import gpl2, gpl3, gpl4
+from tests.context.resources import dataset_ref, bq_client
+from tests.utils import BaseClassTest, populate
 
 
 class CastTest(BaseClassTest):
@@ -39,8 +42,7 @@ class CastTest(BaseClassTest):
             source='query',
             destination='dataframe',
             query=query,
-            parse_dates=['x', 'y', 'z'],
-            infer_datetime_format=True)
+            parse_dates=['x', 'y', 'z'])
         df1['z'] = df1['z'].apply(lambda z: z.date())
         self.assertTrue(df0.equals(df1))
 
@@ -77,7 +79,6 @@ class CastTest(BaseClassTest):
         df0['i'] = df0['i'].astype(pandas.UInt32Dtype())
         df0['j'] = df0['j'].astype(pandas.StringDtype())
         df0['k'] = df0['k'].astype(pandas.CategoricalDtype())
-
         df0['l'] = df0['l'].astype(pandas.BooleanDtype())
 
         gpl3.load(

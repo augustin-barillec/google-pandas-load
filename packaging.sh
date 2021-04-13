@@ -2,7 +2,7 @@
 
 function build {
 source clean.sh
-clean_build
+clean_packaging
 python setup.py bdist_wheel
 }
 
