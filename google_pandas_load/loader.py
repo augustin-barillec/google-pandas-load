@@ -61,7 +61,11 @@ class Loader:
 
         self._bq_client = bq_client
         self._dataset_ref = dataset_ref
+        self._dataset_id = '{}.{}'.format(
+            self._dataset_ref.project, self.dataset_name)
+        self._dataset_name = self._dataset_ref.dataset_id
         self._bucket = bucket
+        self._bucket_name = self._bucket.name
         self._gs_dir_path = gs_dir_path
         self._check_gs_dir_path_format()
         if self._bucket is not None:
@@ -97,12 +101,12 @@ class Loader:
     @property
     def dataset_id(self):
         """str: The id of the dataset_ref given in the argument."""
-        return '{}.{}'.format(self._dataset_ref.project, self.dataset_name)
+        return self._dataset_id
 
     @property
     def dataset_name(self):
         """str: The name of the dataset_ref given in the argument."""
-        return self._dataset_ref.dataset_id
+        return self._dataset_name
 
     @property
     def bucket(self):
@@ -113,7 +117,7 @@ class Loader:
     @property
     def bucket_name(self):
         """str: The name of the bucket given in the argument."""
-        return self._bucket.name
+        return self._bucket_name
 
     @property
     def gs_dir_path(self):
@@ -142,29 +146,29 @@ class Loader:
             raise ValueError('configs must be non-empty')
 
     def _check_gs_dir_path_format(self):
-        if self.gs_dir_path is not None and self.gs_dir_path.endswith('/'):
+        if self._gs_dir_path is not None and self._gs_dir_path.endswith('/'):
             msg = ("To ease Storage path concatenation, gs_dir_path must "
                    "not end with /")
             raise ValueError(msg)
 
     def _check_if_bq_client_missing(self, atomic_function_names):
         names = atomic_function_names
-        if self.bq_client is None and any('bq' in n for n in names):
+        if self._bq_client is None and any('bq' in n for n in names):
             raise ValueError('bq_client must be given if bq is used')
 
     def _check_if_dataset_ref_missing(self, atomic_function_names):
         names = atomic_function_names
-        if self.dataset_ref is None and any('bq' in n for n in names):
+        if self._dataset_ref is None and any('bq' in n for n in names):
             raise ValueError('dataset_ref must be given if bq is used')
 
     def _check_if_bucket_missing(self, atomic_function_names):
         names = atomic_function_names
-        if self.bucket is None and any('gs' in n for n in names):
+        if self._bucket is None and any('gs' in n for n in names):
             raise ValueError('bucket must be given if gs is used')
 
     def _check_if_local_dir_missing(self, atomic_function_names):
         names = atomic_function_names
-        if self.local_dir_path is None and any('local' in n for n in names):
+        if self._local_dir_path is None and any('local' in n for n in names):
             raise ValueError('local_dir_path must be given if local is used')
 
     def _check_if_data_in_source(self, atomic_config):
@@ -176,11 +180,11 @@ class Loader:
         """Return the data named_ data_name in Storage as a list of
         Storage blobs.
         """
-        if self.gs_dir_path is None:
+        if self._gs_dir_path is None:
             prefix = data_name
         else:
-            prefix = self.gs_dir_path + '/' + data_name
-        return list(self.bucket.list_blobs(prefix=prefix))
+            prefix = self._gs_dir_path + '/' + data_name
+        return list(self._bucket.list_blobs(prefix=prefix))
 
     def list_blob_uris(self, data_name):
         """Return the list of the uris of Storage blobs forming the data
@@ -193,14 +197,14 @@ class Loader:
         """Return the list of the paths of the files forming the data named_
         data_name in local.
         """
-        return [os.path.join(self.local_dir_path, basename)
-                for basename in os.listdir(self.local_dir_path)
+        return [os.path.join(self._local_dir_path, basename)
+                for basename in os.listdir(self._local_dir_path)
                 if basename.startswith(data_name)]
 
     def exist_in_bq(self, data_name):
         """Return True if data named_ data_name exist in BigQuery."""
-        table_ref = self.dataset_ref.table(table_id=data_name)
-        return table_exists(self.bq_client, table_ref)
+        table_ref = self._dataset_ref.table(table_id=data_name)
+        return table_exists(self._bq_client, table_ref)
 
     def exist_in_gs(self, data_name):
         """Return True if data named_ data_name exist in Storage."""
@@ -213,13 +217,13 @@ class Loader:
     def delete_in_bq(self, data_name):
         """Delete the data named_ data_name in BigQuery."""
         if self.exist_in_bq(data_name):
-            table_ref = self.dataset_ref.table(table_id=data_name)
-            self.bq_client.delete_table(table_ref)
+            table_ref = self._dataset_ref.table(table_id=data_name)
+            self._bq_client.delete_table(table_ref)
 
     def delete_in_gs(self, data_name):
         """Delete the data named_ data_name in Storage."""
         if self.exist_in_gs(data_name):
-            self.bucket.delete_blobs(blobs=self.list_blobs(data_name))
+            self._bucket.delete_blobs(blobs=self.list_blobs(data_name))
 
     def delete_in_local(self, data_name):
         """Delete the data named_ data_name in local."""
@@ -244,17 +248,17 @@ class Loader:
 
     def _blob_to_local_file(self, blob):
         blob_basename = blob.name.split('/')[-1]
-        local_file_path = os.path.join(self.local_dir_path, blob_basename)
+        local_file_path = os.path.join(self._local_dir_path, blob_basename)
         blob.download_to_filename(filename=local_file_path)
 
     def _local_file_to_blob(self, local_file_path):
         local_file_basename = os.path.basename(local_file_path)
-        if self.gs_dir_path is None:
+        if self._gs_dir_path is None:
             blob_name = local_file_basename
         else:
-            blob_name = self.gs_dir_path + '/' + local_file_basename
+            blob_name = self._gs_dir_path + '/' + local_file_basename
         blob = storage.Blob(name=blob_name,
-                            bucket=self.bucket,
+                            bucket=self._bucket,
                             chunk_size=self._chunk_size)
         blob.upload_from_filename(filename=local_file_path)
 
@@ -277,24 +281,24 @@ class Loader:
     def _query_to_bq_job(self, query_to_bq_config):
         config = query_to_bq_config
         job_config = bigquery.QueryJobConfig()
-        job_config.destination = self.dataset_ref.table(
+        job_config.destination = self._dataset_ref.table(
             table_id=config.data_name)
         job_config.write_disposition = config.write_disposition
-        job = self.bq_client.query(
+        job = self._bq_client.query(
             query=config.query,
             job_config=job_config)
         return job
 
     def _bq_to_gs_job(self, bq_to_gs_config):
         config = bq_to_gs_config
-        source = self.dataset_ref.table(table_id=config.data_name)
+        source = self._dataset_ref.table(table_id=config.data_name)
         job_config = bigquery.ExtractJobConfig()
         job_config.compression = self._bq_to_gs_compression
         destination_uri = (self._gs_dir_uri + '/'
                            + config.data_name
                            + self._bq_to_gs_ext)
         job_config.field_delimiter = self._separator
-        job = self.bq_client.extract_table(
+        job = self._bq_client.extract_table(
             source=source,
             destination_uris=destination_uri,
             job_config=job_config)
@@ -311,9 +315,9 @@ class Loader:
             job_config.skip_leading_rows = 1
         job_config.write_disposition = config.write_disposition
         source_uris = self.list_blob_uris(config.data_name)
-        destination = self.dataset_ref.table(
+        destination = self._dataset_ref.table(
             table_id=config.data_name)
-        job = self.bq_client.load_table_from_uri(
+        job = self._bq_client.load_table_from_uri(
             source_uris=source_uris,
             destination=destination,
             job_config=job_config)
@@ -350,7 +354,7 @@ class Loader:
         data_name = config.data_name
         ext = self._dataframe_to_local_ext
         dataframe = config.dataframe
-        local_file_path = os.path.join(self.local_dir_path, data_name + ext)
+        local_file_path = os.path.join(self._local_dir_path, data_name + ext)
         self._dataframe_to_local_file(dataframe, local_file_path)
 
     def _launch_bq_client_job(self, atomic_config):
@@ -529,8 +533,7 @@ class Loader:
         The prefix m means multi.
 
         The BigQuery Client executes simultaneously the query_to_bq parts
-        (resp. the bq_to_gs and gs_to_bq parts) from the configurations by
-        batch of size max_concurrent_google_jobs.
+        (resp. the bq_to_gs and gs_to_bq parts) from the configurations.
 
         Args:
             configs (list of google_pandas_load.load_config.LoadConfig):
@@ -538,7 +541,7 @@ class Loader:
                 format of one configuration.
 
         Returns:
-            list of (pandas.DataFrame or NoneType): A list of of load
+            list of (pandas.DataFrame or NoneType): A list of load
             results. The i-th element is the result of the load job configured
             by configs[i]. See :meth:`google_pandas_load.loader.Loader.load`
             for the format of one load result.
@@ -665,7 +668,7 @@ class Loader:
         Note:
             **What is the data named data_name?**
 
-            - in BigQuery: the table in the dataset whose id is data_name.
+            - in BigQuery: the table in the dataset whose name is data_name.
             - in Storage: the blobs whose basename begins with data_name
               inside the bucket directory.
             - in local: the files whose basename begins with data_name inside
@@ -714,8 +717,7 @@ class Loader:
             destination (str): one of 'bq', 'gs', 'local', 'dataframe'.
 
             data_name (str, optional): The `name <named_>`_ of the data. If
-                not passed, a name is generated by concatenating the
-                generated_data_name_prefix of the loader, if any, the current
+                not passed, a name is generated by concatenating the current
                 timestamp and a random integer. This is useful when
                 source = 'query' and destination = 'dataframe' because the user
                 may not need to know the data_name.
