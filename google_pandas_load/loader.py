@@ -61,9 +61,9 @@ class Loader:
 
         self._bq_client = bq_client
         self._dataset_ref = dataset_ref
-        self._dataset_id = '{}.{}'.format(
-            self._dataset_ref.project, self.dataset_name)
         self._dataset_name = self._dataset_ref.dataset_id
+        self._dataset_id = '{}.{}'.format(
+            self._dataset_ref.project, self._dataset_name)
         self._bucket = bucket
         self._bucket_name = self._bucket.name
         self._gs_dir_path = gs_dir_path
