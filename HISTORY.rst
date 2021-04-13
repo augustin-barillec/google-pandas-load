@@ -18,7 +18,7 @@ API Changes
   It is now impossible to add a custom prefix to generated data_names.
 
 * max_concurrent_google_jobs is removed from loader's arguments. Concurrency
-  of bq_client jobs are now handled only by google.
+  of bq_client jobs is now solely handled by google.
 
 * use_wildcard is removed from loader's arguments. A wildcard is now always used
   when data is loaded from 'bq' to 'gs'.
