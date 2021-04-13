@@ -1,6 +1,6 @@
 from google.cloud import bigquery
 from google.cloud import storage
-from tests.context.resources_names import \
+from tests.context.resource_names import \
     PROJECT_ID, DATASET_NAME, BUCKET_NAME, LOCAL_DIR_PATH
 
 project_id = PROJECT_ID
