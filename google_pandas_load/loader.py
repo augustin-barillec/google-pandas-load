@@ -61,25 +61,24 @@ class Loader:
 
         self._bq_client = bq_client
         self._dataset_ref = dataset_ref
-        self._dataset_name = self._dataset_ref.dataset_id
-        self._dataset_id = '{}.{}'.format(
-            self._dataset_ref.project, self._dataset_name)
+        if self._dataset_ref is not None:
+            self._dataset_name = self._dataset_ref.dataset_id
+            self._dataset_id = '{}.{}'.format(
+                self._dataset_ref.project, self._dataset_name)
         self._bucket = bucket
-        self._bucket_name = self._bucket.name
         self._gs_dir_path = gs_dir_path
         self._check_gs_dir_path_format()
         if self._bucket is not None:
+            self._bucket_name = self._bucket.name
             self._bucket_uri = 'gs://{}'.format(self.bucket.name)
             if self._gs_dir_path is None:
                 self._gs_dir_uri = self._bucket_uri
             else:
                 self._gs_dir_uri = self._bucket_uri + '/' + self._gs_dir_path
         self._local_dir_path = local_dir_path
-        self._bq_to_gs_ext = '-*.csv'
-        self._dataframe_to_local_ext = '.csv'
-        self._bq_to_gs_ext += '.gz'
+        self._bq_to_gs_ext = '-*.csv.gz'
+        self._dataframe_to_local_ext = '.csv.gz'
         self._bq_to_gs_compression = 'GZIP'
-        self._dataframe_to_local_ext += '.gz'
         self._dataframe_to_local_compression = 'gzip'
         self._separator = separator
         self._chunk_size = chunk_size
