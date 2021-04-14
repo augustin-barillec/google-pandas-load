@@ -1,7 +1,8 @@
 import pandas
 from tests.context.loaders import gpl2
 from tests.context.resources import bq_client, dataset_ref
-from tests.utils import BaseClassTest, populate_dataset, populate
+from tests.base_class import BaseClassTest
+from tests.populate import populate_dataset, populate
 
 
 class LoadParametersTest(BaseClassTest):

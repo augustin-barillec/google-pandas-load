@@ -4,7 +4,8 @@ from google.cloud.exceptions import BadRequest
 from google_pandas_load import Loader, LoadConfig
 from tests.context.loaders import gpl1, gpl2, gpl5, gpl_no_bq_client, \
     gpl_no_dataset_ref, gpl_no_bucket, gpl_no_local_dir_path
-from tests.utils import BaseClassTest, populate
+from tests.base_class import BaseClassTest
+from tests.populate import populate
 
 
 class UtilsRaiseErrorTest(BaseClassTest):

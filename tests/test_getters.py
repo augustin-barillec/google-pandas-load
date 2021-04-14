@@ -1,7 +1,7 @@
 import unittest
-from tests.context.loaders import gpl2, gpl5
 from tests.context.resources import project_id, \
     dataset_name, dataset_id, bucket_name, local_dir_path
+from tests.context.loaders import gpl2, gpl5
 
 
 class CallGetters(unittest.TestCase):

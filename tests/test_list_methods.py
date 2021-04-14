@@ -1,7 +1,8 @@
 import os
 from tests.context.loaders import gpl1, gpl2, gpl3
 from tests.context.resources import bucket_name, local_dir_path
-from tests.utils import BaseClassTest, populate_bucket, populate_local_folder
+from tests.base_class import BaseClassTest
+from tests.populate import populate_bucket, populate_local_folder
 
 
 class ListMethodsTest(BaseClassTest):
