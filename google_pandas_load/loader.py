@@ -556,7 +556,7 @@ class Loader:
             query=None,
             dataframe=None,
 
-            write_disposition='WRITE_TRUNCATE',
+            write_disposition=bigquery.WriteDisposition.WRITE_TRUNCATE,
             dtype=None,
             parse_dates=None,
             date_cols=None,
@@ -640,7 +640,7 @@ class Loader:
             query=None,
             dataframe=None,
 
-            write_disposition='WRITE_TRUNCATE',
+            write_disposition=bigquery.WriteDisposition.WRITE_TRUNCATE,
             dtype=None,
             parse_dates=None,
             date_cols=None,
@@ -728,7 +728,7 @@ class Loader:
             write_disposition (google.cloud.bigquery.job.WriteDisposition, optional):
                 Specifies the action that occurs if data named_
                 data_name already exist in BigQuery. Defaults to
-                'WRITE_TRUNCATE'.
+                bigquery.WriteDisposition.WRITE_TRUNCATE.
             dtype (dict, optional): When destination = 'dataframe',
                 pandas.read_csv() is used and dtype is one of its parameters.
             parse_dates (list of str, optional): When

@@ -1,4 +1,5 @@
 import pandas
+from google.cloud import bigquery
 from tests.context.loaders import gpl2
 from tests.context.resources import bq_client, dataset_ref
 from tests.base_class import BaseClassTest
@@ -38,7 +39,7 @@ class LoadParametersTest(BaseClassTest):
             destination='bq',
             data_name='a10',
             query='select 4 as x',
-            write_disposition='WRITE_APPEND')
+            write_disposition=bigquery.WriteDisposition.WRITE_APPEND)
         table_ref = dataset_ref.table(table_id='a10')
         table = bq_client.get_table(table_ref)
         num_rows = table.num_rows

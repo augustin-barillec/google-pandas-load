@@ -26,7 +26,7 @@ class LoadConfig:
             query=None,
             dataframe=None,
 
-            write_disposition='WRITE_TRUNCATE',
+            write_disposition=bigquery.WriteDisposition.WRITE_TRUNCATE,
             dtype=None,
             parse_dates=None,
             date_cols=None,
