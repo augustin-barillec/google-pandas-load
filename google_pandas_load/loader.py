@@ -46,6 +46,7 @@ class Loader:
             for more information. Defaults to 2**28.
         logger (logging.Logger, optional): The logger creating the log records
             of this class. Defaults to a logger called Loader.
+        log_level (str, optional): The level of the logs. Defaults to 'DEBUG'.
     """
 
     def __init__(
@@ -57,7 +58,8 @@ class Loader:
             local_dir_path=None,
             separator='|',
             chunk_size=2**28,
-            logger=logger_):
+            logger=logger_,
+            log_level='DEBUG'):
 
         self._bq_client = bq_client
         self._dataset_ref = dataset_ref
@@ -83,6 +85,7 @@ class Loader:
         self._separator = separator
         self._chunk_size = chunk_size
         self._logger = logger
+        self._log_level = log_level
 
     @property
     def bq_client(self):
@@ -378,6 +381,9 @@ class Loader:
     def _execute_local_loads(self, atomic_configs):
         return list(map(self._execute_local_load, atomic_configs))
 
+    def _log(self, msg):
+        self._logger.log(getattr(logging, self._log_level), msg)
+
     def _atomic_load(self, atomic_configs):
         assert len(atomic_configs) > 0
 
@@ -391,7 +397,7 @@ class Loader:
 
         atomic_function_name = '{}_to_{}'.format(source, destination)
 
-        self._logger.debug('Starting {} to {}...'.format(source, destination))
+        self._log('Starting {} to {}...'.format(source, destination))
 
         start_timestamp = datetime.now()
 
@@ -421,7 +427,7 @@ class Loader:
 
         if atomic_function_name != 'query_to_bq':
             msg = 'Ended {} to {} [{}s]'.format(source, destination, duration)
-            self._logger.debug(msg)
+            self._log(msg)
         else:
             jobs = load_results
             total_bytes_billed_list = [j.total_bytes_billed for j in jobs]
@@ -429,7 +435,7 @@ class Loader:
                      for tbb in total_bytes_billed_list]
             cost = sum(costs)
             msg = 'Ended query to bq [{}s, {}$]'.format(duration, cost)
-            self._logger.debug(msg)
+            self._log(msg)
             res['cost'] = cost
             res['costs'] = costs
 
