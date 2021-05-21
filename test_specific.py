@@ -1,6 +1,6 @@
 import unittest
-from tests.test_compress import CompressTest
+from tests.test_logging import LoggingTest
 
 suite = unittest.TestSuite()
-suite.addTest(CompressTest('test_compress_dataframe_to_local'))
+suite.addTest(LoggingTest('test_default_loader_logger'))
 unittest.TextTestRunner(verbosity=2).run(suite)

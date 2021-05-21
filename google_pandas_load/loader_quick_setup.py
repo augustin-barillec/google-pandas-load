@@ -64,6 +64,7 @@ class LoaderQuickSetup(Loader):
             ancestors and it is equipped with an handler displaying the log
             records to the console. This is, for instance, convenient when
             working with a notebook.
+        log_level (int, optional): See base class.
     """
 
     def __init__(
@@ -76,7 +77,8 @@ class LoaderQuickSetup(Loader):
             local_dir_path=None,
             separator='|',
             chunk_size=2 ** 28,
-            logger=not_propagating_logger):
+            logger=not_propagating_logger,
+            log_level=logging.DEBUG):
         self._project_id = project_id
         bq_client = None
         dataset_ref = None
@@ -102,7 +104,8 @@ class LoaderQuickSetup(Loader):
             local_dir_path=local_dir_path,
             separator=separator,
             chunk_size=chunk_size,
-            logger=logger)
+            logger=logger,
+            log_level=log_level)
 
     @property
     def project_id(self):

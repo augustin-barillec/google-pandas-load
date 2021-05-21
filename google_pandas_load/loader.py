@@ -46,7 +46,8 @@ class Loader:
             for more information. Defaults to 2**28.
         logger (logging.Logger, optional): The logger creating the log records
             of this class. Defaults to a logger called Loader.
-        log_level (str, optional): The level of the logs. Defaults to 'DEBUG'.
+        log_level (int, optional): The level of the logs. Defaults to
+            logging.DEBUG.
     """
 
     def __init__(
@@ -59,7 +60,7 @@ class Loader:
             separator='|',
             chunk_size=2**28,
             logger=logger_,
-            log_level='DEBUG'):
+            log_level=logging.DEBUG):
 
         self._bq_client = bq_client
         self._dataset_ref = dataset_ref
@@ -382,7 +383,7 @@ class Loader:
         return list(map(self._execute_local_load, atomic_configs))
 
     def _log(self, msg):
-        self._logger.log(getattr(logging, self._log_level), msg)
+        self._logger.log(self._log_level, msg)
 
     def _atomic_load(self, atomic_configs):
         assert len(atomic_configs) > 0
