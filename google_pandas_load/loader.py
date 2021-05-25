@@ -79,7 +79,10 @@ class Loader:
         self._dataframe_to_local_compression = 'gzip'
         self._separator = separator
         self._chunk_size = chunk_size
-        self._logger = logger
+
+    @staticmethod
+    def _log(msg):
+        logger.debug(msg)
 
     @property
     def bq_client(self):
@@ -374,9 +377,6 @@ class Loader:
 
     def _execute_local_loads(self, atomic_configs):
         return list(map(self._execute_local_load, atomic_configs))
-
-    def _log(self, msg):
-        self._logger.debug(msg)
 
     def _atomic_load(self, atomic_configs):
         assert len(atomic_configs) > 0
