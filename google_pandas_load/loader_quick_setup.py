@@ -1,15 +1,5 @@
-import logging
 from google.cloud import bigquery, storage
 from google_pandas_load.loader import Loader
-
-not_propagating_logger = logging.getLogger(name='LoaderQuickSetup')
-not_propagating_logger.setLevel(level=logging.DEBUG)
-not_propagating_logger.propagate = False
-ch = logging.StreamHandler()
-fmt = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-formatter = logging.Formatter(fmt=fmt)
-ch.setFormatter(fmt=formatter)
-not_propagating_logger.addHandler(hdlr=ch)
 
 
 class LoaderQuickSetup(Loader):
@@ -58,13 +48,6 @@ class LoaderQuickSetup(Loader):
         local_dir_path (str, optional): See base class.
         separator (str, optional): See base class.
         chunk_size (int, optional): See base class.
-        logger (logging.Logger, optional): See base class. Default value is a
-            logger called LoaderQuickSetup. Contrary to the default base class
-            logger, it is set to not propagate its log records to its logger
-            ancestors and it is equipped with an handler displaying the log
-            records to the console. This is, for instance, convenient when
-            working with a notebook.
-        log_level (int, optional): See base class.
     """
 
     def __init__(
@@ -76,9 +59,7 @@ class LoaderQuickSetup(Loader):
             credentials=None,
             local_dir_path=None,
             separator='|',
-            chunk_size=2 ** 28,
-            logger=not_propagating_logger,
-            log_level=logging.DEBUG):
+            chunk_size=2 ** 28):
         self._project_id = project_id
         bq_client = None
         dataset_ref = None
@@ -103,9 +84,7 @@ class LoaderQuickSetup(Loader):
             gs_dir_path=gs_dir_path,
             local_dir_path=local_dir_path,
             separator=separator,
-            chunk_size=chunk_size,
-            logger=logger,
-            log_level=log_level)
+            chunk_size=chunk_size)
 
     @property
     def project_id(self):

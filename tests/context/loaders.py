@@ -3,7 +3,7 @@ from google_pandas_load import Loader, LoaderQuickSetup
 from tests.context.resources import project_id, bq_client, dataset_name, \
     dataset_ref, bucket_name, bucket, local_dir_path
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger()
 
 gpl1 = Loader(
     bq_client=bq_client,
@@ -12,8 +12,7 @@ gpl1 = Loader(
     gs_dir_path=None,
     local_dir_path=local_dir_path,
     separator='|',
-    chunk_size=2**28,
-    log_level=logging.DEBUG)
+    chunk_size=2**28)
 
 gpl2 = Loader(
     bq_client=bq_client,
@@ -22,8 +21,7 @@ gpl2 = Loader(
     gs_dir_path='dir/subdir',
     local_dir_path=local_dir_path,
     separator='@',
-    chunk_size=2**28,
-    log_level=logging.DEBUG)
+    chunk_size=2**28)
 
 gpl3 = Loader(
     bq_client=bq_client,
@@ -32,8 +30,7 @@ gpl3 = Loader(
     gs_dir_path='dir/subdir',
     local_dir_path=local_dir_path + '/',
     separator='|',
-    chunk_size=2**28,
-    log_level=logging.INFO)
+    chunk_size=2**28)
 
 gpl4 = Loader(
     bq_client=bq_client,
@@ -42,9 +39,7 @@ gpl4 = Loader(
     gs_dir_path=None,
     local_dir_path=local_dir_path,
     separator='|',
-    chunk_size=2**29,
-    log_level=logging.WARNING,
-    logger=logger)
+    chunk_size=2**29)
 
 gpl5 = LoaderQuickSetup(
     project_id=project_id,

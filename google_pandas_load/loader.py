@@ -18,7 +18,7 @@ from google_pandas_load.constants import \
     ATOMIC_FUNCTION_NAMES, \
     BQ_CLIENT_ATOMIC_FUNCTION_NAMES
 
-logger_ = logging.getLogger(name='Loader')
+logger = logging.getLogger(name=__name__)
 
 
 class Loader:
@@ -44,10 +44,6 @@ class Loader:
             when data comes from the local folder. See
             `here <https://googleapis.dev/python/storage/latest/blobs.html>`_
             for more information. Defaults to 2**28.
-        logger (logging.Logger, optional): The logger creating the log records
-            of this class. Defaults to a logger called Loader.
-        log_level (int, optional): The level of the logs. Defaults to
-            logging.DEBUG.
     """
 
     def __init__(
@@ -58,9 +54,7 @@ class Loader:
             gs_dir_path=None,
             local_dir_path=None,
             separator='|',
-            chunk_size=2**28,
-            logger=logger_,
-            log_level=logging.DEBUG):
+            chunk_size=2**28):
 
         self._bq_client = bq_client
         self._dataset_ref = dataset_ref
@@ -86,7 +80,6 @@ class Loader:
         self._separator = separator
         self._chunk_size = chunk_size
         self._logger = logger
-        self._log_level = log_level
 
     @property
     def bq_client(self):
@@ -383,7 +376,7 @@ class Loader:
         return list(map(self._execute_local_load, atomic_configs))
 
     def _log(self, msg):
-        self._logger.log(self._log_level, msg)
+        self._logger.debug(msg)
 
     def _atomic_load(self, atomic_configs):
         assert len(atomic_configs) > 0
