@@ -9,19 +9,6 @@ function clean_docs(){
   rm -rf docs/build
 }
 
-function clean_scannerwork(){
-  rm -rf .scannerwork
-}
-
-function stop_sonarqube(){
-  docker ps -aqf name="sonarqube" | xargs docker stop
-}
-
-function clean_sonarqube(){
-  stop_sonarqube
-  docker ps -aqf name="sonarqube" | xargs docker rm
-}
-
 function clean_coverage(){
   rm -rf coverage
   rm -f .coverage coverage.xml
@@ -38,7 +25,6 @@ function clean_venv(){
 function clean_daily(){
   clean_jupyter
   clean_docs
-  clean_scannerwork
   clean_coverage
   clean_packaging
 }
@@ -46,5 +32,4 @@ function clean_daily(){
 function clean_all(){
   clean_daily
   clean_venv
-  clean_sonarqube
 }
