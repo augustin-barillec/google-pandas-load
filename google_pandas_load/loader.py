@@ -268,7 +268,8 @@ class Loader:
             sep=self._separator,
             dtype=dtype,
             parse_dates=parse_dates,
-            infer_datetime_format=True)
+            infer_datetime_format=True,
+            skip_blank_lines=False)
 
     def _dataframe_to_local_file(self, dataframe, local_file_path):
         dataframe.to_csv(

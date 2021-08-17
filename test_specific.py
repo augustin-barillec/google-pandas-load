@@ -1,6 +1,6 @@
 import unittest
-from tests.test_logging import LoggingTest
+from tests.test_data_delivery import DataDeliveryTest
 
 suite = unittest.TestSuite()
-suite.addTest(LoggingTest('test_query_to_gs'))
+suite.addTest(DataDeliveryTest('test_no_skip_blank_lines'))
 unittest.TextTestRunner(verbosity=2).run(suite)

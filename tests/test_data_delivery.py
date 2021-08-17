@@ -1,3 +1,4 @@
+import numpy
 import pandas
 from google.cloud import bigquery
 from google_pandas_load import LoadConfig
@@ -200,3 +201,30 @@ class DataDeliveryTest(BaseClassTest):
         dfs = gpl5.mload(configs=[config] * 3)
         for df in dfs:
             self.assertTrue(df0.equals(df))
+
+    def test_no_skip_blank_lines(self):
+        df0 = pandas.DataFrame(data={'x': [3, numpy.nan]})
+        df1 = pandas.DataFrame(data={'x': [numpy.nan, 4]})
+        df2 = pandas.DataFrame(data={
+            'x': [numpy.nan, 5], 'y': [numpy.nan, 6]})
+        df3 = pandas.DataFrame(data={
+            'x': [7, numpy.nan], 'y': [8, numpy.nan]})
+        dfs = [df0, df1, df2, df3]
+        populate()
+        query0 = 'select 3 as x union all select null as x'
+        query1 = 'select null as x union all select 4 as x'
+        query2 = 'select null as x, null as y union all ' \
+                 'select 5 as x, 6 as y'
+        query3 = 'select 7 as x, 8 as y union all ' \
+                 'select null as x, null as y'
+        queries = [query0, query1, query2, query3]
+        configs = []
+        for query in queries:
+            config = LoadConfig(
+                source='query', destination='dataframe', query=query)
+            configs.append(config)
+        dgs = gpl2.mload(configs)
+        for df, dg in zip(dfs, dgs):
+            df = df.sort_values('x').reset_index(drop=True)
+            dg = dg.sort_values('x').reset_index(drop=True)
+            self.assertTrue(dg.equals(df))

@@ -71,7 +71,9 @@ class CastTest(BaseClassTest):
                 'l': [pandas.NA, True],
                 'm': [5, pandas.NA],
                 'n': [pandas.NA, 8.8],
-                'o': [pandas.NA, '1']
+                'o': [pandas.NA, '1'],
+                'p': [datetime1, pandas.NA],
+                'q': [pandas.NA, date2]
             }
         )
 
@@ -87,12 +89,12 @@ class CastTest(BaseClassTest):
             destination='bq',
             data_name='a10',
             dataframe=df0,
-            date_cols=['a'],
-            timestamp_cols=['b'])
+            date_cols=['a', 'q'],
+            timestamp_cols=['b', 'p'])
         table_ref = dataset_ref.table(table_id='a10')
         table = bq_client.get_table(table_ref)
-        f1, f2, f3, f4, f5, f6, f7, f8, f9, f10, f11, f12, f13, f14, f15 = \
-            table.schema
+        f1, f2, f3, f4, f5, f6, f7, f8, f9, f10, f11, f12, f13, f14, f15, \
+            f16, f17 = table.schema
         self.assertEqual((f1.name, f1.field_type), ('a', 'DATE'))
         self.assertEqual((f2.name, f2.field_type), ('b', 'TIMESTAMP'))
         self.assertEqual((f3.name, f3.field_type), ('c', 'BOOLEAN'))
@@ -108,6 +110,8 @@ class CastTest(BaseClassTest):
         self.assertEqual((f13.name, f13.field_type), ('m', 'INTEGER'))
         self.assertEqual((f14.name, f14.field_type), ('n', 'FLOAT'))
         self.assertEqual((f15.name, f15.field_type), ('o', 'STRING'))
+        self.assertEqual((f16.name, f16.field_type), ('p', 'TIMESTAMP'))
+        self.assertEqual((f17.name, f17.field_type), ('q', 'DATE'))
 
     def test_bq_schema_inferred_from_csv(self):
         populate()
@@ -133,7 +137,9 @@ class CastTest(BaseClassTest):
                 'l': [pandas.NA, True],
                 'm': [5, pandas.NA],
                 'n': [pandas.NA, 8.8],
-                'o': [pandas.NA, '1']
+                'o': [pandas.NA, '1'],
+                'p': [datetime1, pandas.NA],
+                'q': [pandas.NA, date2]
             }
         )
 
@@ -149,8 +155,8 @@ class CastTest(BaseClassTest):
             data_name='a10')
         table_ref = dataset_ref.table(table_id='a10')
         table = bq_client.get_table(table_ref)
-        f1, f2, f3, f4, f5, f6, f7, f8, f9, f10, f11, f12, f13, f14, f15 = \
-            table.schema
+        f1, f2, f3, f4, f5, f6, f7, f8, f9, f10, f11, f12, f13, f14, f15, \
+            f16, f17 = table.schema
         self.assertEqual((f1.name, f1.field_type), ('a', 'DATE'))
         self.assertEqual((f2.name, f2.field_type), ('b', 'TIMESTAMP'))
         self.assertEqual((f3.name, f3.field_type), ('c', 'BOOLEAN'))
@@ -166,6 +172,8 @@ class CastTest(BaseClassTest):
         self.assertEqual((f13.name, f13.field_type), ('m', 'INTEGER'))
         self.assertEqual((f14.name, f14.field_type), ('n', 'FLOAT'))
         self.assertEqual((f15.name, f15.field_type), ('o', 'INTEGER'))
+        self.assertEqual((f16.name, f16.field_type), ('p', 'TIMESTAMP'))
+        self.assertEqual((f17.name, f17.field_type), ('q', 'DATE'))
 
     def test_bq_schema_given(self):
         populate()
