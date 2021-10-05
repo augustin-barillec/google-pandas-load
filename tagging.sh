@@ -1,7 +1,6 @@
 #!/bin/bash
 
-source get_value.sh
-VERSION=$(get_value_from_python_file version)
+VERSION=$(python3 -c 'import version; print(version.version)')
 
 function tag(){
   git tag -a v$VERSION -m "version $VERSION"
