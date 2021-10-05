@@ -31,7 +31,7 @@ def check_no_prefix(strings):
     for i, s1 in enumerate(strings):
         for j, s2 in enumerate(strings):
             if i != j and s2.startswith(s1):
-                raise ValueError('{} is a prefix of {}'.format(s1, s2))
+                raise ValueError(f'{s1} is a prefix of {s2}')
 
 
 def union_keys(dicts):

@@ -60,14 +60,14 @@ class Loader:
         self._dataset_ref = dataset_ref
         if self._dataset_ref is not None:
             self._dataset_name = self._dataset_ref.dataset_id
-            self._dataset_id = '{}.{}'.format(
-                self._dataset_ref.project, self._dataset_name)
+            self._dataset_id = \
+                f'{self._dataset_ref.project}.{self._dataset_name}'
         self._bucket = bucket
         self._gs_dir_path = gs_dir_path
         self._check_gs_dir_path_format()
         if self._bucket is not None:
             self._bucket_name = self._bucket.name
-            self._bucket_uri = 'gs://{}'.format(self.bucket.name)
+            self._bucket_uri = f'gs://{self.bucket.name}'
             if self._gs_dir_path is None:
                 self._gs_dir_uri = self._bucket_uri
             else:
@@ -173,7 +173,7 @@ class Loader:
     def _check_if_data_in_source(self, atomic_config):
         n, s = atomic_config.data_name, atomic_config.source
         if self._is_source_clear(atomic_config):
-            raise ValueError('There is no data named {} in {}'.format(n, s))
+            raise ValueError(f'There is no data named {n} in {s}')
 
     def list_blobs(self, data_name):
         """Return the data named_ data_name in Storage as a list of
@@ -231,10 +231,10 @@ class Loader:
                 os.remove(local_file_path)
 
     def _exist(self, location, data_name):
-        return getattr(self, 'exist_in_{}'.format(location))(data_name)
+        return getattr(self, f'exist_in_{location}')(data_name)
 
     def _delete(self, location, data_name):
-        return getattr(self, 'delete_in_{}'.format(location))(data_name)
+        return getattr(self, f'delete_in_{location}')(data_name)
 
     def _is_source_clear(self, atomic_config):
         return not self._exist(atomic_config.source, atomic_config.data_name)
@@ -361,7 +361,7 @@ class Loader:
         s = atomic_config.source
         d = atomic_config.destination
         assert s == 'bq' or d == 'bq'
-        job = getattr(self, '_{}_to_{}_job'.format(s, d))(atomic_config)
+        job = getattr(self, f'_{s}_to_{d}_job')(atomic_config)
         return job
 
     def _execute_bq_client_jobs(self, atomic_configs):
@@ -374,7 +374,7 @@ class Loader:
         s = atomic_config.source
         d = atomic_config.destination
         assert s == 'local' or d == 'local'
-        return getattr(self, '_{}_to_{}'.format(s, d))(atomic_config)
+        return getattr(self, f'_{s}_to_{d}')(atomic_config)
 
     def _execute_local_loads(self, atomic_configs):
         return list(map(self._execute_local_load, atomic_configs))
@@ -390,9 +390,9 @@ class Loader:
         assert all([c.source == source and c.destination == destination
                     for c in configs])
 
-        atomic_function_name = '{}_to_{}'.format(source, destination)
+        atomic_function_name = f'{source}_to_{destination}'
 
-        self._log('Starting {} to {}...'.format(source, destination))
+        self._log(f'Starting {source} to {destination}...')
 
         start_timestamp = datetime.now()
 
@@ -421,7 +421,7 @@ class Loader:
         res = {'load_results': load_results, 'duration': duration}
 
         if atomic_function_name != 'query_to_bq':
-            msg = 'Ended {} to {} [{}s]'.format(source, destination, duration)
+            msg = f'Ended {source} to {destination} [{duration}s]'
             self._log(msg)
         else:
             jobs = load_results
@@ -429,7 +429,7 @@ class Loader:
             costs = [round(tbb / 10 ** 12 * 5, 5)
                      for tbb in total_bytes_billed_list]
             cost = sum(costs)
-            msg = 'Ended query to bq [{}s, {}$]'.format(duration, cost)
+            msg = f'Ended query to bq [{duration}s, {cost}$]'
             self._log(msg)
             res['cost'] = cost
             res['costs'] = costs

@@ -103,8 +103,8 @@ This is made possible by BigQuery.
         config = LoadConfig(
             source='query',
             destination='local',
-            data_name='b{}'.format(i),
-            query='select {} as x'.format(i))
+            data_name=f'b{i}',
+            query=f'select {i} as x')
         configs.append(config)
 
     # Launch all the load jobs

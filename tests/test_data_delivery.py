@@ -46,7 +46,7 @@ class DataDeliveryTest(BaseClassTest):
         self.assertEqual(len(gpl2.list_local_file_paths('a7')), 1)
 
     def test_local_to_dataframe(self):
-        l0 = ['data_a{}_local'.format(i) for i in range(10, 14)]
+        l0 = [f'data_a{i}_local'for i in range(10, 14)]
         populate_local_folder()
         df1 = gpl5.load(
             source='local',
@@ -113,8 +113,7 @@ class DataDeliveryTest(BaseClassTest):
         self.assertFalse(gpl5.exist_in_local('a'))
         self.assertFalse(gpl5.exist_in_gs('a'))
         self.assertTrue(gpl5.exist_in_bq('a'))
-        query = 'select * from `{}.{}.{}`'.format(
-            project_id, dataset_name, 'a')
+        query = f'select * from `{project_id}.{dataset_name}.{"a"}`'
         df1 = bq_client.query(query).to_dataframe()
         l1 = sorted(list(df1.x))
         self.assertEqual(l0, l1)
@@ -127,8 +126,7 @@ class DataDeliveryTest(BaseClassTest):
             destination='bq',
             data_name='a9',
             dataframe=df0)
-        query = 'select * from `{}.{}.{}`'.format(
-            project_id, dataset_name, 'a9')
+        query = f'select * from `{project_id}.{dataset_name}.{"a9"}`'
         df1 = gpl1.load(
             source='query',
             destination='dataframe',
@@ -147,8 +145,7 @@ class DataDeliveryTest(BaseClassTest):
             destination='bq',
             data_name='b8',
             dataframe=df1)
-        query = 'select * from `{}.{}.{}`'.format(
-            project_id, dataset_name, 'b8')
+        query = f'select * from `{project_id}.{dataset_name}.{"b8"}`'
         df2 = bq_client.query(query).to_dataframe()
         self.assertTrue(df0.equals(df2))
 
