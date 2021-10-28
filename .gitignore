@@ -8,8 +8,6 @@
 .coverage
 coverage.xml
 
-/.scannerwork/
-
 /docs/build/
 /docs/source/.ipynb_checkpoints/
 

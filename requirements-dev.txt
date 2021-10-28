@@ -2,7 +2,6 @@
 
 pyarrow==2.*
 
-setuptools==51.*
 twine==3.*
 
 coverage==5.*
