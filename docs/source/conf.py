@@ -40,7 +40,6 @@ author = 'Augustin Barillec'
 # ones.
 extensions = [
     'sphinx.ext.napoleon',
-    'nbsphinx',
     'sphinx.ext.viewcode'
 ]
 

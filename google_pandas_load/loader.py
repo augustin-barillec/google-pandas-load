@@ -137,7 +137,7 @@ class Loader:
     @staticmethod
     def _check_if_configs_is_a_list(configs):
         if type(configs) != list:
-            raise ValueError('configs must be list')
+            raise ValueError('configs must be a list')
 
     @staticmethod
     def _check_if_configs_empty(configs):
@@ -145,9 +145,12 @@ class Loader:
             raise ValueError('configs must be non-empty')
 
     def _check_gs_dir_path_format(self):
+        if self._gs_dir_path == '':
+            msg = "gs_dir_path must be different from ''"
+            raise ValueError(msg)
         if self._gs_dir_path is not None and self._gs_dir_path.endswith('/'):
-            msg = ("To ease Storage path concatenation, gs_dir_path must "
-                   "not end with /")
+            msg = ('To ease Storage path concatenation, gs_dir_path must '
+                   'not end with /')
             raise ValueError(msg)
 
     def _check_if_bq_client_missing(self, atomic_function_names):

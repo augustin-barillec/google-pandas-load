@@ -70,11 +70,17 @@ class LoadConfigRaiseErrorTest(BaseClassTest):
 
 class LoaderSetupRaiseErrorTest(BaseClassTest):
 
+    def test_raise_error_if_gs_dir_path_is_empty_string(self):
+        with self.assertRaises(ValueError) as cm:
+            Loader(gs_dir_path='')
+        msg = "gs_dir_path must be different from ''"
+        self.assertEqual(str(cm.exception), msg)
+
     def test_raise_error_if_gs_dir_path_ends_with_slash(self):
         with self.assertRaises(ValueError) as cm:
             Loader(gs_dir_path='dir/subdir/')
-        msg = ("To ease Storage path concatenation, gs_dir_path must"
-               " not end with /")
+        msg = ('To ease Storage path concatenation, gs_dir_path must '
+               'not end with /')
         self.assertEqual(str(cm.exception), msg)
 
 
@@ -85,7 +91,7 @@ class LoadRaiseErrorTest(BaseClassTest):
             source='gs', destination='local', data_name='a1')
         with self.assertRaises(ValueError) as cm:
             gpl5.mload(configs={config})
-        self.assertEqual(str(cm.exception), 'configs must be list')
+        self.assertEqual(str(cm.exception), 'configs must be a list')
 
     def test_raise_error_if_configs_is_empty(self):
         with self.assertRaises(ValueError) as cm:
