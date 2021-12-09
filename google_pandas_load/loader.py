@@ -69,9 +69,11 @@ class Loader:
             self._bucket_name = self._bucket.name
             self._bucket_uri = f'gs://{self.bucket.name}'
             if self._gs_dir_path is None:
-                self._gs_dir_uri = self._bucket_uri
+                self._blob_name_prefix = ''
             else:
-                self._gs_dir_uri = self._bucket_uri + '/' + self._gs_dir_path
+                self._blob_name_prefix = self._gs_dir_path + '/'
+            self._blob_uri_prefix = (
+                    self._bucket_uri + '/' + self._blob_name_prefix)
         self._local_dir_path = local_dir_path
         self._bq_to_gs_ext = '-*.csv.gz'
         self._dataframe_to_local_ext = '.csv.gz'
@@ -146,12 +148,15 @@ class Loader:
 
     def _check_gs_dir_path_format(self):
         if self._gs_dir_path == '':
-            msg = "gs_dir_path must be different from ''"
+            msg = 'gs_dir_path must not be the empty string'
             raise ValueError(msg)
-        if self._gs_dir_path is not None and self._gs_dir_path.endswith('/'):
-            msg = ('To ease Storage path concatenation, gs_dir_path must '
-                   'not end with /')
-            raise ValueError(msg)
+        if self._gs_dir_path is not None:
+            if self._gs_dir_path.startswith('/'):
+                msg = 'gs_dir_path must not start with /'
+                raise ValueError(msg)
+            if self._gs_dir_path.endswith('/'):
+                msg = 'gs_dir_path must not end with /'
+                raise ValueError(msg)
 
     def _check_if_bq_client_missing(self, atomic_function_names):
         names = atomic_function_names
@@ -178,15 +183,28 @@ class Loader:
         if self._is_source_clear(atomic_config):
             raise ValueError(f'There is no data named {n} in {s}')
 
+    def _check_blob_name_not_contain_late_slash(self, blob_name):
+        assert blob_name.startswith(self._blob_name_prefix)
+        last_part = blob_name[len(self._blob_name_prefix):]
+        if self._blob_name_prefix == '':
+            blob_name_prefix = 'empty_string'
+        else:
+            blob_name_prefix = self._blob_name_prefix
+        if '/' in last_part:
+            raise ValueError(
+                f'blob_name={blob_name} must not contain a / after '
+                f'blob_name_prefix={blob_name_prefix}')
+
+    def _check_blob_names_not_contain_late_slash(self, blob_names):
+        for blob_name in sorted(blob_names):
+            self._check_blob_name_not_contain_late_slash(blob_name)
+
     def list_blobs(self, data_name):
         """Return the data named_ data_name in Storage as a list of
         Storage blobs.
         """
-        if self._gs_dir_path is None:
-            prefix = data_name
-        else:
-            prefix = self._gs_dir_path + '/' + data_name
-        return list(self._bucket.list_blobs(prefix=prefix))
+        data_name_prefix = self._blob_name_prefix + data_name
+        return list(self._bucket.list_blobs(prefix=data_name_prefix))
 
     def list_blob_uris(self, data_name):
         """Return the list of the uris of Storage blobs forming the data
@@ -255,10 +273,7 @@ class Loader:
 
     def _local_file_to_blob(self, local_file_path):
         local_file_basename = os.path.basename(local_file_path)
-        if self._gs_dir_path is None:
-            blob_name = local_file_basename
-        else:
-            blob_name = self._gs_dir_path + '/' + local_file_basename
+        blob_name = self._blob_name_prefix + local_file_basename
         blob = storage.Blob(name=blob_name,
                             bucket=self._bucket,
                             chunk_size=self._chunk_size)
@@ -297,7 +312,7 @@ class Loader:
         source = self._dataset_ref.table(table_id=config.data_name)
         job_config = bigquery.ExtractJobConfig()
         job_config.compression = self._bq_to_gs_compression
-        destination_uri = (self._gs_dir_uri + '/'
+        destination_uri = (self._blob_uri_prefix
                            + config.data_name
                            + self._bq_to_gs_ext)
         job_config.field_delimiter = self._separator
@@ -329,6 +344,8 @@ class Loader:
     def _gs_to_local(self, gs_to_local_config):
         data_name = gs_to_local_config.data_name
         blobs = self.list_blobs(data_name)
+        blob_names = [b.name for b in blobs]
+        self._check_blob_names_not_contain_late_slash(blob_names)
         for b in blobs:
             self._blob_to_local_file(b)
 

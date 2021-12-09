@@ -4,7 +4,7 @@ from google.cloud import bigquery
 from google_pandas_load import LoadConfig
 from tests.context.resources import project_id, bq_client, \
     dataset_ref, dataset_name
-from tests.context.loaders import gpl1, gpl2, gpl3, gpl4, gpl5
+from tests.context.loaders import gpl1, gpl2, gpl3, gpl4, gpl5, gpl6
 from tests.base_class import BaseClassTest
 from tests.populate import populate_dataset, populate, populate_bucket, \
     populate_local_folder
@@ -105,15 +105,15 @@ class DataDeliveryTest(BaseClassTest):
         l0 = [3, 4, 7]
         df0 = pandas.DataFrame(data={'x': l0})
         populate()
-        gpl5.load(
+        gpl6.load(
             source='dataframe',
             destination='bq',
             data_name='a',
             dataframe=df0)
-        self.assertFalse(gpl5.exist_in_local('a'))
-        self.assertFalse(gpl5.exist_in_gs('a'))
-        self.assertTrue(gpl5.exist_in_bq('a'))
-        query = f'select * from `{project_id}.{dataset_name}.{"a"}`'
+        self.assertFalse(gpl6.exist_in_local('a'))
+        self.assertFalse(gpl6.exist_in_gs('a'))
+        self.assertTrue(gpl6.exist_in_bq('a'))
+        query = f'select * from {project_id}.{dataset_name}.a'
         df1 = bq_client.query(query).to_dataframe()
         l1 = sorted(list(df1.x))
         self.assertEqual(l0, l1)
@@ -126,7 +126,7 @@ class DataDeliveryTest(BaseClassTest):
             destination='bq',
             data_name='a9',
             dataframe=df0)
-        query = f'select * from `{project_id}.{dataset_name}.{"a9"}`'
+        query = f'select * from {project_id}.{dataset_name}.a9'
         df1 = gpl1.load(
             source='query',
             destination='dataframe',
@@ -145,7 +145,7 @@ class DataDeliveryTest(BaseClassTest):
             destination='bq',
             data_name='b8',
             dataframe=df1)
-        query = f'select * from `{project_id}.{dataset_name}.{"b8"}`'
+        query = f'select * from {project_id}.{dataset_name}.b8'
         df2 = bq_client.query(query).to_dataframe()
         self.assertTrue(df0.equals(df2))
 

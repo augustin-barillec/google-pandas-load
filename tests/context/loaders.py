@@ -44,6 +44,15 @@ gpl5 = LoaderQuickSetup(
     bucket_name=bucket_name,
     local_dir_path=local_dir_path)
 
+gpl6 = Loader(
+    bq_client=bq_client,
+    dataset_ref=dataset_ref,
+    bucket=bucket,
+    gs_dir_path='dir',
+    local_dir_path=local_dir_path,
+    separator='@',
+    chunk_size=2**28)
+
 gpl_no_bq_client = Loader(
     bq_client=None,
     dataset_ref=dataset_ref)
@@ -59,3 +68,5 @@ gpl_no_bucket = Loader(
 gpl_no_local_dir_path = Loader(
     bucket=bucket,
     local_dir_path=None)
+
+

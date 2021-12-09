@@ -7,6 +7,7 @@ from tests.context.resources import bq_client, dataset_ref, bucket, \
 
 table_names_default = tuple(f'a{i}_bq' for i in range(8, 12))
 blob_names_root_default = tuple(f'a{i}_gs' for i in range(9, 12))
+blob_names_semi_deep_default = tuple(f'dir/z{i}_gs' for i in range(8, 11))
 blob_names_deep_default = tuple(f'dir/subdir/a{i}_gs' for i in range(7, 11))
 local_files_basenames_default = tuple(f'a{i}_local' for i in range(9, 14))
 
@@ -24,7 +25,10 @@ def populate_dataset(table_names=table_names_default):
 
 
 def populate_bucket(
-        blob_names=blob_names_root_default + blob_names_deep_default):
+        blob_names=
+        blob_names_root_default +
+        blob_names_semi_deep_default +
+        blob_names_deep_default):
     for n in blob_names:
         storage.Blob(name=n, bucket=bucket).upload_from_string(
             data=f'data_{n}')

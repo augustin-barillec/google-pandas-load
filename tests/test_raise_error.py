@@ -2,7 +2,7 @@ import pandas
 from google.cloud import bigquery
 from google.cloud.exceptions import BadRequest
 from google_pandas_load import Loader, LoadConfig
-from tests.context.loaders import gpl1, gpl2, gpl5, gpl_no_bq_client, \
+from tests.context.loaders import gpl1, gpl2, gpl5, gpl6, gpl_no_bq_client, \
     gpl_no_dataset_ref, gpl_no_bucket, gpl_no_local_dir_path
 from tests.base_class import BaseClassTest
 from tests.populate import populate
@@ -17,6 +17,22 @@ class UtilsRaiseErrorTest(BaseClassTest):
 
 
 class LoadConfigRaiseErrorTest(BaseClassTest):
+
+    def test_raise_error_if_data_name_is_empty_string(self):
+        with self.assertRaises(ValueError) as cm:
+            LoadConfig(
+                source='query', destination='bq',
+                query='select 3', data_name='')
+        msg = 'data_name must not be the empty string'
+        self.assertEqual(str(cm.exception), msg)
+
+    def test_raise_error_if_data_name_contains_slash(self):
+        with self.assertRaises(ValueError) as cm:
+            LoadConfig(
+                source='query', destination='bq',
+                query='select 3', data_name='a/b')
+        msg = 'data_name=a/b must not contain a /'
+        self.assertEqual(str(cm.exception), msg)
 
     def test_raise_error_if_invalid_source(self):
         with self.assertRaises(ValueError) as cm:
@@ -73,14 +89,19 @@ class LoaderSetupRaiseErrorTest(BaseClassTest):
     def test_raise_error_if_gs_dir_path_is_empty_string(self):
         with self.assertRaises(ValueError) as cm:
             Loader(gs_dir_path='')
-        msg = "gs_dir_path must be different from ''"
+        msg = 'gs_dir_path must not be the empty string'
+        self.assertEqual(str(cm.exception), msg)
+
+    def test_raise_error_if_gs_dir_path_starts_with_slash(self):
+        with self.assertRaises(ValueError) as cm:
+            Loader(gs_dir_path='/dir/subdir')
+        msg = 'gs_dir_path must not start with /'
         self.assertEqual(str(cm.exception), msg)
 
     def test_raise_error_if_gs_dir_path_ends_with_slash(self):
         with self.assertRaises(ValueError) as cm:
             Loader(gs_dir_path='dir/subdir/')
-        msg = ('To ease Storage path concatenation, gs_dir_path must '
-               'not end with /')
+        msg = 'gs_dir_path must not end with /'
         self.assertEqual(str(cm.exception), msg)
 
 
@@ -164,3 +185,19 @@ class LoadRaiseErrorTest(BaseClassTest):
                                        data_name='a')
         self.assertEqual(str(cm.exception),
                          'local_dir_path must be given if local is used')
+
+    def test_raise_error_if_a_blob_name_contains_a_late_slash(self):
+        populate()
+        with self.assertRaises(ValueError) as cm:
+            gpl1.load(source='gs', destination='local', data_name='dir')
+        self.assertEqual(
+            str(cm.exception),
+            'blob_name=dir/subdir/a10_gs must not contain a / after '
+            'blob_name_prefix=empty_string')
+
+        with self.assertRaises(ValueError) as cm:
+            gpl6.load(source='gs', destination='local', data_name='subd')
+        self.assertEqual(
+            str(cm.exception),
+            'blob_name=dir/subdir/a10_gs must not contain a / after '
+            'blob_name_prefix=dir/')
