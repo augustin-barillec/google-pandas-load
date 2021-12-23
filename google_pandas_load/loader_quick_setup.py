@@ -62,15 +62,14 @@ class LoaderQuickSetup(Loader):
             chunk_size=2 ** 28):
         self._project_id = project_id
         bq_client = None
-        dataset_ref = None
+        dataset_id = None
         self._gs_client = None
         bucket = None
         if self._project_id is not None:
             bq_client = bigquery.Client(
                 project=self._project_id, credentials=credentials)
             if dataset_name is not None:
-                dataset_ref = bigquery.DatasetReference(
-                    project=self._project_id, dataset_id=dataset_name)
+                dataset_id = f'{self._project_id}.{dataset_name}'
             if bucket_name is not None:
                 self._gs_client = storage.Client(
                     project=self._project_id, credentials=credentials)
@@ -79,7 +78,7 @@ class LoaderQuickSetup(Loader):
 
         super().__init__(
             bq_client=bq_client,
-            dataset_ref=dataset_ref,
+            dataset_id=dataset_id,
             bucket=bucket,
             gs_dir_path=gs_dir_path,
             local_dir_path=local_dir_path,

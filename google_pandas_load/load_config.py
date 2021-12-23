@@ -60,8 +60,8 @@ class LoadConfig:
             self._infer_bq_schema_from_dataframe()
 
     def _check_data_name_not_empty_string(self):
-        msg = 'data_name must not be the empty string'
         if self.data_name is not None and self.data_name == '':
+            msg = 'data_name must not be the empty string'
             raise ValueError(msg)
 
     def _check_data_name_not_contain_slash(self):
@@ -70,15 +70,15 @@ class LoadConfig:
             raise ValueError(msg)
 
     def _check_source_value(self):
-        msg = ("source must be one of 'query' or 'bq' or 'gs' or 'local' "
-               "or 'dataframe")
         if self.source not in SOURCE_LOCATIONS:
+            msg = ("source must be one of 'query' or 'bq' or 'gs' or 'local' "
+                   "or 'dataframe")
             raise ValueError(msg)
 
     def _check_destination_value(self):
-        msg = ("destination must be one of 'bq' or 'gs' or 'local' "
-               "or 'dataframe'")
         if self.destination not in DESTINATION_LOCATIONS:
+            msg = ("destination must be one of 'bq' or 'gs' or 'local' "
+                   "or 'dataframe'")
             raise ValueError(msg)
 
     def _check_source_different_from_destination(self):
@@ -86,13 +86,12 @@ class LoadConfig:
             raise ValueError('source must be different from destination')
 
     def _check_if_data_name_missing(self):
-        msg = ("data_name must be given if source or destination is one of "
-               "'bq' or 'gs' or 'local'")
         condition_1 = self.data_name is None
         condition_2 = self.source in MIDDLE_LOCATIONS
         condition_3 = self.destination in MIDDLE_LOCATIONS
-
         if condition_1 and (condition_2 or condition_3):
+            msg = ("data_name must be given if source or destination is "
+                   "one of 'bq' or 'gs' or 'local'")
             raise ValueError(msg)
 
     def _check_if_query_missing(self):

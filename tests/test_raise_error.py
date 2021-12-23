@@ -185,19 +185,3 @@ class LoadRaiseErrorTest(BaseClassTest):
                                        data_name='a')
         self.assertEqual(str(cm.exception),
                          'local_dir_path must be given if local is used')
-
-    def test_raise_error_if_a_blob_name_contains_a_late_slash(self):
-        populate()
-        with self.assertRaises(ValueError) as cm:
-            gpl1.load(source='gs', destination='local', data_name='dir')
-        self.assertEqual(
-            str(cm.exception),
-            'blob_name=dir/subdir/a10_gs must not contain a / after '
-            'blob_name_prefix=empty_string')
-
-        with self.assertRaises(ValueError) as cm:
-            gpl6.load(source='gs', destination='local', data_name='subd')
-        self.assertEqual(
-            str(cm.exception),
-            'blob_name=dir/subdir/a10_gs must not contain a / after '
-            'blob_name_prefix=dir/')
