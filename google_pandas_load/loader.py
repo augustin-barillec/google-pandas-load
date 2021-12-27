@@ -31,11 +31,12 @@ class Loader:
 
     Args:
         bq_client (google.cloud.bigquery.client.Client, optional): Client to
-            execute google load jobs.
-        dataset_id (str, optional): The dataset id.
-        bucket (google.cloud.storage.bucket.Bucket, optional): The bucket.
-        gs_dir_path (str, optional): The path of the directory in
-            the bucket.
+            execute BigQuery jobs.
+        dataset_id (str, optional): The dataset's id.
+        gs_client (google.cloud.storage.client.Client, optional): Client to
+            list or delete data in Storage.
+        bucket_name (str, optional): The bucket's name.
+        gs_dir_path (str, optional): The path of the directory in the bucket.
         local_dir_path (str, optional): The path of the local folder.
         separator (str, optional): The character which separates the columns of
             the data. Defaults to '|'.
@@ -49,6 +50,7 @@ class Loader:
             self,
             bq_client=None,
             dataset_id=None,
+            gs_client=None,
             bucket=None,
             gs_dir_path=None,
             local_dir_path=None,
@@ -72,16 +74,8 @@ class Loader:
             self._blob_uri_prefix = (
                     self._bucket_uri + '/' + self._blob_name_prefix)
         self._local_dir_path = local_dir_path
-        self._bq_to_gs_ext = '-*.csv.gz'
-        self._dataframe_to_local_ext = '.csv.gz'
-        self._bq_to_gs_compression = 'GZIP'
-        self._dataframe_to_local_compression = 'gzip'
         self._separator = separator
         self._chunk_size = chunk_size
-
-    @staticmethod
-    def _log(msg):
-        logger.debug(msg)
 
     @property
     def bq_client(self):
@@ -92,12 +86,12 @@ class Loader:
 
     @property
     def dataset_id(self):
-        """str: The id of the dataset_ref given in the argument."""
+        """str: The dataset_id given in the argument."""
         return self._dataset_id
 
     @property
     def dataset_name(self):
-        """str: The name of the dataset_ref given in the argument."""
+        """str: The name of the dataset_id given in the argument."""
         return self._dataset_name
 
     @property
@@ -120,19 +114,6 @@ class Loader:
     def local_dir_path(self):
         """str: The local_dir_path given in the argument."""
         return self._local_dir_path
-
-    @staticmethod
-    def _fill_missing_data_names(configs):
-        for config in configs:
-            if config.data_name is None:
-                config.data_name = timestamp_randint_string()
-
-    def _build_table_id(self, table_name):
-        return f'{self._dataset_id}.{table_name}'
-
-    def _is_blob_a_file(self, blob_name):
-        assert blob_name.startswith(self._blob_name_prefix)
-        return '/' not in blob_name[len(self._blob_name_prefix):]
 
     @staticmethod
     def _check_if_configs_is_a_list(configs):
@@ -164,7 +145,7 @@ class Loader:
     def _check_if_dataset_id_missing(self, atomic_function_names):
         names = atomic_function_names
         if self._dataset_id is None and any('bq' in n for n in names):
-            raise ValueError('dataset_ref must be given if bq is used')
+            raise ValueError('dataset_id must be given if bq is used')
 
     def _check_if_bucket_missing(self, atomic_function_names):
         names = atomic_function_names
@@ -181,16 +162,36 @@ class Loader:
         if self._is_source_clear(atomic_config):
             raise ValueError(f'There is no data named {n} in {s}')
 
+    @staticmethod
+    def _log(msg):
+        logger.debug(msg)
+
+    @staticmethod
+    def _fill_missing_data_names(configs):
+        for config in configs:
+            if config.data_name is None:
+                config.data_name = timestamp_randint_string()
+
+    def _build_table_id(self, table_name):
+        return f'{self._dataset_id}.{table_name}'
+
+    def _blob_is_considered(self, blob):
+        c1 = blob.name.startswith(self._blob_name_prefix)
+        c2 = '/' not in blob.name[len(self._blob_name_prefix):]
+        return c1 and c2
+
+    def _local_file_is_considered(self, local_file_path):
+        c1 = local_file_path.startswith(self._local_dir_path)
+        c2 = os.path.isfile(local_file_path)
+        return c1 and c2
+
     def list_blobs(self, data_name):
         """Return the data named_ data_name in Storage as a list of
         Storage blobs.
         """
         data_name_prefix = self._blob_name_prefix + data_name
-        blobs = list(self._bucket.list_blobs(prefix=data_name_prefix))
-        res = []
-        for b in blobs:
-            if self._is_blob_a_file(b.name):
-                res.append(b)
+        candidates = list(self._bucket.list_blobs(prefix=data_name_prefix))
+        res = [b for b in candidates if self._blob_is_considered(b)]
         return res
 
     def list_blob_uris(self, data_name):
@@ -207,7 +208,9 @@ class Loader:
         res = []
         for basename in os.listdir(self._local_dir_path):
             path = os.path.join(self._local_dir_path, basename)
-            if os.path.isfile(path) and basename.startswith(data_name):
+            c1 = self._local_file_is_considered(path)
+            c2 = basename.startswith(data_name)
+            if c1 and c2:
                 res.append(path)
         return res
 
@@ -261,9 +264,10 @@ class Loader:
     def _local_file_to_blob(self, local_file_path):
         local_file_basename = os.path.basename(local_file_path)
         blob_name = self._blob_name_prefix + local_file_basename
-        blob = storage.Blob(name=blob_name,
-                            bucket=self._bucket,
-                            chunk_size=self._chunk_size)
+        blob = storage.Blob(
+            name=blob_name,
+            bucket=self._bucket,
+            chunk_size=self._chunk_size)
         blob.upload_from_filename(filename=local_file_path)
 
     def _local_file_to_dataframe(
@@ -281,7 +285,7 @@ class Loader:
             path_or_buf=local_file_path,
             sep=self._separator,
             index=False,
-            compression=self._dataframe_to_local_compression)
+            compression='gzip')
 
     def _query_to_bq_job(self, query_to_bq_config):
         config = query_to_bq_config
@@ -298,10 +302,9 @@ class Loader:
         config = bq_to_gs_config
         source = self._build_table_id(config.data_name)
         job_config = bigquery.ExtractJobConfig()
-        job_config.compression = self._bq_to_gs_compression
-        destination_uri = (self._blob_uri_prefix
-                           + config.data_name
-                           + self._bq_to_gs_ext)
+        job_config.compression = 'GZIP'
+        destination_uri = (
+                self._blob_uri_prefix + config.data_name + '-*.csv.gz')
         job_config.field_delimiter = self._separator
         job = self._bq_client.extract_table(
             source=source,
@@ -356,9 +359,9 @@ class Loader:
     def _dataframe_to_local(self, dataframe_to_local_config):
         config = dataframe_to_local_config
         data_name = config.data_name
-        ext = self._dataframe_to_local_ext
         dataframe = config.dataframe
-        local_file_path = os.path.join(self._local_dir_path, data_name + ext)
+        local_file_path = os.path.join(
+            self._local_dir_path, data_name + '.csv.gz')
         self._dataframe_to_local_file(dataframe, local_file_path)
 
     def _launch_bq_client_job(self, atomic_config):
@@ -368,7 +371,7 @@ class Loader:
         job = getattr(self, f'_{s}_to_{d}_job')(atomic_config)
         return job
 
-    def _execute_bq_client_jobs(self, atomic_configs):
+    def _execute_bq_client_loads(self, atomic_configs):
         configs = atomic_configs
         jobs = [self._launch_bq_client_job(c) for c in configs]
         wait_for_jobs(jobs)
@@ -383,7 +386,7 @@ class Loader:
     def _execute_local_loads(self, atomic_configs):
         return list(map(self._execute_local_load, atomic_configs))
 
-    def _atomic_load(self, atomic_configs):
+    def _execute_same_type_loads(self, atomic_configs):
         assert len(atomic_configs) > 0
 
         configs = atomic_configs
@@ -410,7 +413,7 @@ class Loader:
 
         try:
             if atomic_function_name in BQ_CLIENT_ATOMIC_FUNCTION_NAMES:
-                load_results = self._execute_bq_client_jobs(configs)
+                load_results = self._execute_bq_client_loads(configs)
             else:
                 load_results = self._execute_local_loads(configs)
         finally:
@@ -477,7 +480,7 @@ class Loader:
         self._check_if_configs_is_a_list(configs)
         self._check_if_configs_empty(configs)
         configs = [deepcopy(config) for config in configs]
-        nb_of_configs = len(configs)
+        nb_configs = len(configs)
         self._fill_missing_data_names(configs)
         data_names = [config.data_name for config in configs]
         check_no_prefix(data_names)
@@ -501,10 +504,10 @@ class Loader:
                 if n in s:
                     n_indices.append(i)
                     n_configs.append(s[n])
-            if not n_configs:
+            if len(n_configs) == 0:
                 durations[n] = None
                 continue
-            n_res = self._atomic_load(n_configs)
+            n_res = self._execute_same_type_loads(n_configs)
             n_load_results = n_res['load_results']
             n_duration = n_res['duration']
             if n == 'query_to_bq':
@@ -519,9 +522,9 @@ class Loader:
             durations[n] = n_duration
             duration += n_duration
 
-        load_results = [load_results.get(i) for i in range(nb_of_configs)]
+        load_results = [load_results.get(i) for i in range(nb_configs)]
         durations = Namespace(**durations)
-        query_costs = [query_costs.get(i) for i in range(nb_of_configs)]
+        query_costs = [query_costs.get(i) for i in range(nb_configs)]
 
         res = Namespace()
         res.load_results = load_results
@@ -673,10 +676,10 @@ class Loader:
             **What is the data named data_name?**
 
             - in BigQuery: the table in the dataset whose name is data_name.
-            - in Storage: the blobs whose basename begins with data_name
-              inside the bucket directory.
-            - in local: the files whose basename begins with data_name inside
-              the local folder.
+            - in Storage: the blobs at the root of the bucket folder and
+              whose basename begins with data_name.
+            - in local: the files at the root of the local folder and
+              whose basename begins with data_name.
 
             This definition is motivated by the fact that BigQuery splits a big
             table in several blobs when extracting it to Storage.

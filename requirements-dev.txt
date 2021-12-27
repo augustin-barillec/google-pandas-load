@@ -10,4 +10,3 @@ codecov==2.*
 jupyter==1.*
 
 sphinx==3.*
-nbsphinx==0.*

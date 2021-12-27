@@ -12,7 +12,7 @@ class LoaderQuickSetup(Loader):
     ::
 
          bq_client=bq_client
-         dataset_ref=dataset_ref
+         dataset_id=dataset_id
          bucket=bucket
          gs_dir_path=gs_dir_path
          local_dir_path=local_dir_path
@@ -27,9 +27,7 @@ class LoaderQuickSetup(Loader):
         bq_client = google.cloud.bigquery.Client(
             project=project_id,
             credentials=credentials)
-        dataset_ref = google.cloud.bigquery.DatasetReference(
-            project=project_id,
-            dataset_id=dataset_name)
+        dataset_id = project_id + '.' + dataset_name
         gs_client = google.cloud.storage.Client(
             project=project_id,
             credentials=credentials)
