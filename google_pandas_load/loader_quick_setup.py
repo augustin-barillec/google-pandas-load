@@ -61,23 +61,21 @@ class LoaderQuickSetup(Loader):
         self._project_id = project_id
         bq_client = None
         dataset_id = None
-        self._gs_client = None
-        bucket = None
+        gs_client = None
         if self._project_id is not None:
             bq_client = bigquery.Client(
                 project=self._project_id, credentials=credentials)
             if dataset_name is not None:
                 dataset_id = f'{self._project_id}.{dataset_name}'
             if bucket_name is not None:
-                self._gs_client = storage.Client(
+                gs_client = storage.Client(
                     project=self._project_id, credentials=credentials)
-                bucket = storage.Bucket(
-                    client=self._gs_client, name=bucket_name)
 
         super().__init__(
             bq_client=bq_client,
             dataset_id=dataset_id,
-            bucket=bucket,
+            gs_client=gs_client,
+            bucket_name=bucket_name,
             gs_dir_path=gs_dir_path,
             local_dir_path=local_dir_path,
             separator=separator,
@@ -87,9 +85,3 @@ class LoaderQuickSetup(Loader):
     def project_id(self):
         """str: The project_id given in the argument."""
         return self._project_id
-
-    @property
-    def gs_client(self):
-        """google.cloud.storage.client.Client: The Storage client used to
-        create the bucket."""
-        return self._gs_client

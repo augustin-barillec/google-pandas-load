@@ -1,31 +1,38 @@
-from tests.context.loaders import gpl1, gpl2, gpl4, gpl5
+from tests.populate import populate_bq, populate_gs, populate_local
 from tests.base_class import BaseClassTest
-from tests.populate import populate_dataset, populate_bucket, \
-    populate_local_folder
+from tests import loaders
 
 
 class DeleteMethodsTest(BaseClassTest):
 
     def test_delete_in_bq(self):
-        populate_dataset()
-        self.assertTrue(gpl4.exist_in_bq('a11_bq'))
-        gpl4.delete_in_bq('a11_bq')
-        self.assertFalse(gpl4.exist_in_bq('a11_bq'))
+        populate_bq()
+        self.assertTrue(loaders.gpl00.exist_in_bq('a11_bq'))
+        loaders.gpl00.delete_in_bq('a11_bq')
+        self.assertFalse(loaders.gpl00.exist_in_bq('a11_bq'))
 
     def test_delete_in_gs(self):
-        populate_bucket()
+        populate_gs()
 
-        self.assertTrue(gpl1.exist_in_gs('a'))
-        gpl1.delete_in_gs('a')
-        self.assertFalse(gpl1.exist_in_gs('a'))
+        self.assertTrue(loaders.gpl00.exist_in_gs('a'))
+        loaders.gpl00.delete_in_gs('a')
+        self.assertFalse(loaders.gpl00.exist_in_gs('a'))
 
-        self.assertTrue(gpl2.exist_in_gs('a1'))
-        gpl2.delete_in_gs('a1')
-        self.assertFalse(gpl2.exist_in_gs('a1'))
+        self.assertTrue(loaders.gpl10.exist_in_gs('a1'))
+        loaders.gpl10.delete_in_gs('a1')
+        self.assertFalse(loaders.gpl10.exist_in_gs('a1'))
+
+        self.assertTrue(loaders.gpl20.exist_in_gs('a'))
+        loaders.gpl20.delete_in_gs('a')
+        self.assertFalse(loaders.gpl20.exist_in_gs('a'))
 
     def test_delete_in_local(self):
-        populate_local_folder()
+        populate_local()
 
-        self.assertTrue(gpl5.exist_in_local('a12'))
-        gpl5.delete_in_local('a12')
-        self.assertFalse(gpl5.exist_in_local('a12'))
+        self.assertTrue(loaders.gpl20.exist_in_local('a12'))
+        loaders.gpl20.delete_in_local('a12')
+        self.assertFalse(loaders.gpl20.exist_in_local('a12'))
+
+        self.assertTrue(loaders.gpl01.exist_in_local('a'))
+        loaders.gpl01.delete_in_local('a')
+        self.assertFalse(loaders.gpl01.exist_in_local('a'))

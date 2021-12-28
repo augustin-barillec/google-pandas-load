@@ -1,10 +1,9 @@
 import os
 import binascii
 import pandas
-from tests.context.resources import local_dir_path
-from tests.context.loaders import gpl1, gpl2
+from tests.resources import local_dir_path, local_subdir_path
 from tests.base_class import BaseClassTest
-from tests.populate import populate
+from tests import loaders
 
 
 def is_gz_file(filepath):
@@ -15,28 +14,23 @@ def is_gz_file(filepath):
 class CompressTest(BaseClassTest):
 
     def test_compress_bq_to_gs(self):
-        populate()
-
-        gpl2.load(
+        loaders.gpl20.load(
             source='query',
             destination='local',
-            data_name='b10',
+            data_name='b100',
             query='select 5')
-        local_file_path = gpl1.list_local_file_paths('b10')[0]
-        self.assertEqual(local_file_path,
-                         os.path.join(
-                             local_dir_path,
-                             'b10-000000000000.csv.gz'))
-        self.assertTrue(is_gz_file(local_file_path))
+        expected = os.path.join(local_dir_path, 'b100-000000000000.csv.gz')
+        computed = loaders.gpl20.list_local_file_paths('b100')[0]
+        self.assertEqual(expected, computed)
+        self.assertTrue(is_gz_file(computed))
 
     def test_compress_dataframe_to_local(self):
-
-        gpl2.load(
+        loaders.gpl01.load(
             source='dataframe',
             destination='local',
-            data_name='e111',
+            data_name='b100',
             dataframe=pandas.DataFrame(data={'x': [1]}))
-        local_file_path = gpl1.list_local_file_paths('e111')[0]
-        self.assertEqual(local_file_path,
-                         os.path.join(local_dir_path, 'e111.csv.gz'))
-        self.assertTrue(is_gz_file(local_file_path))
+        expected = os.path.join(local_subdir_path, 'b100.csv.gz')
+        computed = loaders.gpl01.list_local_file_paths('b100')[0]
+        self.assertEqual(expected, computed)
+        self.assertTrue(is_gz_file(computed))

@@ -1,35 +1,35 @@
 import pandas
 from google_pandas_load.constants import ATOMIC_FUNCTION_NAMES
 from google_pandas_load import LoadConfig
-from tests.context.loaders import gpl3
 from tests.base_class import BaseClassTest
+from tests import loaders
 
 
 class ExtraInformationsTest(BaseClassTest):
 
     def test_xload(self):
-        xlr = gpl3.xload(source='query', destination='dataframe',
-                         query='select 3')
+        xlr = loaders.gpl20.xload(
+            source='query', destination='dataframe', query='select 3')
 
-        self.assertEqual(set(vars(xlr)),
-                         {'load_result',
-                          'data_name',
-                          'duration',
-                          'durations',
-                          'query_cost'})
+        self.assertEqual(
+            {'load_result', 'data_name', 'duration',
+             'durations', 'query_cost'},
+            set(vars(xlr)))
 
-        self.assertEqual(type(xlr.data_name), str)
+        self.assertEqual(str, type(xlr.data_name))
 
         self.assertTrue(xlr.duration > 0)
 
-        self.assertEqual(set(vars(xlr.durations)), set(ATOMIC_FUNCTION_NAMES))
+        self.assertEqual(
+            sorted(ATOMIC_FUNCTION_NAMES),
+            sorted(vars(xlr.durations)))
 
         for n in ATOMIC_FUNCTION_NAMES:
             duration = vars(xlr.durations)[n]
             if duration is not None:
                 self.assertTrue(duration >= 0)
 
-        self.assertEqual(xlr.query_cost, 0.0)
+        self.assertEqual(0.0, xlr.query_cost)
 
     def test_xmload(self):
         df0 = pandas.DataFrame(data={'x': [4]})
@@ -48,23 +48,25 @@ class ExtraInformationsTest(BaseClassTest):
             destination='bq',
             data_name='e102',
             dataframe=df0)
-        xmlr = gpl3.xmload([config1, config2, config3])
+        xmlr = loaders.gpl21.xmload([config1, config2, config3])
         self.assertEqual(
-            set(vars(xmlr)),
             {'load_results', 'data_names', 'duration', 'durations',
-             'query_cost', 'query_costs'})
+             'query_cost', 'query_costs'},
+            set(vars(xmlr)))
 
-        self.assertEqual(xmlr.data_names, ['e100', 'e101', 'e102'])
+        self.assertEqual(['e100', 'e101', 'e102'], xmlr.data_names)
 
         self.assertTrue(xmlr.duration > 0)
 
-        self.assertEqual(set(vars(xmlr.durations)), set(ATOMIC_FUNCTION_NAMES))
+        self.assertEqual(
+            sorted(ATOMIC_FUNCTION_NAMES),
+            sorted(vars(xmlr.durations)))
 
         for n in ATOMIC_FUNCTION_NAMES:
             duration = vars(xmlr.durations)[n]
             if duration is not None:
                 self.assertTrue(duration >= 0)
 
-        self.assertEqual(xmlr.query_cost, 0.0)
+        self.assertEqual(0.0, xmlr.query_cost)
 
-        self.assertEqual(xmlr.query_costs, [None, 0.0, None])
+        self.assertEqual([None, 0.0, None], xmlr.query_costs)

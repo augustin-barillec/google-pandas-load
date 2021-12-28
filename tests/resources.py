@@ -11,4 +11,4 @@ local_dir_path = '/tmp/dir_gpl'
 local_subdir_path = local_dir_path + '/subdir'
 bq_client = bigquery.Client(project=project_id)
 gs_client = storage.Client(project=project_id)
-bucket = storage.Bucket(client=gs_client, name=bucket_name)
+bucket = gs_client.bucket(bucket_name)

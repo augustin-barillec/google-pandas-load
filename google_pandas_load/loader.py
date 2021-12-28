@@ -31,10 +31,10 @@ class Loader:
 
     Args:
         bq_client (google.cloud.bigquery.client.Client, optional): Client to
-            execute BigQuery jobs.
+            manages connections to the BigQuery API.
         dataset_id (str, optional): The dataset's id.
-        gs_client (google.cloud.storage.client.Client, optional): Client to
-            list or delete data in Storage.
+        gs_client (google.cloud.storage.client.Client, optional): Client for
+            interacting with the Google Cloud Storage API.
         bucket_name (str, optional): The bucket's name.
         gs_dir_path (str, optional): The path of the directory in the bucket.
         local_dir_path (str, optional): The path of the local folder.
@@ -51,7 +51,7 @@ class Loader:
             bq_client=None,
             dataset_id=None,
             gs_client=None,
-            bucket=None,
+            bucket_name=None,
             gs_dir_path=None,
             local_dir_path=None,
             separator='|',
@@ -61,12 +61,14 @@ class Loader:
         self._dataset_id = dataset_id
         if self._dataset_id is not None:
             self._dataset_name = self._dataset_id.split('.')[-1]
-        self._bucket = bucket
+        self._gs_client = gs_client
+        self._bucket_name = bucket_name
+        self._check_gs_client_bucket_name_consistency()
         self._gs_dir_path = gs_dir_path
         self._check_gs_dir_path_format()
-        if self._bucket is not None:
-            self._bucket_name = self._bucket.name
-            self._bucket_uri = f'gs://{self.bucket.name}'
+        if self._gs_client is not None:
+            self._bucket = self._gs_client.bucket(self._bucket_name)
+            self._bucket_uri = f'gs://{self._bucket_name}'
             if self._gs_dir_path is None:
                 self._blob_name_prefix = ''
             else:
@@ -95,15 +97,21 @@ class Loader:
         return self._dataset_name
 
     @property
+    def gs_client(self):
+        """google.cloud.storage.client.Client: The Storage client given in
+        the argument."""
+        return self._gs_client
+
+    @property
+    def bucket_name(self):
+        """str: The bucket_name given in the argument."""
+        return self._bucket_name
+
+    @property
     def bucket(self):
         """google.cloud.storage.bucket.Bucket: The bucket given in the
         argument."""
         return self._bucket
-
-    @property
-    def bucket_name(self):
-        """str: The name of the bucket given in the argument."""
-        return self._bucket_name
 
     @property
     def gs_dir_path(self):
@@ -124,6 +132,16 @@ class Loader:
     def _check_if_configs_empty(configs):
         if len(configs) == 0:
             raise ValueError('configs must be non-empty')
+
+    def _check_gs_client_bucket_name_consistency(self):
+        c1 = self._gs_client is None
+        c2 = self._bucket_name is None
+        if not c1 and c2:
+            msg = 'bucket_name must not be None if gs_client is not None'
+            raise ValueError(msg)
+        if not c2 and c1:
+            msg = 'gs_client must not be None if bucket_name is not None'
+            raise ValueError(msg)
 
     def _check_gs_dir_path_format(self):
         if self._gs_dir_path is not None:
@@ -190,7 +208,8 @@ class Loader:
         Storage blobs.
         """
         data_name_prefix = self._blob_name_prefix + data_name
-        candidates = list(self._bucket.list_blobs(prefix=data_name_prefix))
+        candidates = list(self._gs_client.list_blobs(
+            bucket_or_name=self._bucket_name, prefix=data_name_prefix))
         res = [b for b in candidates if self._blob_is_considered(b)]
         return res
 

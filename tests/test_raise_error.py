@@ -2,8 +2,8 @@ import pandas
 from google.cloud import bigquery
 from google.cloud.exceptions import BadRequest
 from google_pandas_load import Loader, LoadConfig
-from tests.context.loaders import gpl1, gpl2, gpl5, gpl6, gpl_no_bq_client, \
-    gpl_no_dataset_ref, gpl_no_bucket, gpl_no_local_dir_path
+from tests.context.loaders import gpl1, gpl2, gpl5, gpl6, gplno_bq_client, \
+    gplno_dataset_ref, gplno_bucket, gplno_local_dir_path
 from tests.base_class import BaseClassTest
 from tests.populate import populate
 
@@ -163,25 +163,25 @@ class LoadRaiseErrorTest(BaseClassTest):
         populate()
 
         with self.assertRaises(ValueError) as cm:
-            gpl_no_bq_client.load(source='query', destination='bq',
+            gplno_bq_client.load(source='query', destination='bq',
                                   query='select 3', data_name='e0')
         self.assertEqual(str(cm.exception),
                          'bq_client must be given if bq is used')
 
         with self.assertRaises(ValueError) as cm:
-            gpl_no_dataset_ref.load(source='query', destination='bq',
+            gplno_dataset_ref.load(source='query', destination='bq',
                                     query='select 3', data_name='e0')
         self.assertEqual(str(cm.exception),
                          'dataset_ref must be given if bq is used')
 
         with self.assertRaises(ValueError) as cm:
-            gpl_no_bucket.load(source='gs', destination='local',
+            gplno_bucket.load(source='gs', destination='local',
                                data_name='a')
         self.assertEqual(str(cm.exception),
                          'bucket must be given if gs is used')
 
         with self.assertRaises(ValueError) as cm:
-            gpl_no_local_dir_path.load(source='local', destination='gs',
+            gplno_local_dir_path.load(source='local', destination='gs',
                                        data_name='a')
         self.assertEqual(str(cm.exception),
                          'local_dir_path must be given if local is used')
