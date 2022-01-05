@@ -1,12 +1,12 @@
 -r requirements.txt
 
-pyarrow==2.*
+pyarrow==6.*
 
 twine==3.*
 
-coverage==5.*
+coverage==6.*
 codecov==2.*
 
 jupyter==1.*
 
-sphinx==3.*
+sphinx==4.*
