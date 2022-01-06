@@ -1,3 +1,4 @@
+import re
 import pandas
 from google_pandas_load.constants import ATOMIC_FUNCTION_NAMES
 from google_pandas_load import LoadConfig
@@ -17,6 +18,9 @@ class ExtraInformationsTest(BaseClassTest):
             set(vars(xlr)))
 
         self.assertEqual(str, type(xlr.data_name))
+        regexp = r'^[0-9]{14}_[0-9]{6}_rand[0-9]{39}$'
+        pattern = re.compile(regexp)
+        self.assertIsNotNone(pattern.search(xlr.data_name))
 
         self.assertTrue(xlr.duration > 0)
 
@@ -36,18 +40,18 @@ class ExtraInformationsTest(BaseClassTest):
         config1 = LoadConfig(
             source='dataframe',
             destination='bq',
-            data_name='e100',
-            dataframe=df0)
+            dataframe=df0,
+            data_name='e100')
         config2 = LoadConfig(
-            source='query',
-            destination='bq',
-            data_name='e101',
-            query='select 3')
-        config3 = LoadConfig(
             source='dataframe',
             destination='bq',
-            data_name='e102',
-            dataframe=df0)
+            dataframe=df0,
+            data_name='e101')
+        config3 = LoadConfig(
+            source='query',
+            destination='dataframe',
+            query='select 3',
+            data_name='e102')
         xmlr = loaders.gpl21.xmload([config1, config2, config3])
         self.assertEqual(
             {'load_results', 'data_names', 'duration', 'durations',
@@ -69,4 +73,4 @@ class ExtraInformationsTest(BaseClassTest):
 
         self.assertEqual(0.0, xmlr.query_cost)
 
-        self.assertEqual([None, 0.0, None], xmlr.query_costs)
+        self.assertEqual([None, None, 0.0], xmlr.query_costs)

@@ -1,19 +1,10 @@
 import pandas
-from google.cloud import bigquery
-from google.cloud.exceptions import BadRequest
+from google.cloud.exceptions import BadRequest, Conflict
 from google_pandas_load import Loader, LoadConfig
-from tests.context.loaders import gpl1, gpl2, gpl5, gpl6, gplno_bq_client, \
-    gplno_dataset_ref, gplno_bucket, gplno_local_dir_path
+from tests.resources import bq_client, gs_client
+from tests.populate import populate_bq
 from tests.base_class import BaseClassTest
-from tests.populate import populate
-
-
-class UtilsRaiseErrorTest(BaseClassTest):
-
-    def test_wait_for_jobs_runtime_error(self):
-        with self.assertRaises(BadRequest):
-            gpl1.load(source='query', destination='bq', data_name='a3',
-                      query='selectt 3')
+from tests import loaders
 
 
 class LoadConfigRaiseErrorTest(BaseClassTest):
@@ -24,7 +15,7 @@ class LoadConfigRaiseErrorTest(BaseClassTest):
                 source='query', destination='bq',
                 query='select 3', data_name='')
         msg = 'data_name must not be the empty string'
-        self.assertEqual(str(cm.exception), msg)
+        self.assertEqual(msg, str(cm.exception))
 
     def test_raise_error_if_data_name_contains_slash(self):
         with self.assertRaises(ValueError) as cm:
@@ -32,7 +23,7 @@ class LoadConfigRaiseErrorTest(BaseClassTest):
                 source='query', destination='bq',
                 query='select 3', data_name='a/b')
         msg = 'data_name=a/b must not contain a /'
-        self.assertEqual(str(cm.exception), msg)
+        self.assertEqual(msg, str(cm.exception))
 
     def test_raise_error_if_invalid_source(self):
         with self.assertRaises(ValueError) as cm:
@@ -40,7 +31,7 @@ class LoadConfigRaiseErrorTest(BaseClassTest):
                        query='select 3')
         msg = ("source must be one of 'query' or 'bq' or 'gs' or 'local' "
                "or 'dataframe")
-        self.assertEqual(str(cm.exception), msg)
+        self.assertEqual(msg, str(cm.exception))
 
     def test_raise_error_if_invalid_destination(self):
         df = pandas.DataFrame(data={'x': [1]})
@@ -49,31 +40,31 @@ class LoadConfigRaiseErrorTest(BaseClassTest):
                        dataframe=df)
         msg = ("destination must be one of 'bq' or 'gs' or 'local' "
                "or 'dataframe'")
-        self.assertEqual(str(cm.exception), msg)
+        self.assertEqual(msg, str(cm.exception))
 
     def test_raise_error_if_source_is_equal_to_destination(self):
         with self.assertRaises(ValueError) as cm:
             LoadConfig(source='local', destination='local',
                        data_name='a')
-        self.assertEqual(str(cm.exception),
-                         'source must be different from destination')
+        msg = 'source must be different from destination'
+        self.assertEqual(msg, str(cm.exception))
 
     def test_raise_error_if_missing_required_values(self):
         with self.assertRaises(ValueError) as cm:
             LoadConfig(source='query', destination='gs', query='select 3')
         msg = ("data_name must be given if source or destination is one of "
                "'bq' or 'gs' or 'local'")
-        self.assertEqual(str(cm.exception), msg)
+        self.assertEqual(msg, str(cm.exception))
 
         with self.assertRaises(ValueError) as cm:
             LoadConfig(source='query', destination='dataframe')
-        self.assertEqual(str(cm.exception),
-                         "query must be given if source = 'query'")
+        msg = "query must be given if source = 'query'"
+        self.assertEqual(msg, str(cm.exception))
 
         with self.assertRaises(ValueError) as cm:
             LoadConfig(source='dataframe', destination='local', data_name='a1')
-        self.assertEqual(str(cm.exception),
-                         "dataframe must be given if source = 'dataframe'")
+        msg = "dataframe must be given if source = 'dataframe'"
+        self.assertEqual(msg, str(cm.exception))
 
     def test_raise_error_if_infer_bq_schema_from_no_columns_dataframe(self):
         with self.assertRaises(ValueError) as cm:
@@ -86,23 +77,47 @@ class LoadConfigRaiseErrorTest(BaseClassTest):
 
 class LoaderSetupRaiseErrorTest(BaseClassTest):
 
+    def test_raise_error_if_dataset_id_none_bq_client_not_none(self):
+        with self.assertRaises(ValueError) as cm:
+            Loader(bq_client=bq_client, dataset_id=None)
+        msg = 'dataset_id must not be None if bq_client is not None'
+        self.assertEqual(msg, str(cm.exception))
+
+    def test_raise_error_if_bq_client_none_dataset_id_not_none(self):
+        with self.assertRaises(ValueError) as cm:
+            Loader(bq_client=None, dataset_id='di')
+        msg = 'bq_client must not be None if dataset_id is not None'
+        self.assertEqual(msg, str(cm.exception))
+
+    def test_raise_error_if_bucket_name_none_gs_client_not_none(self):
+        with self.assertRaises(ValueError) as cm:
+            Loader(gs_client=gs_client, bucket_name=None)
+        msg = 'bucket_name must not be None if gs_client is not None'
+        self.assertEqual(msg, str(cm.exception))
+
+    def test_raise_error_if_gs_client_none_bucket_not_none(self):
+        with self.assertRaises(ValueError) as cm:
+            Loader(gs_client=None, bucket_name='bn')
+        msg = 'gs_client must not be None if bucket_name is not None'
+        self.assertEqual(msg, str(cm.exception))
+
     def test_raise_error_if_gs_dir_path_is_empty_string(self):
         with self.assertRaises(ValueError) as cm:
             Loader(gs_dir_path='')
         msg = 'gs_dir_path must not be the empty string'
-        self.assertEqual(str(cm.exception), msg)
+        self.assertEqual(msg, str(cm.exception))
 
     def test_raise_error_if_gs_dir_path_starts_with_slash(self):
         with self.assertRaises(ValueError) as cm:
             Loader(gs_dir_path='/dir/subdir')
         msg = 'gs_dir_path must not start with /'
-        self.assertEqual(str(cm.exception), msg)
+        self.assertEqual(msg, str(cm.exception))
 
     def test_raise_error_if_gs_dir_path_ends_with_slash(self):
         with self.assertRaises(ValueError) as cm:
             Loader(gs_dir_path='dir/subdir/')
         msg = 'gs_dir_path must not end with /'
-        self.assertEqual(str(cm.exception), msg)
+        self.assertEqual(msg, str(cm.exception))
 
 
 class LoadRaiseErrorTest(BaseClassTest):
@@ -111,13 +126,13 @@ class LoadRaiseErrorTest(BaseClassTest):
         config = LoadConfig(
             source='gs', destination='local', data_name='a1')
         with self.assertRaises(ValueError) as cm:
-            gpl5.mload(configs={config})
-        self.assertEqual(str(cm.exception), 'configs must be a list')
+            loaders.gpl21.mload(configs={config})
+        self.assertEqual('configs must be a list', str(cm.exception))
 
     def test_raise_error_if_configs_is_empty(self):
         with self.assertRaises(ValueError) as cm:
-            gpl5.mload(configs=[])
-        self.assertEqual(str(cm.exception), 'configs must be non-empty')
+            loaders.gpl00.mload(configs=[])
+        self.assertEqual('configs must be non-empty', str(cm.exception))
 
     def test_raise_error_if_prefix(self):
         config1 = LoadConfig(
@@ -131,57 +146,65 @@ class LoadRaiseErrorTest(BaseClassTest):
             data_name='aa',
             query='select 4 as y')
         with self.assertRaises(ValueError) as cm:
-            gpl2.mload(configs=[config1, config2])
-        self.assertEqual(str(cm.exception), 'a is a prefix of aa')
+            loaders.gpl01.mload(configs=[config1, config2])
+        self.assertEqual('a is a prefix of aa', str(cm.exception))
+
+    def test_raise_error_if_missing_required_resources(self):
+
+        with self.assertRaises(ValueError) as cm:
+            Loader(bq_client=None).load(
+                source='query', destination='bq',
+                query='select 3', data_name='e0')
+        self.assertEqual('bq_client must be given if bq is used',
+                         str(cm.exception))
+
+        with self.assertRaises(ValueError) as cm:
+            Loader(gs_client=None).load(
+                source='gs', destination='local', data_name='a')
+        self.assertEqual('gs_client must be given if gs is used',
+                         str(cm.exception))
+
+        with self.assertRaises(ValueError) as cm:
+            Loader(local_dir_path=None).load(
+                source='dataframe', destination='local',
+                dataframe=pandas.DataFrame(data={'x': [1]}), data_name='a')
+        self.assertEqual('local_dir_path must be given if local is used',
+                         str(cm.exception))
 
     def test_raise_error_if_no_data(self):
         with self.assertRaises(ValueError) as cm:
-            gpl1.load(source='bq', destination='local', data_name='e0')
-        self.assertEqual(str(cm.exception), 'There is no data named e0 in bq')
-        with self.assertRaises(ValueError) as cm:
-            gpl1.load(source='bq', destination='gs', data_name='e0')
-        self.assertEqual(str(cm.exception), 'There is no data named e0 in bq')
+            loaders.gpl00.load(
+                source='bq', destination='local', data_name='e0')
+        self.assertEqual('There is no data named e0 in bq',
+                         str(cm.exception))
 
         with self.assertRaises(ValueError) as cm:
-            gpl1.load(source='gs', destination='local', data_name='e0')
-        self.assertEqual(str(cm.exception), 'There is no data named e0 in gs')
-        with self.assertRaises(ValueError) as cm:
-            gpl1.load(source='gs', destination='bq', data_name='e0',
-                      bq_schema=[bigquery.SchemaField('x', 'INTEGER')])
-        self.assertEqual(str(cm.exception), 'There is no data named e0 in gs')
+            loaders.gpl00.load(
+                source='gs', destination='bq', data_name='e0')
+        self.assertEqual('There is no data named e0 in gs',
+                         str(cm.exception))
 
         with self.assertRaises(ValueError) as cm:
-            gpl1.load(source='local', destination='dataframe', data_name='e0')
-        self.assertEqual(str(cm.exception),
-                         'There is no data named e0 in local')
-        with self.assertRaises(ValueError) as cm:
-            gpl1.load(source='local', destination='gs', data_name='e0')
-        self.assertEqual(str(cm.exception),
-                         'There is no data named e0 in local')
+            loaders.gpl00.load(
+                source='local', destination='dataframe', data_name='e0')
+        self.assertEqual('There is no data named e0 in local',
+                         str(cm.exception))
 
-    def test_raise_error_if_missing_required_resources(self):
-        populate()
+    def test_raise_error_if_syntax_error_in_query(self):
+        with self.assertRaises(BadRequest):
+            loaders.gpl20.load(
+                source='query', destination='bq', data_name='a3',
+                query='selectt 3')
 
-        with self.assertRaises(ValueError) as cm:
-            gplno_bq_client.load(source='query', destination='bq',
-                                  query='select 3', data_name='e0')
-        self.assertEqual(str(cm.exception),
-                         'bq_client must be given if bq is used')
-
-        with self.assertRaises(ValueError) as cm:
-            gplno_dataset_ref.load(source='query', destination='bq',
-                                    query='select 3', data_name='e0')
-        self.assertEqual(str(cm.exception),
-                         'dataset_ref must be given if bq is used')
-
-        with self.assertRaises(ValueError) as cm:
-            gplno_bucket.load(source='gs', destination='local',
-                               data_name='a')
-        self.assertEqual(str(cm.exception),
-                         'bucket must be given if gs is used')
-
-        with self.assertRaises(ValueError) as cm:
-            gplno_local_dir_path.load(source='local', destination='gs',
-                                       data_name='a')
-        self.assertEqual(str(cm.exception),
-                         'local_dir_path must be given if local is used')
+    def test_raise_error_if_write_empty_and_already_exists(self):
+        populate_bq()
+        with self.assertRaises(Conflict) as cm:
+            loaders.gpl01.load(
+                source='local',
+                destination='bq',
+                dataframe=pandas.DataFrame(data={'x': [1]}),
+                data_name='a10',
+                write_disposition='WRITE_EMPTY')
+        self.assertEqual(
+            str(cm.exception),
+            '409 Already Exists: Table dmp-y-tests:test_gpl.a10')

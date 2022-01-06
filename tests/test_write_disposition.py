@@ -1,7 +1,6 @@
 import pandas
-from google.cloud.exceptions import Conflict
-from tests.base_class import BaseClassTest
 from tests.resources import dataset_id, bq_client
+from tests.base_class import BaseClassTest
 from tests import loaders
 
 
@@ -50,15 +49,10 @@ class WriteDispositionTest(BaseClassTest):
             destination='bq',
             data_name='a10',
             write_disposition='WRITE_EMPTY')
-        with self.assertRaises(Conflict) as cm:
-            loaders.gpl01.load(
-                source='local',
-                destination='bq',
-                data_name='a10',
-                write_disposition='WRITE_EMPTY')
-        self.assertEqual(
-            str(cm.exception),
-            '409 Already Exists: Table dmp-y-tests:test_gpl.a10')
+        table_id = f'{dataset_id}.a10'
+        query = f'select * from {table_id}'
+        df1 = bq_client.query(query).to_dataframe()
+        self.assertTrue(df0.equals(df1))
 
     def test_write_append_dataframe_to_bq(self):
         df00 = pandas.DataFrame(data={'x': [0]})

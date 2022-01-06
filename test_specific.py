@@ -1,6 +1,6 @@
 import unittest
-from tests.test_write_disposition import WriteDispositionTest
+from tests import test_raise_error
 
 suite = unittest.TestSuite()
-suite.addTest(WriteDispositionTest('test_write_append_dataframe_to_bq'))
+suite.addTest(test_raise_error.LoadRaiseErrorTest('test_wait_for_jobs_runtime_error'))
 unittest.TextTestRunner(verbosity=2).run(suite)

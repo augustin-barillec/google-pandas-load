@@ -59,6 +59,7 @@ class Loader:
 
         self._bq_client = bq_client
         self._dataset_id = dataset_id
+        self._check_bq_client_dataset_id_consistency()
         if self._dataset_id is not None:
             self._dataset_name = self._dataset_id.split('.')[-1]
         self._gs_client = gs_client
@@ -123,15 +124,15 @@ class Loader:
         """str: The local_dir_path given in the argument."""
         return self._local_dir_path
 
-    @staticmethod
-    def _check_if_configs_is_a_list(configs):
-        if type(configs) != list:
-            raise ValueError('configs must be a list')
-
-    @staticmethod
-    def _check_if_configs_empty(configs):
-        if len(configs) == 0:
-            raise ValueError('configs must be non-empty')
+    def _check_bq_client_dataset_id_consistency(self):
+        c1 = self._bq_client is None
+        c2 = self._dataset_id is None
+        if not c1 and c2:
+            msg = 'dataset_id must not be None if bq_client is not None'
+            raise ValueError(msg)
+        if not c2 and c1:
+            msg = 'bq_client must not be None if dataset_id is not None'
+            raise ValueError(msg)
 
     def _check_gs_client_bucket_name_consistency(self):
         c1 = self._gs_client is None
@@ -155,20 +156,25 @@ class Loader:
                 msg = 'gs_dir_path must not end with /'
                 raise ValueError(msg)
 
+    @staticmethod
+    def _check_if_configs_is_a_list(configs):
+        if type(configs) != list:
+            raise ValueError('configs must be a list')
+
+    @staticmethod
+    def _check_if_configs_empty(configs):
+        if len(configs) == 0:
+            raise ValueError('configs must be non-empty')
+
     def _check_if_bq_client_missing(self, atomic_function_names):
         names = atomic_function_names
         if self._bq_client is None and any('bq' in n for n in names):
             raise ValueError('bq_client must be given if bq is used')
 
-    def _check_if_dataset_id_missing(self, atomic_function_names):
+    def _check_if_gs_client_missing(self, atomic_function_names):
         names = atomic_function_names
-        if self._dataset_id is None and any('bq' in n for n in names):
-            raise ValueError('dataset_id must be given if bq is used')
-
-    def _check_if_bucket_missing(self, atomic_function_names):
-        names = atomic_function_names
-        if self._bucket is None and any('gs' in n for n in names):
-            raise ValueError('bucket must be given if gs is used')
+        if self._gs_client is None and any('gs' in n for n in names):
+            raise ValueError('gs_client must be given if gs is used')
 
     def _check_if_local_dir_missing(self, atomic_function_names):
         names = atomic_function_names
@@ -507,8 +513,7 @@ class Loader:
         names_of_atomic_functions_to_call = union_keys(sliced_configs)
 
         self._check_if_bq_client_missing(names_of_atomic_functions_to_call)
-        self._check_if_dataset_id_missing(names_of_atomic_functions_to_call)
-        self._check_if_bucket_missing(names_of_atomic_functions_to_call)
+        self._check_if_gs_client_missing(names_of_atomic_functions_to_call)
         self._check_if_local_dir_missing(names_of_atomic_functions_to_call)
 
         load_results = dict()
