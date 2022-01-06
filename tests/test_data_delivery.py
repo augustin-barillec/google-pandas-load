@@ -2,38 +2,35 @@ import numpy
 import pandas
 from google.cloud import bigquery
 from google_pandas_load import LoadConfig
-from tests.context.resources import project_id, bq_client, \
-    dataset_ref, dataset_name
-from tests.context.loaders import gpl1, gpl2, gpl3, gpl4, gpl5, gpl6
+from tests.resources import project_id, bq_client, \
+    dataset_id, dataset_name
+from tests.populate import populate_bq, populate_gs, populate_local, populate
 from tests.base_class import BaseClassTest
-from tests.populate import populate_dataset, populate, populate_bucket, \
-    populate_local_folder
+from tests import loaders
 
 
 class DataDeliveryTest(BaseClassTest):
 
     def test_query_to_bq(self):
-        l0 = [2, 3]
-        populate_dataset()
-        gpl3.load(
+        populate_bq()
+        loaders.gpl21.load(
             source='query',
             destination='bq',
             data_name='a0',
             query='select 3 as x union all select 2 as x')
-        table_ref = dataset_ref.table(table_id='a0')
-        table = bq_client.get_table(table_ref)
-        df1 = bq_client.list_rows(table=table).to_dataframe()
-        l1 = sorted(list(df1.x))
-        self.assertEqual(l0, l1)
+        table_id = f'{dataset_id}.a0'
+        df1 = bq_client.list_rows(table=table_id).to_dataframe()
+        expected = pandas.DataFrame(data={'x': [3, 2]})
+        print(expected, df1)
+        self.assertTrue(expected.equals(df1))
 
     def test_bq_to_dataframe(self):
-        df0 = pandas.DataFrame(data={'x': ['data_a10_bq']})
         populate()
-        df1 = gpl4.load(
+        df1 = loaders.gpl00.load(
             source='bq',
             destination='dataframe',
-            data_name='a10_bq')
-        self.assertTrue(gpl4.exist_in_bq('a10_bq'))
+            data_name='a10')
+        df0 = pandas.DataFrame(data={'x': ['data_a10_bq']})
         self.assertTrue(df0.equals(df1))
 
     def test_gs_to_local(self):

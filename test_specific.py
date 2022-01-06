@@ -1,6 +1,6 @@
 import unittest
-from tests import test_raise_error
+from tests import test_data_delivery
 
 suite = unittest.TestSuite()
-suite.addTest(test_raise_error.LoadRaiseErrorTest('test_wait_for_jobs_runtime_error'))
+suite.addTest(test_data_delivery.DataDeliveryTest('test_query_to_bq'))
 unittest.TextTestRunner(verbosity=2).run(suite)

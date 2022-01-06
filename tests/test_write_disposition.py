@@ -19,8 +19,7 @@ class WriteDispositionTest(BaseClassTest):
                 destination='bq',
                 data_name='a10')
         table_id = f'{dataset_id}.a10'
-        query = f'select * from {table_id}'
-        df1 = bq_client.query(query).to_dataframe()
+        df1 = bq_client.list_rows(table=table_id).to_dataframe()
         self.assertTrue(df0.equals(df1))
 
     def test_write_truncate_query_to_bq(self):
@@ -33,8 +32,7 @@ class WriteDispositionTest(BaseClassTest):
                 data_name='a10',
                 write_disposition='WRITE_TRUNCATE')
         table_id = f'{dataset_id}.a10'
-        query = f'select * from {table_id}'
-        df1 = bq_client.query(query).to_dataframe()
+        df1 = bq_client.list_rows(table=table_id).to_dataframe()
         self.assertTrue(df0.equals(df1))
 
     def test_write_empty_local_to_bq(self):
@@ -50,8 +48,7 @@ class WriteDispositionTest(BaseClassTest):
             data_name='a10',
             write_disposition='WRITE_EMPTY')
         table_id = f'{dataset_id}.a10'
-        query = f'select * from {table_id}'
-        df1 = bq_client.query(query).to_dataframe()
+        df1 = bq_client.list_rows(table=table_id).to_dataframe()
         self.assertTrue(df0.equals(df1))
 
     def test_write_append_dataframe_to_bq(self):
@@ -69,7 +66,6 @@ class WriteDispositionTest(BaseClassTest):
             dataframe=df01,
             write_disposition='WRITE_APPEND')
         table_id = f'{dataset_id}.a10'
-        query = f'select * from {table_id} order by x'
-        df1 = bq_client.query(query).to_dataframe()
-        expected = pandas.concat([df00, df01]).reset_index(drop=True)
+        df1 = bq_client.list_rows(table=table_id).to_dataframe()
+        expected = pandas.DataFrame(data={'x': [0, 1]})
         self.assertTrue(expected.equals(df1))
