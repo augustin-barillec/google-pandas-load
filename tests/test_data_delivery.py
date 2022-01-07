@@ -1,9 +1,10 @@
+import os
 import numpy
 import pandas
 from google.cloud import bigquery
 from google_pandas_load import LoadConfig
 from tests.resources import project_id, bq_client, \
-    dataset_id, dataset_name
+    dataset_id, dataset_name, local_subdir_path
 from tests.populate import populate_bq, populate_gs, populate_local, populate
 from tests.base_class import BaseClassTest
 from tests import loaders
@@ -21,7 +22,6 @@ class DataDeliveryTest(BaseClassTest):
         table_id = f'{dataset_id}.a0'
         df1 = bq_client.list_rows(table=table_id).to_dataframe()
         expected = pandas.DataFrame(data={'x': [3, 2]})
-        print(expected, df1)
         self.assertTrue(expected.equals(df1))
 
     def test_bq_to_dataframe(self):
@@ -29,28 +29,36 @@ class DataDeliveryTest(BaseClassTest):
         df1 = loaders.gpl00.load(
             source='bq',
             destination='dataframe',
-            data_name='a10')
+            data_name='a10_bq')
         df0 = pandas.DataFrame(data={'x': ['data_a10_bq']})
         self.assertTrue(df0.equals(df1))
 
     def test_gs_to_local(self):
-        populate_bucket()
-        gpl2.load(
+        populate_gs()
+        loaders.gpl21.load(
             source='gs',
             destination='local',
             data_name='a7')
-        self.assertEqual(len(gpl2.list_blob_uris('a7')), 1)
-        self.assertEqual(len(gpl2.list_local_file_paths('a7')), 1)
+        path = os.path.join(local_subdir_path, 'a7_gs')
+        print(loaders.gpl21.list_local_file_paths('a7'))
+        print(path)
+        df1 = pandas.read_csv(filepath_or_buffer=path)
+        df0 = pandas.DataFrame(data={'x': ['data_a7_gs']})
+        print(df0)
+        print('##########')
+        print(df1)
+        self.assertTrue(df0.equals(df1))
+
 
     def test_local_to_dataframe(self):
-        l0 = [f'data_a{i}_local'for i in range(10, 14)]
-        populate_local_folder()
-        df1 = gpl5.load(
+        populate_local()
+        df1 = loaders.gpl01.load(
             source='local',
             destination='dataframe',
-            data_name='a1')
-        l1 = sorted(list(df1.x))
-        self.assertEqual(l0, l1)
+            data_name='a1').reset_index(drop=True)
+        l0 = [f'data_a{i}_local' for i in range(10, 14)]
+        df0 = pandas.DataFrame(data={'x': l0})
+        self.assertTrue(df0.equals(df1))
 
     def test_query_to_dataframe(self):
         df0 = pandas.DataFrame(data={'x': [1, 1]})

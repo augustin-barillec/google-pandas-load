@@ -1,8 +1,7 @@
 import os
 import shutil
-import unittest
 from tests.resources import bq_client, dataset_id, bucket, \
-    local_dir_path, local_subdir_path
+    local_dir_path
 
 
 def empty_dataset():
@@ -17,10 +16,6 @@ def empty_bucket():
     bucket.delete_blobs(blobs=blobs)
 
 
-def create_local_subfolder():
-    os.makedirs(local_subdir_path)
-
-
 def delete_local_folder():
     if os.path.isdir(local_dir_path):
         shutil.rmtree(local_dir_path)
@@ -30,12 +25,3 @@ def clean():
     empty_dataset()
     empty_bucket()
     delete_local_folder()
-
-
-class BaseClassTest(unittest.TestCase):
-    def setUp(self):
-        clean()
-        create_local_subfolder()
-
-    def tearDown(self):
-        clean()

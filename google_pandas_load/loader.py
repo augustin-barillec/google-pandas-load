@@ -217,6 +217,7 @@ class Loader:
         candidates = list(self._gs_client.list_blobs(
             bucket_or_name=self._bucket_name, prefix=data_name_prefix))
         res = [b for b in candidates if self._blob_is_considered(b)]
+        res = sorted(res, key=lambda b: b.name)
         return res
 
     def list_blob_uris(self, data_name):
@@ -237,7 +238,7 @@ class Loader:
             c2 = basename.startswith(data_name)
             if c1 and c2:
                 res.append(path)
-        return res
+        return sorted(res)
 
     def exist_in_bq(self, data_name):
         """Return True if data named_ data_name exist in BigQuery."""

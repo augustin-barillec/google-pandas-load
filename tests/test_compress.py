@@ -14,12 +14,12 @@ def is_gz_file(filepath):
 class CompressTest(BaseClassTest):
 
     def test_compress_bq_to_gs(self):
+        expected = os.path.join(local_dir_path, 'b100-000000000000.csv.gz')
         loaders.gpl20.load(
             source='query',
             destination='local',
             data_name='b100',
             query='select 5')
-        expected = os.path.join(local_dir_path, 'b100-000000000000.csv.gz')
         computed = loaders.gpl20.list_local_file_paths('b100')[0]
         self.assertEqual(expected, computed)
         self.assertTrue(is_gz_file(computed))
