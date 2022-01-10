@@ -1,6 +1,6 @@
 from google_pandas_load import Loader, LoaderQuickSetup
-from tests.resources import project_id, bq_client, dataset_id, dataset_name, \
-    gs_client, bucket_name, gs_dir_path, gs_subdir_path, \
+from tests.utils.resources import project_id, bq_client, dataset_id, \
+    dataset_name, gs_client, bucket_name, gs_dir_path, gs_subdir_path, \
     local_dir_path, local_subdir_path
 
 gpl00 = Loader(

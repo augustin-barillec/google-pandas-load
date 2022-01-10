@@ -3,46 +3,46 @@ import numpy
 import pandas
 from datetime import datetime
 from google.cloud import bigquery
-from tests.resources import dataset_id, bq_client
-from tests.base_class import BaseClassTest
-from tests import loaders
+from tests.utils.resources import bq_client
+from tests.utils import ids
+from tests.utils import load
+from tests.utils import loaders
+from tests.utils.base_class import BaseClassTest
 
 
 class CastTest(BaseClassTest):
 
     def test_dtype_query_to_dataframe(self):
-        df0 = pandas.DataFrame(data={'x': ['236'], 'y': [5.0]})
+        expected = pandas.DataFrame(data={'x': ['236'], 'y': [5.0]})
         query = """
         select 236 as x, 5 as y 
         """
-        df1 = loaders.gpl00.load(
+        computed = loaders.gpl00.load(
             source='query',
             destination='dataframe',
             query=query,
             dtype={'x': str, 'y': float})
-        self.assertTrue(df0.equals(df1))
+        self.assertTrue(expected.equals(computed))
 
     def test_parse_dates_query_to_dataframe(self):
         datetime1 = datetime(2012, 11, 14, 14, 32, 30, tzinfo=pytz.UTC)
         datetime2 = datetime(2013, 11, 14, 14, 32, 30, 100121)
-
         date1 = datetime1.date()
-        df0 = pandas.DataFrame(data={'x': [datetime1],
-                                     'y': [datetime2],
-                                     'z': [date1]})
+        expected = pandas.DataFrame(data={
+            'x': [datetime1], 'y': [datetime2], 'z': [date1]})
         query = """
         select 
         cast('2012-11-14 14:32:30' as TIMESTAMP) as x, 
         '2013-11-14 14:32:30.100121' as y,
         cast('2012-11-14' as DATE) as z
         """
-        df1 = loaders.gpl20.load(
+        computed = loaders.gpl20.load(
             source='query',
             destination='dataframe',
             query=query,
             parse_dates=['x', 'y', 'z'])
-        df1['z'] = df1['z'].apply(lambda z: z.date())
-        self.assertTrue(df0.equals(df1))
+        computed['z'] = computed['z'].apply(lambda z: z.date())
+        self.assertTrue(expected.equals(computed))
 
     def test_bq_schema_inferred_with_source_dataframe(self):
         datetime1 = datetime.strptime('2012-11-14 14:32:30',
@@ -87,7 +87,7 @@ class CastTest(BaseClassTest):
             dataframe=df0,
             date_cols=['a', 'q'],
             timestamp_cols=['b', 'p'])
-        table_id = f'{dataset_id}.a100'
+        table_id = ids.build_table_id('a100')
         table = bq_client.get_table(table_id)
         f1, f2, f3, f4, f5, f6, f7, f8, f9, f10, f11, f12, f13, f14, f15, \
             f16, f17 = table.schema
@@ -138,17 +138,12 @@ class CastTest(BaseClassTest):
             }
         )
 
-        loaders.gpl01.load(
-            source='dataframe',
-            destination='local',
-            data_name='a100',
-            dataframe=df0)
-
+        load.dataframe_to_local(df0, ids.build_local_file_path_1('a100'))
         loaders.gpl01.load(
             source='local',
             destination='bq',
             data_name='a100')
-        table_id = f'{dataset_id}.a100'
+        table_id = ids.build_table_id('a100')
         table = bq_client.get_table(table_id)
         f1, f2, f3, f4, f5, f6, f7, f8, f9, f10, f11, f12, f13, f14, f15, \
             f16, f17 = table.schema
@@ -180,7 +175,7 @@ class CastTest(BaseClassTest):
             data_name='a100',
             dataframe=df0,
             bq_schema=bq_schema)
-        table_id = f'{dataset_id}.a100'
+        table_id = ids.build_table_id('a100')
         table = bq_client.get_table(table_id)
         f1, f2 = table.schema
         self.assertEqual(('x', 'FLOAT'), (f1.name, f1.field_type))
@@ -200,7 +195,7 @@ class CastTest(BaseClassTest):
             destination='bq',
             data_name='a100',
             bq_schema=bq_schema)
-        table_id = f'{dataset_id}.a100'
+        table_id = ids.build_table_id('a100')
         table = bq_client.get_table(table_id)
         f1, f2 = table.schema
         self.assertEqual(('x', 'FLOAT'), (f1.name, f1.field_type))
