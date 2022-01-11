@@ -81,6 +81,19 @@ def bq_to_dataframe(table_name):
     return bq_client.list_rows(table_id).to_dataframe()
 
 
+def multi_dataframe_to_bq(dfs, table_names):
+    jobs = []
+    for df, n in zip(dfs, table_names):
+        table_id = build_table_id(n)
+        job_config = bigquery.LoadJobConfig()
+        job = bq_client.load_table_from_dataframe(
+            dataframe=df,
+            destination=table_id,
+            job_config=job_config)
+        jobs.append(job)
+    wait_for_jobs(jobs)
+
+
 def dataframe_to_gs(df, blob_name):
     df_csv = df.to_csv(sep=separator, index=False)
     storage.Blob(name=blob_name, bucket=bucket).upload_from_string(df_csv)

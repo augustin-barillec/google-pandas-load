@@ -39,3 +39,9 @@ def union_keys(dicts):
     for d in dicts:
         res = res.union(d.keys())
     return res
+
+
+def check_data_name_not_contain_slash(data_name):
+    if '/' in data_name:
+        msg = f'data_name={data_name} must not contain a /'
+        raise ValueError(msg)

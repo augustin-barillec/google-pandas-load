@@ -6,12 +6,7 @@ from datetime import datetime
 from copy import deepcopy
 from google.cloud import bigquery, storage
 from google_pandas_load.load_config import LoadConfig
-from google_pandas_load.utils import \
-    table_exists, \
-    wait_for_jobs, \
-    timestamp_randint_string, \
-    check_no_prefix, \
-    union_keys
+from google_pandas_load import utils
 from google_pandas_load.constants import \
     MIDDLE_LOCATIONS, \
     DESTINATIONS_TO_ALWAYS_CLEAR, \
@@ -157,6 +152,10 @@ class Loader:
                 raise ValueError(msg)
 
     @staticmethod
+    def _check_data_name_not_contain_slash(data_name):
+        utils.check_data_name_not_contain_slash(data_name)
+
+    @staticmethod
     def _check_if_configs_is_a_list(configs):
         if type(configs) != list:
             raise ValueError('configs must be a list')
@@ -194,7 +193,7 @@ class Loader:
     def _fill_missing_data_names(configs):
         for config in configs:
             if config.data_name is None:
-                config.data_name = timestamp_randint_string()
+                config.data_name = utils.timestamp_randint_string()
 
     def _build_table_id(self, table_name):
         return f'{self._dataset_id}.{table_name}'
@@ -213,6 +212,7 @@ class Loader:
         """Return the data named_ data_name in Storage as a list of
         Storage blobs.
         """
+        self._check_data_name_not_contain_slash(data_name)
         data_name_prefix = self._blob_name_prefix + data_name
         candidates = list(self._gs_client.list_blobs(
             bucket_or_name=self._bucket_name, prefix=data_name_prefix))
@@ -231,6 +231,7 @@ class Loader:
         """Return the list of the paths of the files forming the data named_
         data_name in local.
         """
+        self._check_data_name_not_contain_slash(data_name)
         res = []
         for basename in os.listdir(self._local_dir_path):
             path = os.path.join(self._local_dir_path, basename)
@@ -243,7 +244,7 @@ class Loader:
     def exist_in_bq(self, data_name):
         """Return True if data named_ data_name exist in BigQuery."""
         table_id = f'{self._dataset_id}.{data_name}'
-        return table_exists(self._bq_client, table_id)
+        return utils.table_exists(self._bq_client, table_id)
 
     def exist_in_gs(self, data_name):
         """Return True if data named_ data_name exist in Storage."""
@@ -400,7 +401,7 @@ class Loader:
     def _execute_bq_client_loads(self, atomic_configs):
         configs = atomic_configs
         jobs = [self._launch_bq_client_job(c) for c in configs]
-        wait_for_jobs(jobs)
+        utils.wait_for_jobs(jobs)
         return jobs
 
     def _execute_local_load(self, atomic_config):
@@ -509,9 +510,9 @@ class Loader:
         nb_configs = len(configs)
         self._fill_missing_data_names(configs)
         data_names = [config.data_name for config in configs]
-        check_no_prefix(data_names)
+        utils.check_no_prefix(data_names)
         sliced_configs = [config.sliced_config for config in configs]
-        names_of_atomic_functions_to_call = union_keys(sliced_configs)
+        names_of_atomic_functions_to_call = utils.union_keys(sliced_configs)
 
         self._check_if_bq_client_missing(names_of_atomic_functions_to_call)
         self._check_if_gs_client_missing(names_of_atomic_functions_to_call)

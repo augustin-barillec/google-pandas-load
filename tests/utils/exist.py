@@ -15,7 +15,7 @@ def table_exists(table_name):
 
 
 def blob_exists(blob_name):
-    storage.Blob(name=blob_name, bucket=bucket).exists()
+    return storage.Blob(name=blob_name, bucket=bucket).exists()
 
 
 def local_file_exists(local_file_path):

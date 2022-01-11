@@ -183,13 +183,9 @@ class CastTest(BaseClassTest):
 
     def test_bq_schema_given_with_source_gs(self):
         df0 = pandas.DataFrame(data={'x': ['1'], 'y': [3]})
-        loaders.gpl21.load(
-            source='dataframe',
-            destination='gs',
-            data_name='a100',
-            dataframe=df0)
         bq_schema = [bigquery.SchemaField(name='x', field_type='FLOAT'),
                      bigquery.SchemaField(name='y', field_type='FLOAT')]
+        load.dataframe_to_gs(df0, ids.build_blob_name_2('a100'))
         loaders.gpl21.load(
             source='gs',
             destination='bq',

@@ -2,8 +2,8 @@ import re
 import pandas
 from google_pandas_load.constants import ATOMIC_FUNCTION_NAMES
 from google_pandas_load import LoadConfig
-from tests.base_class import BaseClassTest
-from tests import loaders
+from tests.utils import loaders
+from tests.utils.base_class import BaseClassTest
 
 
 class ExtraInformationsTest(BaseClassTest):

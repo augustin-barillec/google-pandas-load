@@ -3,7 +3,7 @@ import coverage
 
 cov = coverage.coverage(include='google_pandas_load/*')
 cov.start()
-suite = unittest.TestLoader().discover(start_dir='tests', pattern='test_cast*')
+suite = unittest.TestLoader().discover(start_dir='tests', pattern='test_raise*')
 unittest.TextTestRunner(verbosity=2).run(suite)
 cov.stop()
 cov.report()

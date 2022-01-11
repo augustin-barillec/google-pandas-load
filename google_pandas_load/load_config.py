@@ -1,7 +1,7 @@
 from argparse import Namespace
 from google.cloud import bigquery
 from pandas.api.types import infer_dtype
-from google_pandas_load.utils import build_atomic_function_names
+from google_pandas_load import utils
 from google_pandas_load.constants import LOCATIONS, SOURCE_LOCATIONS, \
     DESTINATION_LOCATIONS, REVERSED_LOCATIONS, MIDDLE_LOCATIONS
 
@@ -47,8 +47,9 @@ class LoadConfig:
         self._date_cols = date_cols
         self._bq_schema = bq_schema
 
-        self._check_data_name_not_empty_string()
-        self._check_data_name_not_contain_slash()
+        if self.data_name is not None:
+            self._check_data_name_not_empty_string()
+            self._check_data_name_not_contain_slash()
         self._check_source_value()
         self._check_destination_value()
         self._check_source_different_from_destination()
@@ -60,14 +61,12 @@ class LoadConfig:
             self._infer_bq_schema_from_dataframe()
 
     def _check_data_name_not_empty_string(self):
-        if self.data_name is not None and self.data_name == '':
+        if self.data_name == '':
             msg = 'data_name must not be the empty string'
             raise ValueError(msg)
 
     def _check_data_name_not_contain_slash(self):
-        if self.data_name is not None and '/' in self.data_name:
-            msg = f'data_name={self.data_name} must not contain a /'
-            raise ValueError(msg)
+        utils.check_data_name_not_contain_slash(self.data_name)
 
     def _check_source_value(self):
         if self.source not in SOURCE_LOCATIONS:
@@ -179,10 +178,10 @@ class LoadConfig:
         rindex_source = REVERSED_LOCATIONS.index(self.source)
         rindex_destination = REVERSED_LOCATIONS.index(self.destination)
         if index_source < index_destination:
-            return build_atomic_function_names(
+            return utils.build_atomic_function_names(
                 LOCATIONS[index_source: index_destination + 1])
         else:
-            return build_atomic_function_names(
+            return utils.build_atomic_function_names(
                 REVERSED_LOCATIONS[rindex_source: rindex_destination + 1])
 
     def _query_to_bq_config(self):

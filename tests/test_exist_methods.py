@@ -1,14 +1,14 @@
-from tests.populate import populate_bq, populate_gs, populate_local
-from tests.base_class import BaseClassTest
-from tests import loaders
+from tests.utils.populate import populate_bq, populate_gs, populate_local
+from tests.utils import loaders
+from tests.utils.base_class import BaseClassTest
 
 
 class ExistMethodsTest(BaseClassTest):
 
     def test_exist_in_bq(self):
-        self.assertFalse(loaders.gpl01.exist_in_bq('a8_bq'))
+        self.assertFalse(loaders.gpl01.exist_in_bq('a8'))
         populate_bq()
-        self.assertTrue(loaders.gpl01.exist_in_bq('a8_bq'))
+        self.assertTrue(loaders.gpl01.exist_in_bq('a8'))
 
     def test_exist_in_gs(self):
         self.assertFalse(loaders.gpl01.exist_in_gs('a1'))

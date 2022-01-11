@@ -1,28 +1,29 @@
-import os
 import binascii
 import pandas
-from tests.resources import local_dir_path, local_subdir_path
-from tests.base_class import BaseClassTest
-from tests import loaders
+from tests.utils import ids
+from tests.utils import load
+from tests.utils import loaders
+from tests.utils.base_class import BaseClassTest
 
 
 def is_gz_file(filepath):
-    with open(filepath, 'rb') as test_f:
-        return binascii.hexlify(test_f.read(2)) == b'1f8b'
+    with open(filepath, 'rb') as f:
+        return binascii.hexlify(f.read(2)) == b'1f8b'
 
 
 class CompressTest(BaseClassTest):
 
-    def test_compress_bq_to_gs(self):
-        expected = os.path.join(local_dir_path, 'b100-000000000000.csv.gz')
+    def test_compress_query_to_gs(self):
         loaders.gpl20.load(
             source='query',
-            destination='local',
+            destination='gs',
             data_name='b100',
             query='select 5')
-        computed = loaders.gpl20.list_local_file_paths('b100')[0]
-        self.assertEqual(expected, computed)
-        self.assertTrue(is_gz_file(computed))
+        blob_name = ids.build_blob_name_2('b100-000000000000.csv.gz')
+        local_file_path = ids.build_local_file_path_1(
+            'b100-000000000000.csv.gz')
+        load.gs_to_local(blob_name, local_file_path)
+        self.assertTrue(is_gz_file(local_file_path))
 
     def test_compress_dataframe_to_local(self):
         loaders.gpl01.load(
@@ -30,7 +31,5 @@ class CompressTest(BaseClassTest):
             destination='local',
             data_name='b100',
             dataframe=pandas.DataFrame(data={'x': [1]}))
-        expected = os.path.join(local_subdir_path, 'b100.csv.gz')
-        computed = loaders.gpl01.list_local_file_paths('b100')[0]
-        self.assertEqual(expected, computed)
-        self.assertTrue(is_gz_file(computed))
+        local_file_path = ids.build_local_file_path_1('b100.csv.gz')
+        self.assertTrue(is_gz_file(local_file_path))

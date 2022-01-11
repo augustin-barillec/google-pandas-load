@@ -1,8 +1,9 @@
 import re
 import logging
-from tests.populate import populate_local
-from tests.base_class import BaseClassTest
-from tests import loaders
+from tests.utils.populate import populate_local
+from tests.utils import loaders
+from tests.utils.base_class import BaseClassTest
+
 
 fmt = '%(name)s # %(levelname)s # %(message)s'
 formatter = logging.Formatter(fmt=fmt)
@@ -18,7 +19,6 @@ class LoggingTest(BaseClassTest):
                 destination='gs',
                 data_name='a9')
             records = cm.records
-            print(records)
             self.assertEqual(2, len(records))
             log = formatter.format(records[0])
             self.assertEqual(

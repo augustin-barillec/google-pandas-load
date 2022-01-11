@@ -3,12 +3,12 @@ from tests.utils.load import multi_query_to_bq, dataframe_to_gs, \
     dataframe_to_local
 from tests.utils import ids
 
-table_names = tuple(f'a{i}_bq' for i in range(8, 12))
-blob_basenames_0 = tuple(f'a{i}_gs0' for i in range(9, 12))
-blob_basenames_1 = tuple(f'a{i}_gs1' for i in range(8, 11))
-blob_basenames_2 = tuple(f'a{i}_gs2' for i in range(7, 13))
-local_file_basenames_0 = tuple(f'a{i}_local0' for i in range(7, 15))
-local_file_basenames_1 = tuple(f'a{i}_local1' for i in range(9, 14))
+table_names = tuple(f'a{i}' for i in range(7, 12))
+blob_basenames_0 = tuple(f'a{i}' for i in range(7, 12))
+blob_basenames_1 = tuple(f'a{i}' for i in range(8, 13))
+blob_basenames_2 = tuple(f'a{i}' for i in range(9, 14))
+local_file_basenames_0 = tuple(f'a{i}' for i in range(7, 12))
+local_file_basenames_1 = tuple(f'a{i}' for i in range(8, 13))
 
 blob_names_0 = [ids.build_blob_name_0(n) for n in blob_basenames_0]
 blob_names_1 = [ids.build_blob_name_1(n) for n in blob_basenames_1]
@@ -31,7 +31,7 @@ def populate_bq():
 def populate_gs():
     for n in blob_names:
         df = pandas.DataFrame(data={'x': [f'data_{n}']})
-        dataframe_to_gs(df, blob_names)
+        dataframe_to_gs(df, n)
 
 
 def populate_local():

@@ -1,8 +1,8 @@
 import unittest
-from tests.resources import project_id, \
+from tests.utils.resources import project_id, \
     dataset_name, dataset_id, bucket_name, gs_dir_path, gs_subdir_path, \
     local_dir_path, local_subdir_path
-from tests import loaders
+from tests.utils import loaders
 
 
 class CallGetters(unittest.TestCase):

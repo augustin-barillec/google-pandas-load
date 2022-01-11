@@ -1,10 +1,10 @@
 import pandas
 from google.cloud.exceptions import BadRequest, Conflict
 from google_pandas_load import Loader, LoadConfig
-from tests.resources import bq_client, gs_client
-from tests.populate import populate_bq
-from tests.base_class import BaseClassTest
-from tests import loaders
+from tests.utils.resources import bq_client, gs_client
+from tests.utils.populate import populate_bq, populate_local
+from tests.utils import loaders
+from tests.utils.base_class import BaseClassTest
 
 
 class LoadConfigRaiseErrorTest(BaseClassTest):
@@ -120,6 +120,9 @@ class LoaderSetupRaiseErrorTest(BaseClassTest):
         self.assertEqual(msg, str(cm.exception))
 
 
+class ListMethodsRaiseError(BaseClassTest):
+
+
 class LoadRaiseErrorTest(BaseClassTest):
 
     def test_raise_error_if_configs_is_not_a_list(self):
@@ -198,11 +201,11 @@ class LoadRaiseErrorTest(BaseClassTest):
 
     def test_raise_error_if_write_empty_and_already_exists(self):
         populate_bq()
+        populate_local()
         with self.assertRaises(Conflict) as cm:
             loaders.gpl01.load(
                 source='local',
                 destination='bq',
-                dataframe=pandas.DataFrame(data={'x': [1]}),
                 data_name='a10',
                 write_disposition='WRITE_EMPTY')
         self.assertEqual(
