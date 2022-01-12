@@ -3,99 +3,94 @@ import numpy
 import pandas
 from google.cloud import bigquery
 from google_pandas_load import LoadConfig
-from tests.resources import project_id, bq_client, \
+from tests.utils.df_equal import normalize_equal
+from tests.utils.resources import project_id, bq_client, \
     dataset_id, dataset_name, local_subdir_path
-from tests.populate import populate_bq, populate_gs, populate_local, populate
-from tests.base_class import BaseClassTest
-from tests import loaders
+from tests.utils.populate import populate_bq, populate_gs, \
+    populate_local, populate
+from tests.utils import ids
+from tests.utils import load
+from tests.utils import loaders
+from tests.utils.base_class import BaseClassTest
 
 
 class DataDeliveryTest(BaseClassTest):
 
     def test_query_to_bq(self):
+        expected = pandas.DataFrame(data={'x': [3, 2], 'y': ['a', 'b']})
         populate_bq()
         loaders.gpl21.load(
             source='query',
             destination='bq',
             data_name='a0',
-            query='select 3 as x union all select 2 as x')
-        table_id = f'{dataset_id}.a0'
-        df1 = bq_client.list_rows(table=table_id).to_dataframe()
-        expected = pandas.DataFrame(data={'x': [3, 2]})
-        self.assertTrue(expected.equals(df1))
+            query="select 3 as x, 'a' as y union all select 2 as x, 'b' as y")
+        computed = load.bq_to_dataframe('a0')
+        self.assertTrue(normalize_equal(expected, computed))
 
     def test_bq_to_dataframe(self):
+        expected = pandas.DataFrame(data={'x': ['a10']})
         populate()
-        df1 = loaders.gpl00.load(
+        computed = loaders.gpl00.load(
             source='bq',
             destination='dataframe',
-            data_name='a10_bq')
-        df0 = pandas.DataFrame(data={'x': ['data_a10_bq']})
-        self.assertTrue(df0.equals(df1))
+            data_name='a10')
+        self.assertTrue(expected.equals(computed))
 
     def test_gs_to_local(self):
+        expected = pandas.DataFrame(data={'x': ['a9']})
         populate_gs()
+        populate_local()
         loaders.gpl21.load(
             source='gs',
             destination='local',
-            data_name='a7')
-        path = os.path.join(local_subdir_path, 'a7_gs')
-        print(loaders.gpl21.list_local_file_paths('a7'))
-        print(path)
-        df1 = pandas.read_csv(filepath_or_buffer=path)
-        df0 = pandas.DataFrame(data={'x': ['data_a7_gs']})
-        print(df0)
-        print('##########')
-        print(df1)
-        self.assertTrue(df0.equals(df1))
-
+            data_name='a9')
+        local_file_path = ids.build_local_file_path_1('a9')
+        computed = load.local_to_dataframe(local_file_path)
+        self.assertTrue(expected.equals(computed))
 
     def test_local_to_dataframe(self):
+        expected = pandas.DataFrame(data={'x': [
+            f'a{i}' for i in range(10, 13)]})
         populate_local()
-        df1 = loaders.gpl01.load(
+        computed = loaders.gpl01.load(
             source='local',
             destination='dataframe',
-            data_name='a1').reset_index(drop=True)
-        l0 = [f'data_a{i}_local' for i in range(10, 14)]
-        df0 = pandas.DataFrame(data={'x': l0})
-        self.assertTrue(df0.equals(df1))
+            data_name='a1')
+        self.assertTrue(normalize_equal(expected, computed))
 
     def test_query_to_dataframe(self):
-        df0 = pandas.DataFrame(data={'x': [1, 1]})
+        expected = pandas.DataFrame(data={'x': [1, 1]})
         populate()
-        df1 = gpl2.load(
+        computed = loaders.gpl21.load(
             source='query',
             destination='dataframe',
             query='select 1 as x union all select 1 as x',
             data_name='a1')
-        self.assertFalse(gpl2.exist_in_bq('a1'))
-        self.assertFalse(gpl2.exist_in_gs('a1'))
-        self.assertFalse(gpl2.exist_in_local('a1'))
-        self.assertTrue(df0.equals(df1))
+        self.assertTrue(expected.equals(computed))
 
     def test_local_to_bq(self):
+        expected = pandas.DataFrame(data={'x': [
+            f'a{i}' for i in range(8, 13)]})
         populate()
-        gpl3.load(
+        loaders.gpl01.load(
             source='local',
             destination='bq',
             data_name='a',
             bq_schema=[bigquery.SchemaField('x', 'STRING')])
-        self.assertTrue(gpl3.exist_in_local('a'))
-        self.assertFalse(gpl3.exist_in_gs('a'))
-        table_ref = dataset_ref.table(table_id='a')
-        table = bq_client.get_table(table_ref)
-        num_rows = table.num_rows
-        self.assertEqual(num_rows, 5)
+        computed = load.bq_to_dataframe('a')
+        self.assertTrue(normalize_equal(expected, computed))
 
     def test_dataframe_to_gs(self):
-        df = pandas.DataFrame(data={'x': [1]})
-        gpl3.load(
+        expected = pandas.DataFrame(data={'x': [1, 2], 'y': [2, 1]})
+        loaders.gpl01.load(
             source='dataframe',
             destination='gs',
             data_name='b',
-            dataframe=df)
-        self.assertFalse(gpl3.exist_in_local('b'))
-        self.assertEqual(len(gpl3.list_blob_uris('b')), 1)
+            dataframe=expected)
+        blob_name = ids.build_blob_name_0('b.csv.gz')
+        computed = load.gs_to_dataframe(blob_name)
+        self.assertTrue(expected.equals(computed))
+
 
     def test_local_to_gs(self):
         populate()

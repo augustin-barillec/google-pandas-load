@@ -3,7 +3,7 @@ from tests.utils import loaders
 from tests.utils.base_class import BaseClassTest
 
 
-class ExistMethodsTest(BaseClassTest):
+class ExistTest(BaseClassTest):
 
     def test_exist_in_bq(self):
         self.assertFalse(loaders.gpl01.exist_in_bq('a8'))

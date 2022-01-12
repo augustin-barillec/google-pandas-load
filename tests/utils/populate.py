@@ -19,24 +19,26 @@ local_file_paths_0 = [
 local_file_paths_1 = [
     ids.build_local_file_path_1(n) for n in local_file_basenames_1]
 
+blob_basenames = blob_basenames_0 + blob_basenames_1 + blob_basenames_2
+local_file_basenames = local_file_basenames_0 + local_file_basenames_1
 blob_names = blob_names_0 + blob_names_1 + blob_names_2
 local_file_paths = local_file_paths_0 + local_file_paths_1
 
 
 def populate_bq():
-    queries = [f"select 'data_{n}' as x" for n in table_names]
+    queries = [f"select '{n}' as x" for n in table_names]
     multi_query_to_bq(queries, table_names)
 
 
 def populate_gs():
-    for n in blob_names:
-        df = pandas.DataFrame(data={'x': [f'data_{n}']})
-        dataframe_to_gs(df, n)
+    for basename, name in zip(blob_basenames, blob_names):
+        df = pandas.DataFrame(data={'x': [f'{basename}']})
+        dataframe_to_gs(df, name)
 
 
 def populate_local():
-    for p in local_file_paths:
-        df = pandas.DataFrame(data={'x': [f'data_{p}']})
+    for b, p in zip(local_file_basenames, local_file_paths):
+        df = pandas.DataFrame(data={'x': [f'{b}']})
         dataframe_to_local(df, p)
 
 

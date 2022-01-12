@@ -5,7 +5,7 @@ from tests.utils import loaders
 from tests.utils.base_class import BaseClassTest
 
 
-class DeleteMethodsTest(BaseClassTest):
+class DeleteTest(BaseClassTest):
 
     def test_delete_in_bq(self):
         populate_bq()

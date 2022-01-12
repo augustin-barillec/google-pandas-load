@@ -7,7 +7,7 @@ from tests.utils import loaders
 from tests.utils.base_class import BaseClassTest
 
 
-class LoadConfigRaiseErrorTest(BaseClassTest):
+class LoadConfigErrorTest(BaseClassTest):
 
     def test_raise_error_if_data_name_is_empty_string(self):
         with self.assertRaises(ValueError) as cm:
@@ -75,7 +75,7 @@ class LoadConfigRaiseErrorTest(BaseClassTest):
         self.assertEqual(str(cm.exception), msg)
 
 
-class LoaderSetupRaiseErrorTest(BaseClassTest):
+class LoaderSetupErrorTest(BaseClassTest):
 
     def test_raise_error_if_dataset_id_none_bq_client_not_none(self):
         with self.assertRaises(ValueError) as cm:
@@ -120,10 +120,26 @@ class LoaderSetupRaiseErrorTest(BaseClassTest):
         self.assertEqual(msg, str(cm.exception))
 
 
-class ListMethodsRaiseError(BaseClassTest):
+class ListError(BaseClassTest):
+
+    def test_raise_error_if_data_name_contains_slash(self):
+        with self.assertRaises(ValueError) as cm:
+            Loader().list_blobs(data_name='a/b')
+        msg = 'data_name=a/b must not contain a /'
+        self.assertEqual(msg, str(cm.exception))
+
+        with self.assertRaises(ValueError) as cm:
+            Loader().list_blob_uris(data_name='a/b')
+        msg = 'data_name=a/b must not contain a /'
+        self.assertEqual(msg, str(cm.exception))
+
+        with self.assertRaises(ValueError) as cm:
+            Loader().list_local_file_paths(data_name='a/b')
+        msg = 'data_name=a/b must not contain a /'
+        self.assertEqual(msg, str(cm.exception))
 
 
-class LoadRaiseErrorTest(BaseClassTest):
+class LoadErrorTest(BaseClassTest):
 
     def test_raise_error_if_configs_is_not_a_list(self):
         config = LoadConfig(

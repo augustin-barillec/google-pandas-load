@@ -5,7 +5,7 @@ from tests.utils import loaders
 from tests.utils.base_class import BaseClassTest
 
 
-class ListMethodsTest(BaseClassTest):
+class ListTest(BaseClassTest):
 
     def test_list_blobs(self):
         populate_gs()
