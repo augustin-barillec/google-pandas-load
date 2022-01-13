@@ -18,7 +18,7 @@ class ExtraInformationsTest(BaseClassTest):
             set(vars(xlr)))
 
         self.assertEqual(str, type(xlr.data_name))
-        regexp = r'^[0-9]{14}_[0-9]{6}_rand[0-9]{39}$'
+        regexp = r'^[0-9]{14}_[0-9]{6}_rand[0-9]{30,}$'
         pattern = re.compile(regexp)
         self.assertIsNotNone(pattern.search(xlr.data_name))
 

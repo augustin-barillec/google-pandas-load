@@ -5,7 +5,7 @@ from tests.utils.resources import project_id, \
 from tests.utils import loaders
 
 
-class CallGetters(unittest.TestCase):
+class GettersTest(unittest.TestCase):
 
     def test_call_loader_getters(self):
         self.assertIsNotNone(loaders.gpl10.bq_client)

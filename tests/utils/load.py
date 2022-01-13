@@ -1,3 +1,4 @@
+import zlib
 import pandas
 from io import StringIO
 from google.cloud import bigquery
@@ -95,10 +96,13 @@ def multi_dataframe_to_bq(dfs, table_names):
 
 
 def dataframe_to_gs(df, blob_name):
-    df_csv = df.to_csv(sep=separator, index=False)
-    storage.Blob(name=blob_name, bucket=bucket).upload_from_string(df_csv)
+    csv = df.to_csv(sep=separator, index=False)
+    storage.Blob(name=blob_name, bucket=bucket).upload_from_string(csv)
 
 
-def gs_to_dataframe(blob_name):
-    df_csv = storage.Blob(name=blob_name, bucket=bucket).download_as_text()
-    return pandas.read_csv(StringIO(df_csv))
+def gs_to_dataframe(blob_name, decompress):
+    b = storage.Blob(name=blob_name, bucket=bucket).download_as_bytes()
+    if decompress:
+        b = zlib.decompress(b, wbits=zlib.MAX_WBITS | 16)
+    csv = b.decode()
+    return pandas.read_csv(StringIO(csv), sep=separator)

@@ -20,7 +20,7 @@ class ListTest(BaseClassTest):
 
         self.assertEqual(
             sorted([ids.build_blob_name_2(f'a{i}') for i in range(9, 14)]),
-            [b.name for b in loaders.gpl20.list_blobs('a')])
+            [b.name for b in loaders.gpl20.list_blobs('')])
 
         self.assertEqual([], loaders.gpl00.list_blobs('dir'))
         self.assertEqual([], loaders.gpl10.list_blobs('su'))
@@ -65,4 +65,4 @@ class ListTest(BaseClassTest):
                     for p in loaders.gpl21.list_local_file_paths('a1')]
         self.assertEqual(expected, computed)
 
-        self.assertEqual([], loaders.gpl21.list_local_file_paths('sub/'))
+        self.assertEqual([], loaders.gpl21.list_local_file_paths('sub'))

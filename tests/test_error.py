@@ -120,7 +120,7 @@ class LoaderSetupErrorTest(BaseClassTest):
         self.assertEqual(msg, str(cm.exception))
 
 
-class ListError(BaseClassTest):
+class ListErrorTest(BaseClassTest):
 
     def test_raise_error_if_data_name_contains_slash(self):
         with self.assertRaises(ValueError) as cm:
