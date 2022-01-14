@@ -75,8 +75,8 @@ Transfer data seamlessly from and to various locations:
     gpl.load(
         source='dataframe',
         destination='bq',
-        data_name='a0',
-        dataframe=df)
+        dataframe=df,
+        data_name='a0')
 
     # Extract the data to Storage.
     gpl.load(
@@ -103,8 +103,8 @@ This is made possible by BigQuery.
         config = LoadConfig(
             source='query',
             destination='local',
-            data_name=f'b{i}',
-            query=f'select {i} as x')
+            query=f'select {i} as x',
+            data_name=f'b{i}')
         configs.append(config)
 
     # Launch all the load jobs

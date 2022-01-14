@@ -45,8 +45,8 @@ class LoggingTest(BaseClassTest):
             loaders.gpl11.load(
                 source='query',
                 destination='gs',
-                data_name='a0',
-                query='select 3')
+                query='select 3',
+                data_name='a0')
             records = cm.records
             self.assertEqual(4, len(records))
             regexp = (r'^google_pandas_load.loader # DEBUG # '

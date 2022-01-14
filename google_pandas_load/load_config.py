@@ -1,4 +1,6 @@
+import pandas
 from argparse import Namespace
+from typing import Dict, List
 from google.cloud import bigquery
 from pandas.api.types import infer_dtype
 from google_pandas_load import utils
@@ -19,19 +21,19 @@ class LoadConfig:
 
     def __init__(
             self,
-            source,
-            destination,
+            source: str,
+            destination: str,
 
-            data_name=None,
-            query=None,
-            dataframe=None,
+            data_name: str = None,
+            query: str = None,
+            dataframe: pandas.DataFrame = None,
 
-            write_disposition=bigquery.WriteDisposition.WRITE_TRUNCATE,
-            dtype=None,
-            parse_dates=None,
-            date_cols=None,
-            timestamp_cols=None,
-            bq_schema=None):
+            write_disposition: str = bigquery.WriteDisposition.WRITE_TRUNCATE,
+            dtype: Dict[str, any] = None,
+            parse_dates: List[str] = None,
+            date_cols: List[str] = None,
+            timestamp_cols: List[str] = None,
+            bq_schema: List[bigquery.SchemaField] = None):
 
         self.source = source
         self.destination = destination
@@ -103,7 +105,9 @@ class LoadConfig:
 
     @staticmethod
     def bq_schema_inferred_from_dataframe(
-            dataframe, date_cols=None, timestamp_cols=None):
+            dataframe: pandas.DataFrame,
+            date_cols: List[str] = None,
+            timestamp_cols: List[str] = None):
         """Return a BigQuery schema that is inferred from a pandas dataframe.
 
         Let infer_dtype(column) = `pandas.api.types.infer_dtype <https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.api.types.infer_dtype.html>`__ (column).

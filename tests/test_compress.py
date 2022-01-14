@@ -17,8 +17,8 @@ class CompressTest(BaseClassTest):
         loaders.gpl20.load(
             source='query',
             destination='gs',
-            data_name='b100',
-            query='select 5')
+            query='select 5',
+            data_name='b100')
         blob_name = ids.build_blob_name_2('b100-000000000000.csv.gz')
         local_file_path = ids.build_local_file_path_1(
             'b100-000000000000.csv.gz')
@@ -29,7 +29,7 @@ class CompressTest(BaseClassTest):
         loaders.gpl01.load(
             source='dataframe',
             destination='local',
-            data_name='b100',
-            dataframe=pandas.DataFrame(data={'x': [1]}))
+            dataframe=pandas.DataFrame(data={'x': [1]}),
+            data_name='b100')
         local_file_path = ids.build_local_file_path_1('b100.csv.gz')
         self.assertTrue(is_gz_file(local_file_path))

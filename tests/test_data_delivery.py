@@ -20,8 +20,8 @@ class DataDeliveryTest(BaseClassTest):
         loaders.gpl21.load(
             source='query',
             destination='bq',
-            data_name='a0',
-            query="select 3 as x, 'a' as y union all select 2 as x, 'b' as y")
+            query="select 3 as x, 'a' as y union all select 2 as x, 'b' as y",
+            data_name='a0')
         computed = load.bq_to_dataframe('a0')
         self.assertTrue(normalize_equal(expected, computed))
 
@@ -131,8 +131,8 @@ class DataDeliveryTest(BaseClassTest):
         loaders.gpl20.load(
             source='dataframe',
             destination='bq',
-            data_name='a9',
-            dataframe=expected)
+            dataframe=expected,
+            data_name='a9')
         query = f'select * from {dataset_id}.a9'
         computed = loaders.gpl20.load(
             source='query',
@@ -189,8 +189,8 @@ class DataDeliveryTest(BaseClassTest):
         config1 = LoadConfig(
             source='dataframe',
             destination='bq',
-            data_name='a10',
-            dataframe=expected1)
+            dataframe=expected1,
+            data_name='a10')
         config2 = LoadConfig(
             source='query',
             destination='dataframe',
@@ -198,8 +198,8 @@ class DataDeliveryTest(BaseClassTest):
         config3 = LoadConfig(
             source='query',
             destination='gs',
-            data_name='a11',
-            query="select 'b' as x, 'a' as y")
+            query="select 'b' as x, 'a' as y",
+            data_name='a11')
         load_results = loaders.gpl20.mload([config1, config2, config3])
         self.assertEqual(len(load_results), 3)
         self.assertTrue(load_results[0] is None)

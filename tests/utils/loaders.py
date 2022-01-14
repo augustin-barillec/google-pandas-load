@@ -10,8 +10,7 @@ gpl00 = Loader(
     bucket_name=bucket_name,
     gs_dir_path=None,
     local_dir_path=local_dir_path,
-    separator='|',
-    chunk_size=2**28)
+    separator='|')
 
 gpl01 = Loader(
     bq_client=bq_client,
@@ -20,8 +19,7 @@ gpl01 = Loader(
     bucket_name=bucket_name,
     gs_dir_path=None,
     local_dir_path=local_subdir_path,
-    separator='|',
-    chunk_size=2**29)
+    separator='|')
 
 gpl10 = Loader(
     bq_client=bq_client,
@@ -30,8 +28,7 @@ gpl10 = Loader(
     bucket_name=bucket_name,
     gs_dir_path=gs_dir_path,
     local_dir_path=local_dir_path,
-    separator='@',
-    chunk_size=2**28)
+    separator='@')
 
 gpl11 = LoaderQuickSetup(
     project_id=project_id,
@@ -39,8 +36,7 @@ gpl11 = LoaderQuickSetup(
     bucket_name=bucket_name,
     gs_dir_path=gs_dir_path,
     local_dir_path=local_subdir_path,
-    separator='|',
-    chunk_size=2**28)
+    separator='|')
 
 gpl20 = Loader(
     bq_client=bq_client,
@@ -49,8 +45,7 @@ gpl20 = Loader(
     bucket_name=bucket_name,
     gs_dir_path=gs_subdir_path,
     local_dir_path=local_dir_path,
-    separator='|',
-    chunk_size=2**25)
+    separator='|')
 
 gpl21 = Loader(
     bq_client=bq_client,

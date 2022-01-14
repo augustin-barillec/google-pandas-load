@@ -3,7 +3,6 @@
 
 function clean_jupyter(){
   rm -rf .ipynb_checkpoints
-  rm -rf docs/source/.ipynb_checkpoints
 }
 
 function clean_docs(){

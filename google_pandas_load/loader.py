@@ -2,6 +2,7 @@ import os
 import logging
 import pandas
 from argparse import Namespace
+from typing import Dict, List
 from datetime import datetime
 from copy import deepcopy
 from google.cloud import bigquery, storage
@@ -35,22 +36,17 @@ class Loader:
         local_dir_path (str, optional): The path of the local folder.
         separator (str, optional): The character which separates the columns of
             the data. Defaults to '|'.
-        chunk_size (int, optional): The chunk size of a Storage blob created
-            when data comes from the local folder. See
-            `here <https://googleapis.dev/python/storage/latest/blobs.html>`_
-            for more information. Defaults to 2**28.
     """
 
     def __init__(
             self,
-            bq_client=None,
-            dataset_id=None,
-            gs_client=None,
-            bucket_name=None,
-            gs_dir_path=None,
-            local_dir_path=None,
-            separator='|',
-            chunk_size=2**28):
+            bq_client: bigquery.Client = None,
+            dataset_id: str = None,
+            gs_client: storage.Client = None,
+            bucket_name: str = None,
+            gs_dir_path: str = None,
+            local_dir_path: str = None,
+            separator: str = '|'):
 
         self._bq_client = bq_client
         self._dataset_id = dataset_id
@@ -73,7 +69,6 @@ class Loader:
                     self._bucket_uri + '/' + self._blob_name_prefix)
         self._local_dir_path = local_dir_path
         self._separator = separator
-        self._chunk_size = chunk_size
 
     @property
     def bq_client(self):
@@ -208,7 +203,7 @@ class Loader:
         c2 = os.path.isfile(local_file_path)
         return c1 and c2
 
-    def list_blobs(self, data_name):
+    def list_blobs(self, data_name: str):
         """Return the data named_ data_name in Storage as a list of
         Storage blobs.
         """
@@ -220,14 +215,14 @@ class Loader:
         res = sorted(res, key=lambda b: b.name)
         return res
 
-    def list_blob_uris(self, data_name):
+    def list_blob_uris(self, data_name: str):
         """Return the list of the uris of Storage blobs forming the data
         named_ data_name in Storage.
         """
         return [self._bucket_uri + '/' + blob.name
                 for blob in self.list_blobs(data_name)]
 
-    def list_local_file_paths(self, data_name):
+    def list_local_file_paths(self, data_name: str):
         """Return the list of the paths of the files forming the data named_
         data_name in local.
         """
@@ -241,29 +236,29 @@ class Loader:
                 res.append(path)
         return sorted(res)
 
-    def exist_in_bq(self, data_name):
+    def exist_in_bq(self, data_name: str):
         """Return True if data named_ data_name exist in BigQuery."""
-        table_id = f'{self._dataset_id}.{data_name}'
+        table_id = self._build_table_id(data_name)
         return utils.table_exists(self._bq_client, table_id)
 
-    def exist_in_gs(self, data_name):
+    def exist_in_gs(self, data_name: str):
         """Return True if data named_ data_name exist in Storage."""
         return len(self.list_blobs(data_name)) > 0
 
-    def exist_in_local(self, data_name):
+    def exist_in_local(self, data_name: str):
         """Return True if data named_ data_name exist in local."""
         return len(self.list_local_file_paths(data_name)) > 0
 
-    def delete_in_bq(self, data_name):
+    def delete_in_bq(self, data_name: str):
         """Delete the data named_ data_name in BigQuery."""
         table_id = self._build_table_id(data_name)
         self._bq_client.delete_table(table_id, not_found_ok=True)
 
-    def delete_in_gs(self, data_name):
+    def delete_in_gs(self, data_name: str):
         """Delete the data named_ data_name in Storage."""
         self._bucket.delete_blobs(blobs=self.list_blobs(data_name))
 
-    def delete_in_local(self, data_name):
+    def delete_in_local(self, data_name: str):
         """Delete the data named_ data_name in local."""
         for local_file_path in self.list_local_file_paths(data_name):
             os.remove(local_file_path)
@@ -293,8 +288,7 @@ class Loader:
         blob_name = self._blob_name_prefix + local_file_basename
         blob = storage.Blob(
             name=blob_name,
-            bucket=self._bucket,
-            chunk_size=self._chunk_size)
+            bucket=self._bucket)
         blob.upload_from_filename(filename=local_file_path)
 
     def _local_file_to_dataframe(
@@ -470,7 +464,7 @@ class Loader:
 
         return res
 
-    def xmload(self, configs):
+    def xmload(self, configs: List[LoadConfig]):
         """It works like :meth:`google_pandas_load.loader.Loader.mload` but
         also returns extra informations about the data and the mload
         job's execution.
@@ -561,7 +555,7 @@ class Loader:
         res.query_costs = query_costs
         return res
 
-    def mload(self, configs):
+    def mload(self, configs: List[LoadConfig]):
         """Execute several load jobs specified by the configurations.
         The prefix m means multi.
 
@@ -583,19 +577,19 @@ class Loader:
 
     def xload(
             self,
-            source,
-            destination,
+            source: str,
+            destination: str,
 
-            data_name=None,
-            query=None,
-            dataframe=None,
+            data_name: str = None,
+            query: str = None,
+            dataframe: pandas.DataFrame = None,
 
-            write_disposition=bigquery.WriteDisposition.WRITE_TRUNCATE,
-            dtype=None,
-            parse_dates=None,
-            date_cols=None,
-            timestamp_cols=None,
-            bq_schema=None):
+            write_disposition: str = bigquery.WriteDisposition.WRITE_TRUNCATE,
+            dtype: Dict[str, any] = None,
+            parse_dates: List[str] = None,
+            date_cols: List[str] = None,
+            timestamp_cols: List[str] = None,
+            bq_schema: List[bigquery.SchemaField] = None):
         """It works like  :meth:`google_pandas_load.loader.Loader.load` but
         also returns extra informations about the data and the load job's
         execution. The prefix x is for extra.
@@ -667,19 +661,19 @@ class Loader:
 
     def load(
             self,
-            source,
-            destination,
+            source: str,
+            destination: str,
 
-            data_name=None,
-            query=None,
-            dataframe=None,
+            data_name: str = None,
+            query: str = None,
+            dataframe: pandas.DataFrame = None,
 
-            write_disposition=bigquery.WriteDisposition.WRITE_TRUNCATE,
-            dtype=None,
-            parse_dates=None,
-            date_cols=None,
-            timestamp_cols=None,
-            bq_schema=None):
+            write_disposition: str = bigquery.WriteDisposition.WRITE_TRUNCATE,
+            dtype: Dict[str, any] = None,
+            parse_dates: List[str] = None,
+            date_cols: List[str] = None,
+            timestamp_cols: List[str] = None,
+            bq_schema: List[bigquery.SchemaField] = None):
         """Execute a load job whose configuration is specified by the
         arguments.
 

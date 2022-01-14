@@ -17,7 +17,6 @@ class LoaderQuickSetup(Loader):
          gs_dir_path=gs_dir_path
          local_dir_path=local_dir_path
          separator=separator
-         chunk_size=chunk_size
          logger=logger
 
     where
@@ -45,7 +44,6 @@ class LoaderQuickSetup(Loader):
             the default inferred from the environment.
         local_dir_path (str, optional): See base class.
         separator (str, optional): See base class.
-        chunk_size (int, optional): See base class.
     """
 
     def __init__(
@@ -56,8 +54,7 @@ class LoaderQuickSetup(Loader):
             gs_dir_path=None,
             credentials=None,
             local_dir_path=None,
-            separator='|',
-            chunk_size=2 ** 28):
+            separator='|'):
         self._project_id = project_id
         bq_client = None
         dataset_id = None
@@ -78,8 +75,7 @@ class LoaderQuickSetup(Loader):
             bucket_name=bucket_name,
             gs_dir_path=gs_dir_path,
             local_dir_path=local_dir_path,
-            separator=separator,
-            chunk_size=chunk_size)
+            separator=separator)
 
     @property
     def project_id(self):

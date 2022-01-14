@@ -83,8 +83,8 @@ class CastTest(BaseClassTest):
         loaders.gpl11.load(
             source='dataframe',
             destination='bq',
-            data_name='a100',
             dataframe=df0,
+            data_name='a100',
             date_cols=['a', 'q'],
             timestamp_cols=['b', 'p'])
         table_id = ids.build_table_id('a100')
@@ -172,8 +172,8 @@ class CastTest(BaseClassTest):
         loaders.gpl21.load(
             source='dataframe',
             destination='bq',
-            data_name='a100',
             dataframe=df0,
+            data_name='a100',
             bq_schema=bq_schema)
         table_id = ids.build_table_id('a100')
         table = bq_client.get_table(table_id)

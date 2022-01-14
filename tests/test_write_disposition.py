@@ -50,13 +50,13 @@ class WriteDispositionTest(BaseClassTest):
         loaders.gpl00.load(
             source='dataframe',
             destination='bq',
-            data_name='a10',
-            dataframe=df00)
+            dataframe=df00,
+            data_name='a10')
         loaders.gpl00.load(
             source='dataframe',
             destination='bq',
-            data_name='a10',
             dataframe=df01,
+            data_name='a10',
             write_disposition='WRITE_APPEND')
         computed = load.bq_to_dataframe('a10')
         self.assertTrue(expected.equals(computed))

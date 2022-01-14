@@ -157,13 +157,13 @@ class LoadErrorTest(BaseClassTest):
         config1 = LoadConfig(
             source='dataframe',
             destination='bq',
-            data_name='a',
-            dataframe=pandas.DataFrame(data={'x': [3]}))
+            dataframe=pandas.DataFrame(data={'x': [3]}),
+            data_name='a')
         config2 = LoadConfig(
             source='query',
             destination='dataframe',
-            data_name='aa',
-            query='select 4 as y')
+            query='select 4 as y',
+            data_name='aa')
         with self.assertRaises(ValueError) as cm:
             loaders.gpl01.mload(configs=[config1, config2])
         self.assertEqual('a is a prefix of aa', str(cm.exception))
@@ -173,7 +173,7 @@ class LoadErrorTest(BaseClassTest):
         with self.assertRaises(ValueError) as cm:
             Loader(bq_client=None).load(
                 source='query', destination='bq',
-                query='select 3', data_name='e0')
+                data_name='e0', query='select 3')
         self.assertEqual('bq_client must be given if bq is used',
                          str(cm.exception))
 
@@ -212,8 +212,8 @@ class LoadErrorTest(BaseClassTest):
     def test_raise_error_if_syntax_error_in_query(self):
         with self.assertRaises(BadRequest):
             loaders.gpl20.load(
-                source='query', destination='bq', data_name='a3',
-                query='selectt 3')
+                source='query', destination='bq',
+                query='selectt 3', data_name='a3')
 
     def test_raise_error_if_write_empty_and_already_exists(self):
         populate_bq()
