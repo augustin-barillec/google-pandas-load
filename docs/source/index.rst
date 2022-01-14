@@ -21,7 +21,7 @@ and chosen between BigQuery, Storage, a local folder and a pandas DataFrame.
 
 Acknowledgements
 ----------------
-I am grateful to my employer Ysance_ for providing me the resources to develop this library and for allowing me
+I am grateful to my employer Easyence_ for providing me the resources to develop this library and for allowing me
 to publish it.
 
 Installation
@@ -168,7 +168,7 @@ Table of Contents
    API
    history
 
-.. _Ysance: https://www.ysance.com/data-services/fr/home/
+.. _Easyence: https://www.easyence.com/
 
 .. _Google Cloud Client Library for Python: https://github.com/googleapis/google-cloud-python#google-cloud-python-client
 .. _pandas: https://pandas.pydata.org/pandas-docs/stable/index.html

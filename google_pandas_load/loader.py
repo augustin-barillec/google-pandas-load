@@ -203,7 +203,7 @@ class Loader:
         c2 = os.path.isfile(local_file_path)
         return c1 and c2
 
-    def list_blobs(self, data_name: str):
+    def list_blobs(self, data_name: str) -> List[storage.Blob]:
         """Return the data named_ data_name in Storage as a list of
         Storage blobs.
         """
@@ -215,14 +215,14 @@ class Loader:
         res = sorted(res, key=lambda b: b.name)
         return res
 
-    def list_blob_uris(self, data_name: str):
+    def list_blob_uris(self, data_name: str) -> List[str]:
         """Return the list of the uris of Storage blobs forming the data
         named_ data_name in Storage.
         """
         return [self._bucket_uri + '/' + blob.name
                 for blob in self.list_blobs(data_name)]
 
-    def list_local_file_paths(self, data_name: str):
+    def list_local_file_paths(self, data_name: str) -> List[str]:
         """Return the list of the paths of the files forming the data named_
         data_name in local.
         """
@@ -236,29 +236,29 @@ class Loader:
                 res.append(path)
         return sorted(res)
 
-    def exist_in_bq(self, data_name: str):
+    def exist_in_bq(self, data_name: str) -> bool:
         """Return True if data named_ data_name exist in BigQuery."""
         table_id = self._build_table_id(data_name)
         return utils.table_exists(self._bq_client, table_id)
 
-    def exist_in_gs(self, data_name: str):
+    def exist_in_gs(self, data_name: str) -> bool:
         """Return True if data named_ data_name exist in Storage."""
         return len(self.list_blobs(data_name)) > 0
 
-    def exist_in_local(self, data_name: str):
+    def exist_in_local(self, data_name: str) -> bool:
         """Return True if data named_ data_name exist in local."""
         return len(self.list_local_file_paths(data_name)) > 0
 
-    def delete_in_bq(self, data_name: str):
+    def delete_in_bq(self, data_name: str) -> None:
         """Delete the data named_ data_name in BigQuery."""
         table_id = self._build_table_id(data_name)
         self._bq_client.delete_table(table_id, not_found_ok=True)
 
-    def delete_in_gs(self, data_name: str):
+    def delete_in_gs(self, data_name: str) -> None:
         """Delete the data named_ data_name in Storage."""
         self._bucket.delete_blobs(blobs=self.list_blobs(data_name))
 
-    def delete_in_local(self, data_name: str):
+    def delete_in_local(self, data_name: str) -> None:
         """Delete the data named_ data_name in local."""
         for local_file_path in self.list_local_file_paths(data_name):
             os.remove(local_file_path)
