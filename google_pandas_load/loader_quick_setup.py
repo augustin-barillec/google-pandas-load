@@ -80,6 +80,6 @@ class LoaderQuickSetup(Loader):
             separator=separator)
 
     @property
-    def project_id(self):
+    def project_id(self) -> str:
         """str: The project_id given in the argument."""
         return self._project_id

@@ -91,7 +91,7 @@ Bugfixes
 
 API Changes
 ^^^^^^^^^^^
-* The parameters delete_in_bq, delete_in_gs and delete_in_local of
+* The parameters delete_in_bq, delete_in_gs and delete_in_local
   of :meth:`google_pandas_load.loader.Loader.load` do not exist anymore.
   There were used to choose if data had to be deleted once loaded to the next
   location. The new behavior is now the following:

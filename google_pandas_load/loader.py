@@ -2,7 +2,7 @@ import os
 import logging
 import pandas
 from argparse import Namespace
-from typing import List, Dict, Any, Optional
+from typing import List, Dict, Any, Union, Optional
 from datetime import datetime
 from copy import deepcopy
 from google.cloud import bigquery, storage
@@ -71,46 +71,46 @@ class Loader:
         self._separator = separator
 
     @property
-    def bq_client(self):
+    def bq_client(self) -> bigquery.Client:
         """google.cloud.bigquery.client.Client: The bq_client given in the
         argument.
         """
         return self._bq_client
 
     @property
-    def dataset_id(self):
+    def dataset_id(self) -> str:
         """str: The dataset_id given in the argument."""
         return self._dataset_id
 
     @property
-    def dataset_name(self):
+    def dataset_name(self) -> str:
         """str: The name of the dataset_id given in the argument."""
         return self._dataset_name
 
     @property
-    def gs_client(self):
+    def gs_client(self) -> storage.Client:
         """google.cloud.storage.client.Client: The Storage client given in
         the argument."""
         return self._gs_client
 
     @property
-    def bucket_name(self):
+    def bucket_name(self) -> str:
         """str: The bucket_name given in the argument."""
         return self._bucket_name
 
     @property
-    def bucket(self):
+    def bucket(self) -> storage.Bucket:
         """google.cloud.storage.bucket.Bucket: The bucket given in the
         argument."""
         return self._bucket
 
     @property
-    def gs_dir_path(self):
+    def gs_dir_path(self) -> str:
         """str: The gs_dir_path given in the argument."""
         return self._gs_dir_path
 
     @property
-    def local_dir_path(self):
+    def local_dir_path(self) -> str:
         """str: The local_dir_path given in the argument."""
         return self._local_dir_path
 
@@ -555,7 +555,8 @@ class Loader:
         res.query_costs = query_costs
         return res
 
-    def mload(self, configs: List[LoadConfig]):
+    def mload(self, configs: List[LoadConfig]
+              ) -> List[Union[pandas.DataFrame, None]]:
         """Execute several load jobs specified by the configurations.
         The prefix m means multi.
 
@@ -675,7 +676,8 @@ class Loader:
             parse_dates: Optional[List[str]] = None,
             date_cols: Optional[List[str]] = None,
             timestamp_cols: Optional[List[str]] = None,
-            bq_schema: Optional[List[bigquery.SchemaField]] = None):
+            bq_schema: Optional[List[bigquery.SchemaField]] = None
+    ) -> Union[pandas.DataFrame, None]:
         """Execute a load job whose configuration is specified by the
         arguments.
 
@@ -719,8 +721,8 @@ class Loader:
             **By default, pre-existing data is deleted !**
 
             Since data is not renamed  (see previous note), the loader deletes
-            any prior data having the same name before loading the new data.
-            This is done in order to prevent any conflict.
+            any prior data having the same `name <named_>`_ before loading
+            the new data. This is done in order to prevent any conflict.
 
             To illustrate this process, consider the following load:
 
@@ -733,9 +735,9 @@ class Loader:
                     dataframe=df)
 
             Before populating a BigQuery table, data goes through a local
-            folder and Storage. If some existing data was named ‘a0’ prior the
-            load job in any of these three locations, it is going to be erased
-            first.
+            folder and Storage. If some existing data was `named <named_>`_
+            a0 prior the load job in any of these three locations, it is
+            going to be erased first.
 
             Default behaviour can only be modified in the BigQuery location.
             To do this, the default value of the write_disposition parameter
