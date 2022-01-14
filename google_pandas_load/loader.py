@@ -2,7 +2,7 @@ import os
 import logging
 import pandas
 from argparse import Namespace
-from typing import Dict, List
+from typing import List, Dict, Any, Optional
 from datetime import datetime
 from copy import deepcopy
 from google.cloud import bigquery, storage
@@ -40,13 +40,13 @@ class Loader:
 
     def __init__(
             self,
-            bq_client: bigquery.Client = None,
-            dataset_id: str = None,
-            gs_client: storage.Client = None,
-            bucket_name: str = None,
-            gs_dir_path: str = None,
-            local_dir_path: str = None,
-            separator: str = '|'):
+            bq_client: Optional[bigquery.Client] = None,
+            dataset_id: Optional[str] = None,
+            gs_client: Optional[storage.Client] = None,
+            bucket_name: Optional[str] = None,
+            gs_dir_path: Optional[str] = None,
+            local_dir_path: Optional[str] = None,
+            separator: Optional[str] = '|'):
 
         self._bq_client = bq_client
         self._dataset_id = dataset_id
@@ -580,16 +580,17 @@ class Loader:
             source: str,
             destination: str,
 
-            data_name: str = None,
-            query: str = None,
-            dataframe: pandas.DataFrame = None,
+            data_name: Optional[str] = None,
+            query: Optional[str] = None,
+            dataframe: Optional[pandas.DataFrame] = None,
 
-            write_disposition: str = bigquery.WriteDisposition.WRITE_TRUNCATE,
-            dtype: Dict[str, any] = None,
-            parse_dates: List[str] = None,
-            date_cols: List[str] = None,
-            timestamp_cols: List[str] = None,
-            bq_schema: List[bigquery.SchemaField] = None):
+            write_disposition: Optional[str] =
+            bigquery.WriteDisposition.WRITE_TRUNCATE,
+            dtype: Optional[Dict[str, Any]] = None,
+            parse_dates: Optional[List[str]] = None,
+            date_cols: Optional[List[str]] = None,
+            timestamp_cols: Optional[List[str]] = None,
+            bq_schema: Optional[List[bigquery.SchemaField]] = None):
         """It works like  :meth:`google_pandas_load.loader.Loader.load` but
         also returns extra informations about the data and the load job's
         execution. The prefix x is for extra.
@@ -664,16 +665,17 @@ class Loader:
             source: str,
             destination: str,
 
-            data_name: str = None,
-            query: str = None,
-            dataframe: pandas.DataFrame = None,
+            data_name: Optional[str] = None,
+            query: Optional[str] = None,
+            dataframe: Optional[pandas.DataFrame] = None,
 
-            write_disposition: str = bigquery.WriteDisposition.WRITE_TRUNCATE,
-            dtype: Dict[str, any] = None,
-            parse_dates: List[str] = None,
-            date_cols: List[str] = None,
-            timestamp_cols: List[str] = None,
-            bq_schema: List[bigquery.SchemaField] = None):
+            write_disposition: Optional[str] =
+            bigquery.WriteDisposition.WRITE_TRUNCATE,
+            dtype: Optional[Dict[str, Any]] = None,
+            parse_dates: Optional[List[str]] = None,
+            date_cols: Optional[List[str]] = None,
+            timestamp_cols: Optional[List[str]] = None,
+            bq_schema: Optional[List[bigquery.SchemaField]] = None):
         """Execute a load job whose configuration is specified by the
         arguments.
 

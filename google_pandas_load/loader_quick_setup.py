@@ -1,5 +1,7 @@
 from google.cloud import bigquery, storage
+from google.auth.credentials import Credentials
 from google_pandas_load.loader import Loader
+from typing import Optional
 
 
 class LoaderQuickSetup(Loader):
@@ -48,13 +50,13 @@ class LoaderQuickSetup(Loader):
 
     def __init__(
             self,
-            project_id=None,
-            dataset_name=None,
-            bucket_name=None,
-            gs_dir_path=None,
-            credentials=None,
-            local_dir_path=None,
-            separator='|'):
+            project_id: Optional[str] = None,
+            dataset_name: Optional[str] = None,
+            bucket_name: Optional[str] = None,
+            gs_dir_path: Optional[str] = None,
+            credentials: Optional[Credentials] = None,
+            local_dir_path: Optional[str] = None,
+            separator: Optional[str] = '|'):
         self._project_id = project_id
         bq_client = None
         dataset_id = None

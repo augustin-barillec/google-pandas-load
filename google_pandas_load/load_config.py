@@ -1,6 +1,6 @@
 import pandas
 from argparse import Namespace
-from typing import Dict, List
+from typing import List, Dict, Any, Optional
 from google.cloud import bigquery
 from pandas.api.types import infer_dtype
 from google_pandas_load import utils
@@ -24,16 +24,17 @@ class LoadConfig:
             source: str,
             destination: str,
 
-            data_name: str = None,
-            query: str = None,
-            dataframe: pandas.DataFrame = None,
+            data_name: Optional[str] = None,
+            query: Optional[str] = None,
+            dataframe: Optional[pandas.DataFrame] = None,
 
-            write_disposition: str = bigquery.WriteDisposition.WRITE_TRUNCATE,
-            dtype: Dict[str, any] = None,
-            parse_dates: List[str] = None,
-            date_cols: List[str] = None,
-            timestamp_cols: List[str] = None,
-            bq_schema: List[bigquery.SchemaField] = None):
+            write_disposition: Optional[str] =
+            bigquery.WriteDisposition.WRITE_TRUNCATE,
+            dtype: Optional[Dict[str, Any]] = None,
+            parse_dates: Optional[List[str]] = None,
+            date_cols: Optional[List[str]] = None,
+            timestamp_cols: Optional[List[str]] = None,
+            bq_schema: Optional[List[bigquery.SchemaField]] = None):
 
         self.source = source
         self.destination = destination
@@ -106,7 +107,7 @@ class LoadConfig:
     @staticmethod
     def bq_schema_inferred_from_dataframe(
             dataframe: pandas.DataFrame,
-            date_cols: List[str] = None,
+            date_cols: Optional[List[str]] = None,
             timestamp_cols: List[str] = None) -> List[bigquery.SchemaField]:
         """Return a BigQuery schema that is inferred from a pandas dataframe.
 
