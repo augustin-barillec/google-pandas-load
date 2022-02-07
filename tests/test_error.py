@@ -101,6 +101,17 @@ class LoaderSetupErrorTest(BaseClassTest):
         msg = 'gs_client must not be None if bucket_name is not None'
         self.assertEqual(msg, str(cm.exception))
 
+    def test_raise_error_if_dataset_id_not_contain_exactly_one_dot(self):
+        msg = 'dataset_id must contain exactly one dot'
+
+        with self.assertRaises(ValueError) as cm:
+            Loader(dataset_id='ab')
+        self.assertEqual(msg, str(cm.exception))
+
+        with self.assertRaises(ValueError) as cm:
+            Loader(dataset_id='a.b.c')
+        self.assertEqual(msg, str(cm.exception))
+
     def test_raise_error_if_gs_dir_path_is_empty_string(self):
         with self.assertRaises(ValueError) as cm:
             Loader(gs_dir_path='')

@@ -50,6 +50,7 @@ class Loader:
 
         self._bq_client = bq_client
         self._dataset_id = dataset_id
+        self._check_dataset_id_format()
         self._check_bq_client_dataset_id_consistency()
         if self._dataset_id is not None:
             self._dataset_name = self._dataset_id.split('.')[-1]
@@ -113,6 +114,12 @@ class Loader:
     def local_dir_path(self) -> str:
         """str: The local_dir_path given in the argument."""
         return self._local_dir_path
+
+    def _check_dataset_id_format(self):
+        if self._dataset_id is not None:
+            if self._dataset_id.count('.') != 1:
+                msg = 'dataset_id must contain exactly one dot'
+                raise ValueError(msg)
 
     def _check_bq_client_dataset_id_consistency(self):
         c1 = self._bq_client is None
