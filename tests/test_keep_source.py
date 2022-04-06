@@ -1,4 +1,4 @@
-from tests.utils.populate import populate_bq, populate_gs, \
+from tests.utils.populate import populate_dataset, populate_bucket, \
     populate_local
 from tests.utils import ids
 from tests.utils import exist
@@ -8,18 +8,18 @@ from tests.utils.base_class import BaseClassTest
 
 class KeepSourceTest(BaseClassTest):
 
-    def test_keep_source_in_bq(self):
-        populate_bq()
+    def test_keep_source_in_dataset(self):
+        populate_dataset()
         loaders.gpl21.load(
-            source='bq',
+            source='dataset',
             destination='local',
             data_name='a7')
         self.assertTrue(exist.table_exists('a7'))
 
-    def test_keep_source_in_gs(self):
-        populate_gs()
+    def test_keep_source_in_bucket(self):
+        populate_bucket()
         loaders.gpl20.load(
-            source='gs',
+            source='bucket',
             destination='dataframe',
             data_name='a10')
         blob_name = ids.build_blob_name_2('a10')
@@ -29,7 +29,7 @@ class KeepSourceTest(BaseClassTest):
         populate_local()
         loaders.gpl10.load(
             source='local',
-            destination='gs',
+            destination='bucket',
             data_name='a10')
         local_file_path = ids.build_local_file_path_0('a10')
         self.assertTrue(exist.local_file_exists(local_file_path))

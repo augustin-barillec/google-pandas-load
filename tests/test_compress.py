@@ -13,16 +13,16 @@ def is_gz_file(filepath):
 
 class CompressTest(BaseClassTest):
 
-    def test_compress_query_to_gs(self):
+    def test_compress_query_to_bucket(self):
         loaders.gpl20.load(
             source='query',
-            destination='gs',
+            destination='bucket',
             query='select 5',
             data_name='b100')
         blob_name = ids.build_blob_name_2('b100-000000000000.csv.gz')
         local_file_path = ids.build_local_file_path_1(
             'b100-000000000000.csv.gz')
-        load.gs_to_local(blob_name, local_file_path)
+        load.bucket_to_local(blob_name, local_file_path)
         self.assertTrue(is_gz_file(local_file_path))
 
     def test_compress_dataframe_to_local(self):

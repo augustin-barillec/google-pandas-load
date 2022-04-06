@@ -1,5 +1,5 @@
 import pandas
-from tests.utils.load import multi_query_to_bq, dataframe_to_gs, \
+from tests.utils.load import multi_query_to_dataset, dataframe_to_bucket, \
     dataframe_to_local
 from tests.utils import ids
 
@@ -25,15 +25,15 @@ blob_names = blob_names_0 + blob_names_1 + blob_names_2
 local_file_paths = local_file_paths_0 + local_file_paths_1
 
 
-def populate_bq():
+def populate_dataset():
     queries = [f"select '{n}_bq' as x" for n in table_names]
-    multi_query_to_bq(queries, table_names)
+    multi_query_to_dataset(queries, table_names)
 
 
-def populate_gs():
+def populate_bucket():
     for basename, name in zip(blob_basenames, blob_names):
-        df = pandas.DataFrame(data={'x': [f'{basename}_gs']})
-        dataframe_to_gs(df, name)
+        df = pandas.DataFrame(data={'x': [f'{basename}_bucket']})
+        dataframe_to_bucket(df, name)
 
 
 def populate_local():
@@ -43,6 +43,6 @@ def populate_local():
 
 
 def populate():
-    populate_bq()
-    populate_gs()
+    populate_dataset()
+    populate_bucket()
     populate_local()

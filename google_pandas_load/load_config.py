@@ -16,7 +16,8 @@ class LoadConfig:
     simultaneously load jobs as follows:
 
     - A list of LoadConfig is built.
-    - The list is passed to :meth:`google_pandas_load.loader.Loader.mload`.
+    - The list is passed
+      to :meth:`google_pandas_load.loader.Loader.multi_load`.
     """
 
     def __init__(
@@ -73,14 +74,14 @@ class LoadConfig:
 
     def _check_source_value(self):
         if self.source not in SOURCE_LOCATIONS:
-            msg = ("source must be one of 'query' or 'bq' or 'gs' or 'local' "
-                   "or 'dataframe")
+            msg = ("source must be one of 'query' or 'dataset' "
+                   "or 'bucket' or 'local' or 'dataframe")
             raise ValueError(msg)
 
     def _check_destination_value(self):
         if self.destination not in DESTINATION_LOCATIONS:
-            msg = ("destination must be one of 'bq' or 'gs' or 'local' "
-                   "or 'dataframe'")
+            msg = ("destination must be one of 'dataset' "
+                   "or 'bucket' or 'local' or 'dataframe'")
             raise ValueError(msg)
 
     def _check_source_different_from_destination(self):
@@ -88,12 +89,12 @@ class LoadConfig:
             raise ValueError('source must be different from destination')
 
     def _check_if_data_name_missing(self):
-        condition_1 = self.data_name is None
-        condition_2 = self.source in MIDDLE_LOCATIONS
-        condition_3 = self.destination in MIDDLE_LOCATIONS
-        if condition_1 and (condition_2 or condition_3):
+        c1 = self.data_name is None
+        c2 = self.source in MIDDLE_LOCATIONS
+        c3 = self.destination in MIDDLE_LOCATIONS
+        if c1 and (c2 or c3):
             msg = ("data_name must be given if source or destination is "
-                   "one of 'bq' or 'gs' or 'local'")
+                   "one of 'dataset' or 'bucket' or 'local'")
             raise ValueError(msg)
 
     def _check_if_query_missing(self):
@@ -177,7 +178,7 @@ class LoadConfig:
             date_cols=self._date_cols)
 
     @property
-    def _names_of_atomic_functions_to_call(self):
+    def _names_atomic_functions_to_call(self):
         index_source = LOCATIONS.index(self.source)
         index_destination = LOCATIONS.index(self.destination)
         rindex_source = REVERSED_LOCATIONS.index(self.source)
@@ -189,7 +190,7 @@ class LoadConfig:
             return utils.build_atomic_function_names(
                 REVERSED_LOCATIONS[rindex_source: rindex_destination + 1])
 
-    def _query_to_bq_config(self):
+    def _query_to_dataset_config(self):
         return Namespace(
             query=self._query,
             write_disposition=self._write_disposition)
@@ -202,16 +203,16 @@ class LoadConfig:
     def _dataframe_to_local_config(self):
         return Namespace(dataframe=self._dataframe)
 
-    def _gs_to_bq_config(self):
+    def _bucket_to_dataset_config(self):
         return Namespace(
             schema=self._bq_schema,
             write_disposition=self._write_disposition)
 
     @property
-    def sliced_config(self):
+    def sliced(self):
         res = dict()
-        for i, n in enumerate(self._names_of_atomic_functions_to_call):
-            atomic_config_name = '_' + n + '_config'
+        for i, n in enumerate(self._names_atomic_functions_to_call):
+            atomic_config_name = f'_{n}_config'
             if atomic_config_name in dir(self):
                 res[n] = getattr(self, atomic_config_name)()
             else:

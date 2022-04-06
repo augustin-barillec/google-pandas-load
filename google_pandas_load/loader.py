@@ -1,8 +1,7 @@
 import os
 import logging
 import pandas
-from argparse import Namespace
-from typing import List, Dict, Any, Union, Optional
+from typing import List, Dict, Any, Optional
 from datetime import datetime
 from copy import deepcopy
 from google.cloud import bigquery, storage
@@ -19,8 +18,8 @@ logger = logging.getLogger(name=__name__)
 
 class Loader:
     """Wrapper for transferring big data between A and B where A and B are
-    distinct and chosen between a BigQuery dataset, a directory in a Storage
-    bucket, a local folder and the RAM (with type pandas.DataFrame).
+    distinct and chosen between a BigQuery dataset, a Storage bucket directory,
+    a local directory and the RAM (with type pandas.DataFrame).
 
     The Loader bundles all the parameters that do not change often when
     executing load jobs during a workflow.
@@ -28,14 +27,21 @@ class Loader:
     Args:
         bq_client (google.cloud.bigquery.client.Client, optional): Client to
             manages connections to the BigQuery API.
-        dataset_id (str, optional): The dataset's id.
+        dataset_id (str, optional): The dataset id.
         gs_client (google.cloud.storage.client.Client, optional): Client for
-            interacting with the Google Cloud Storage API.
-        bucket_name (str, optional): The bucket's name.
-        gs_dir_path (str, optional): The path of the directory in the bucket.
-        local_dir_path (str, optional): The path of the local folder.
+            interacting with the Storage API.
+        bucket_name (str, optional): The bucket name.
+        bucket_dir_path (str, optional): The bucket directory path.
+        local_dir_path (str, optional): The local directory path.
         separator (str, optional): The character which separates the columns of
             the data. Defaults to '|'.
+        chunk_size (int, optional): The chunk size of a Storage blob created
+            when data is uploaded. See
+            `here <https://googleapis.dev/python/storage/latest/blobs.html>`_
+            for more information. Defaults to 2**28.
+        timeout (int, optional): The amount of time, in seconds, to wait
+            for the server response when uploading a Storage blob.
+            Defaults to 60.
     """
 
     def __init__(
@@ -44,9 +50,11 @@ class Loader:
             dataset_id: Optional[str] = None,
             gs_client: Optional[storage.Client] = None,
             bucket_name: Optional[str] = None,
-            gs_dir_path: Optional[str] = None,
+            bucket_dir_path: Optional[str] = None,
             local_dir_path: Optional[str] = None,
-            separator: Optional[str] = '|'):
+            separator: Optional[str] = '|',
+            chunk_size: Optional[int] = 2 ** 28,
+            timeout: Optional[int] = 60):
 
         self._bq_client = bq_client
         self._dataset_id = dataset_id
@@ -57,62 +65,60 @@ class Loader:
         self._gs_client = gs_client
         self._bucket_name = bucket_name
         self._check_gs_client_bucket_name_consistency()
-        self._gs_dir_path = gs_dir_path
-        self._check_gs_dir_path_format()
+        self._bucket_dir_path = bucket_dir_path
+        self._check_bucket_dir_path_format()
         if self._gs_client is not None:
             self._bucket = self._gs_client.bucket(self._bucket_name)
             self._bucket_uri = f'gs://{self._bucket_name}'
-            if self._gs_dir_path is None:
+            if self._bucket_dir_path is None:
                 self._blob_name_prefix = ''
             else:
-                self._blob_name_prefix = self._gs_dir_path + '/'
+                self._blob_name_prefix = self._bucket_dir_path + '/'
             self._blob_uri_prefix = (
                     self._bucket_uri + '/' + self._blob_name_prefix)
         self._local_dir_path = local_dir_path
         self._separator = separator
+        self._chunk_size = chunk_size
+        self._timeout = timeout
 
     @property
     def bq_client(self) -> bigquery.Client:
-        """google.cloud.bigquery.client.Client: The bq_client given in the
-        argument.
-        """
+        """google.cloud.bigquery.client.Client: The BigQuery client."""
         return self._bq_client
 
     @property
     def dataset_id(self) -> str:
-        """str: The dataset_id given in the argument."""
+        """str: The dataset id."""
         return self._dataset_id
 
     @property
     def dataset_name(self) -> str:
-        """str: The name of the dataset_id given in the argument."""
+        """str: The dataset name."""
         return self._dataset_name
 
     @property
     def gs_client(self) -> storage.Client:
-        """google.cloud.storage.client.Client: The Storage client given in
-        the argument."""
+        """google.cloud.storage.client.Client: The Storage client."""
         return self._gs_client
 
     @property
     def bucket_name(self) -> str:
-        """str: The bucket_name given in the argument."""
+        """str: The bucket name."""
         return self._bucket_name
 
     @property
     def bucket(self) -> storage.Bucket:
-        """google.cloud.storage.bucket.Bucket: The bucket given in the
-        argument."""
+        """google.cloud.storage.bucket.Bucket: The bucket."""
         return self._bucket
 
     @property
-    def gs_dir_path(self) -> str:
-        """str: The gs_dir_path given in the argument."""
-        return self._gs_dir_path
+    def bucket_dir_path(self) -> str:
+        """str: The bucket directory path."""
+        return self._bucket_dir_path
 
     @property
     def local_dir_path(self) -> str:
-        """str: The local_dir_path given in the argument."""
+        """str: The local directory path."""
         return self._local_dir_path
 
     def _check_dataset_id_format(self):
@@ -141,16 +147,16 @@ class Loader:
             msg = 'gs_client must not be None if bucket_name is not None'
             raise ValueError(msg)
 
-    def _check_gs_dir_path_format(self):
-        if self._gs_dir_path is not None:
-            if self._gs_dir_path == '':
-                msg = 'gs_dir_path must not be the empty string'
+    def _check_bucket_dir_path_format(self):
+        if self._bucket_dir_path is not None:
+            if self._bucket_dir_path == '':
+                msg = 'bucket_dir_path must not be the empty string'
                 raise ValueError(msg)
-            if self._gs_dir_path.startswith('/'):
-                msg = 'gs_dir_path must not start with /'
+            if self._bucket_dir_path.startswith('/'):
+                msg = 'bucket_dir_path must not start with /'
                 raise ValueError(msg)
-            if self._gs_dir_path.endswith('/'):
-                msg = 'gs_dir_path must not end with /'
+            if self._bucket_dir_path.endswith('/'):
+                msg = 'bucket_dir_path must not end with /'
                 raise ValueError(msg)
 
     @staticmethod
@@ -169,15 +175,15 @@ class Loader:
 
     def _check_if_bq_client_missing(self, atomic_function_names):
         names = atomic_function_names
-        if self._bq_client is None and any('bq' in n for n in names):
-            raise ValueError('bq_client must be given if bq is used')
+        if self._bq_client is None and any('dataset' in n for n in names):
+            raise ValueError('bq_client must be given if dataset is used')
 
     def _check_if_gs_client_missing(self, atomic_function_names):
         names = atomic_function_names
-        if self._gs_client is None and any('gs' in n for n in names):
-            raise ValueError('gs_client must be given if gs is used')
+        if self._gs_client is None and any('bucket' in n for n in names):
+            raise ValueError('gs_client must be given if bucket is used')
 
-    def _check_if_local_dir_missing(self, atomic_function_names):
+    def _check_if_local_dir_path_missing(self, atomic_function_names):
         names = atomic_function_names
         if self._local_dir_path is None and any('local' in n for n in names):
             raise ValueError('local_dir_path must be given if local is used')
@@ -212,8 +218,7 @@ class Loader:
 
     def list_blobs(self, data_name: str) -> List[storage.Blob]:
         """Return the data named_ data_name in Storage as a list of
-        Storage blobs.
-        """
+        Storage blobs."""
         self._check_data_name_not_contain_slash(data_name)
         data_name_prefix = self._blob_name_prefix + data_name
         candidates = list(self._gs_client.list_blobs(
@@ -224,15 +229,13 @@ class Loader:
 
     def list_blob_uris(self, data_name: str) -> List[str]:
         """Return the list of the uris of Storage blobs forming the data
-        named_ data_name in Storage.
-        """
+        named_ data_name in Storage."""
         return [self._bucket_uri + '/' + blob.name
                 for blob in self.list_blobs(data_name)]
 
     def list_local_file_paths(self, data_name: str) -> List[str]:
         """Return the list of the paths of the files forming the data named_
-        data_name in local.
-        """
+        data_name in local."""
         self._check_data_name_not_contain_slash(data_name)
         res = []
         for basename in os.listdir(self._local_dir_path):
@@ -243,12 +246,12 @@ class Loader:
                 res.append(path)
         return sorted(res)
 
-    def exist_in_bq(self, data_name: str) -> bool:
+    def exist_in_dataset(self, data_name: str) -> bool:
         """Return True if data named_ data_name exist in BigQuery."""
         table_id = self._build_table_id(data_name)
         return utils.table_exists(self._bq_client, table_id)
 
-    def exist_in_gs(self, data_name: str) -> bool:
+    def exist_in_bucket(self, data_name: str) -> bool:
         """Return True if data named_ data_name exist in Storage."""
         return len(self.list_blobs(data_name)) > 0
 
@@ -256,12 +259,12 @@ class Loader:
         """Return True if data named_ data_name exist in local."""
         return len(self.list_local_file_paths(data_name)) > 0
 
-    def delete_in_bq(self, data_name: str) -> None:
+    def delete_in_dataset(self, data_name: str) -> None:
         """Delete the data named_ data_name in BigQuery."""
         table_id = self._build_table_id(data_name)
         self._bq_client.delete_table(table_id, not_found_ok=True)
 
-    def delete_in_gs(self, data_name: str) -> None:
+    def delete_in_bucket(self, data_name: str) -> None:
         """Delete the data named_ data_name in Storage."""
         self._bucket.delete_blobs(blobs=self.list_blobs(data_name))
 
@@ -295,8 +298,11 @@ class Loader:
         blob_name = self._blob_name_prefix + local_file_basename
         blob = storage.Blob(
             name=blob_name,
-            bucket=self._bucket)
-        blob.upload_from_filename(filename=local_file_path)
+            bucket=self._bucket,
+            chunk_size=self._chunk_size)
+        blob.upload_from_filename(
+            filename=local_file_path,
+            timeout=self._timeout)
 
     def _local_file_to_dataframe(
             self, local_file_path, dtype, parse_dates):
@@ -315,19 +321,19 @@ class Loader:
             index=False,
             compression='gzip')
 
-    def _query_to_bq_job(self, query_to_bq_config):
-        config = query_to_bq_config
+    def _query_to_dataset_job(self, query_to_dataset_config):
+        config = query_to_dataset_config
         job_config = bigquery.QueryJobConfig()
         job_config.destination = self._build_table_id(
-            query_to_bq_config.data_name)
+            query_to_dataset_config.data_name)
         job_config.write_disposition = config.write_disposition
         job = self._bq_client.query(
             query=config.query,
             job_config=job_config)
         return job
 
-    def _bq_to_gs_job(self, bq_to_gs_config):
-        config = bq_to_gs_config
+    def _dataset_to_bucket_job(self, dataset_to_bucket_config):
+        config = dataset_to_bucket_config
         source = self._build_table_id(config.data_name)
         job_config = bigquery.ExtractJobConfig()
         job_config.compression = 'GZIP'
@@ -340,8 +346,8 @@ class Loader:
             job_config=job_config)
         return job
 
-    def _gs_to_bq_job(self, gs_to_bq_config):
-        config = gs_to_bq_config
+    def _bucket_to_dataset_job(self, bucket_to_dataset_config):
+        config = bucket_to_dataset_config
         job_config = bigquery.LoadJobConfig()
         job_config.field_delimiter = self._separator
         if config.schema is None:
@@ -358,14 +364,14 @@ class Loader:
             job_config=job_config)
         return job
 
-    def _gs_to_local(self, gs_to_local_config):
-        data_name = gs_to_local_config.data_name
+    def _bucket_to_local(self, bucket_to_local_config):
+        data_name = bucket_to_local_config.data_name
         blobs = self.list_blobs(data_name)
         for b in blobs:
             self._blob_to_local_file(b)
 
-    def _local_to_gs(self, local_to_gs_config):
-        data_name = local_to_gs_config.data_name
+    def _local_to_bucket(self, local_to_bucket_config):
+        data_name = local_to_bucket_config.data_name
         local_file_paths = self.list_local_file_paths(data_name)
         for p in local_file_paths:
             self._local_file_to_blob(p)
@@ -395,7 +401,7 @@ class Loader:
     def _launch_bq_client_job(self, atomic_config):
         s = atomic_config.source
         d = atomic_config.destination
-        assert s == 'bq' or d == 'bq'
+        assert s == 'dataset' or d == 'dataset'
         job = getattr(self, f'_{s}_to_{d}_job')(atomic_config)
         return job
 
@@ -416,159 +422,51 @@ class Loader:
 
     def _execute_same_type_loads(self, atomic_configs):
         assert len(atomic_configs) > 0
-
         configs = atomic_configs
-
         source = configs[0].source
         destination = configs[0].destination
-
         assert all([c.source == source and c.destination == destination
                     for c in configs])
-
         atomic_function_name = f'{source}_to_{destination}'
-
         self._log(f'Starting {source} to {destination}...')
-
         start_timestamp = datetime.now()
-
         if source in MIDDLE_LOCATIONS:
             for c in configs:
                 self._check_if_data_in_source(c)
-
         if destination in DESTINATIONS_TO_ALWAYS_CLEAR:
             for c in configs:
                 self._clear_destination(c)
-
         try:
             if atomic_function_name in BQ_CLIENT_ATOMIC_FUNCTION_NAMES:
-                load_results = self._execute_bq_client_loads(configs)
+                res = self._execute_bq_client_loads(configs)
             else:
-                load_results = self._execute_local_loads(configs)
+                res = self._execute_local_loads(configs)
         finally:
             if source in MIDDLE_LOCATIONS:
                 for c in configs:
                     if c.clear_source:
                         self._clear_source(c)
-
         end_timestamp = datetime.now()
         duration = (end_timestamp - start_timestamp).seconds
-
-        res = {'load_results': load_results, 'duration': duration}
-
-        if atomic_function_name != 'query_to_bq':
+        if atomic_function_name != 'query_to_dataset':
             msg = f'Ended {source} to {destination} [{duration}s]'
             self._log(msg)
         else:
-            jobs = load_results
+            jobs = res
             total_bytes_billed_list = [j.total_bytes_billed for j in jobs]
             costs = [round(tbb / 10 ** 12 * 5, 5)
                      for tbb in total_bytes_billed_list]
             cost = sum(costs)
-            msg = f'Ended query to bq [{duration}s, {cost}$]'
+            msg = f'Ended query to dataset [{duration}s, {cost}$]'
             self._log(msg)
-            res['cost'] = cost
-            res['costs'] = costs
-
         return res
 
-    def xmload(self, configs: List[LoadConfig]):
-        """It works like :meth:`google_pandas_load.loader.Loader.mload` but
-        also returns extra informations about the data and the mload
-        job's execution.
-
-        Args:
-            configs (list of google_pandas_load.LoadConfig):
-                See :class:`google_pandas_load.load_config.LoadConfig` for
-                the format of one configuration.
-
-        Returns:
-            args.Namespace: The xmload result res with the following
-            attributes:
-
-            - res.load_results (list of (pandas.DataFrame or NoneType)):
-              A list of load results.
-
-            - res.data_names (list of str): The names of the data.
-              The i-th element is the data_name attached to
-              configs[i], either given as an argument or generated by the
-              loader.
-
-            - res.duration (int): The mload job's duration.
-
-            - res.durations (args.Namespace): A report res.durations
-              providing the duration of each step of the mload job.
-
-            - res.query_cost (float or NoneType): The query cost in
-              US dollars of the query_to_bq part if any.
-
-            - res.query_costs (list of (float or NoneType)): The query
-              costs in US dollars of the mload job. The i-th element is the
-              query cost of the load job configured by configs[i].
-        """
-        self._check_if_configs_is_a_list(configs)
-        self._check_if_configs_empty(configs)
-        configs = [deepcopy(config) for config in configs]
-        nb_configs = len(configs)
-        self._fill_missing_data_names(configs)
-        data_names = [config.data_name for config in configs]
-        utils.check_no_prefix(data_names)
-        sliced_configs = [config.sliced_config for config in configs]
-        names_of_atomic_functions_to_call = utils.union_keys(sliced_configs)
-
-        self._check_if_bq_client_missing(names_of_atomic_functions_to_call)
-        self._check_if_gs_client_missing(names_of_atomic_functions_to_call)
-        self._check_if_local_dir_missing(names_of_atomic_functions_to_call)
-
-        load_results = dict()
-        duration = 0
-        durations = dict()
-        query_cost = None
-        query_costs = dict()
-        for n in ATOMIC_FUNCTION_NAMES:
-            n_indices = []
-            n_configs = []
-            for i, s in enumerate(sliced_configs):
-                if n in s:
-                    n_indices.append(i)
-                    n_configs.append(s[n])
-            if len(n_configs) == 0:
-                durations[n] = None
-                continue
-            n_res = self._execute_same_type_loads(n_configs)
-            n_load_results = n_res['load_results']
-            n_duration = n_res['duration']
-            if n == 'query_to_bq':
-                n_cost = n_res['cost']
-                n_costs = n_res['costs']
-                query_cost = n_cost
-                for i in n_indices:
-                    query_costs[i] = n_costs.pop(0)
-            elif n == 'local_to_dataframe':
-                for i in n_indices:
-                    load_results[i] = n_load_results.pop(0)
-            durations[n] = n_duration
-            duration += n_duration
-
-        load_results = [load_results.get(i) for i in range(nb_configs)]
-        durations = Namespace(**durations)
-        query_costs = [query_costs.get(i) for i in range(nb_configs)]
-
-        res = Namespace()
-        res.load_results = load_results
-        res.data_names = data_names
-        res.duration = duration
-        res.durations = durations
-        res.query_cost = query_cost
-        res.query_costs = query_costs
-        return res
-
-    def mload(self, configs: List[LoadConfig]
-              ) -> List[Union[pandas.DataFrame, None]]:
+    def multi_load(self, configs: List[LoadConfig]):
         """Execute several load jobs specified by the configurations.
-        The prefix m means multi.
 
-        The BigQuery Client executes simultaneously the query_to_bq parts
-        (resp. the bq_to_gs and gs_to_bq parts) from the configurations.
+        The BigQuery Client executes simultaneously the query_to_dataset parts
+        (resp. the dataset_to_bucket and bucket_to_dataset parts) from the
+        configurations.
 
         Args:
             configs (list of google_pandas_load.load_config.LoadConfig):
@@ -581,91 +479,33 @@ class Loader:
             by configs[i]. See :meth:`google_pandas_load.loader.Loader.load`
             for the format of one load result.
         """
-        return self.xmload(configs=configs).load_results
+        self._check_if_configs_is_a_list(configs)
+        self._check_if_configs_empty(configs)
+        configs = [deepcopy(config) for config in configs]
+        nb_configs = len(configs)
+        self._fill_missing_data_names(configs)
+        data_names = [config.data_name for config in configs]
+        utils.check_no_prefix(data_names)
+        sliced_configs = [config.sliced for config in configs]
+        names_atomic_functions_to_call = utils.union_keys(sliced_configs)
 
-    def xload(
-            self,
-            source: str,
-            destination: str,
+        self._check_if_bq_client_missing(names_atomic_functions_to_call)
+        self._check_if_gs_client_missing(names_atomic_functions_to_call)
+        self._check_if_local_dir_path_missing(names_atomic_functions_to_call)
 
-            data_name: Optional[str] = None,
-            query: Optional[str] = None,
-            dataframe: Optional[pandas.DataFrame] = None,
-
-            write_disposition: Optional[str] =
-            bigquery.WriteDisposition.WRITE_TRUNCATE,
-            dtype: Optional[Dict[str, Any]] = None,
-            parse_dates: Optional[List[str]] = None,
-            date_cols: Optional[List[str]] = None,
-            timestamp_cols: Optional[List[str]] = None,
-            bq_schema: Optional[List[bigquery.SchemaField]] = None):
-        """It works like  :meth:`google_pandas_load.loader.Loader.load` but
-        also returns extra informations about the data and the load job's
-        execution. The prefix x is for extra.
-
-        Returns:
-            argparse.Namespace: A xload result res with the following
-            attributes:
-
-            - res.load_result (pandas.DataFrame or NoneType): The result
-              of the load job.
-
-            - res.data_name (str): The `name <named_>`_ of the loaded data.
-
-            - res.duration (int): The load job's duration in seconds.
-
-            - res.durations (argparse.Namespace): A report providing the
-              durations of each step of the load job. It has the following
-              attributes:
-
-              * res.durations.query_to_bq (int or NoneType): the duration in
-                seconds of the query_to_bq part if any.
-
-              * res.durations.bq_to_gs (int or NoneType): the duration in
-                seconds of the bq_to_gs part if any.
-
-              * res.durations.gs_to_local (int or NoneType): the duration in
-                seconds of the gs_to_local part if any.
-
-              * res.durations.local_to_dataframe (int or NoneType): the
-                duration in seconds of the local_to_dataframe part if any.
-
-              * res.durations.dataframe_to_local (int or NoneType): the
-                duration in seconds of the dataframe_to_local part if any.
-
-              * res.durations.local_to_gs (int or NoneType): the duration in
-                seconds of the local_to_gs part if any.
-
-              * res.durations.gs_to_bq (int or NoneType): the duration in
-                seconds of the gs_to_bq part if any.
-
-            - res.query_cost (float or NoneType): The query cost in US dollars
-              of the query_to_bq part if any.
-         """
-
-        config = LoadConfig(
-            source=source,
-            destination=destination,
-
-            data_name=data_name,
-            query=query,
-            dataframe=dataframe,
-
-            write_disposition=write_disposition,
-            dtype=dtype,
-            parse_dates=parse_dates,
-            date_cols=date_cols,
-            timestamp_cols=timestamp_cols,
-            bq_schema=bq_schema)
-
-        xmload_res = self.xmload(configs=[config])
-
-        res = Namespace()
-        res.load_result = xmload_res.load_results[0]
-        res.data_name = xmload_res.data_names[0]
-        res.duration = xmload_res.duration
-        res.durations = xmload_res.durations
-        res.query_cost = xmload_res.query_cost
+        res = dict()
+        for n in ATOMIC_FUNCTION_NAMES:
+            indexed_atomic_configs = [
+                (i, s[n]) for i, s in enumerate(sliced_configs) if n in s]
+            if len(indexed_atomic_configs) == 0:
+                continue
+            atomic_configs = [iac[1] for iac in indexed_atomic_configs]
+            n_res = self._execute_same_type_loads(atomic_configs)
+            if n == 'local_to_dataframe':
+                indexes = [iac[0] for iac in indexed_atomic_configs]
+                for i in indexes:
+                    res[i] = n_res.pop(0)
+        res = [res.get(i) for i in range(nb_configs)]
         return res
 
     def load(
@@ -683,23 +523,18 @@ class Loader:
             parse_dates: Optional[List[str]] = None,
             date_cols: Optional[List[str]] = None,
             timestamp_cols: Optional[List[str]] = None,
-            bq_schema: Optional[List[bigquery.SchemaField]] = None
-    ) -> Union[pandas.DataFrame, None]:
+            bq_schema: Optional[List[bigquery.SchemaField]] = None):
         """Execute a load job whose configuration is specified by the
-        arguments.
+        arguments. The data is loaded from source to destination.
 
-        The data is loaded from source to destination.
-
-        The valid values for source are 'query', 'bq', 'gs', 'local' and
-        'dataframe'.
-
-        The valid values for the destination are 'bq', 'gs', 'local' and
-        'dataframe'.
+        The valid values for source are 'query', 'dataset', 'bucket', 'local'
+        and 'dataframe'. The valid values for the destination are 'dataset',
+        'bucket', 'local' and 'dataframe'.
 
         Downloading follows the path:
-        'query' -> 'bq' -> 'gs' -> 'local' -> 'dataframe'.
-
-        Uploading follows the path: 'dataframe' -> 'local' -> 'gs' -> 'bq'.
+        'query' -> 'dataset' -> 'bucket' -> 'local' -> 'dataframe'.
+        Uploading follows the path:
+        'dataframe' -> 'local' -> 'bucket' -> 'dataset'.
 
         .. _named:
 
@@ -707,9 +542,9 @@ class Loader:
             **What is the data named data_name?**
 
             - in BigQuery: the table in the dataset whose name is data_name.
-            - in Storage: the blobs at the root of the bucket folder and
+            - in Storage: the blobs at the root of the bucket directory and
               whose basename begins with data_name.
-            - in local: the files at the root of the local folder and
+            - in local: the files at the root of the local directory and
               whose basename begins with data_name.
 
             This definition is motivated by the fact that BigQuery splits a big
@@ -737,12 +572,12 @@ class Loader:
 
                 loader.load(
                     source='dataframe',
-                    destination='bq',
+                    destination='dataset',
                     data_name='a0',
                     dataframe=df)
 
             Before populating a BigQuery table, data goes through a local
-            folder and Storage. If some existing data was `named <named_>`_
+            directory and a bucket. If some existing data was `named <named_>`_
             a0 prior the load job in any of these three locations, it is
             going to be erased first.
 
@@ -751,8 +586,10 @@ class Loader:
             has to be changed.
 
         Args:
-            source (str): one of 'query', 'bq', 'gs', 'local', 'dataframe'.
-            destination (str): one of 'bq', 'gs', 'local', 'dataframe'.
+            source (str): one of 'query', 'dataset', 'bucket', 'local',
+                'dataframe'.
+            destination (str): one of 'dataset', 'bucket', 'local',
+                'dataframe'.
 
             data_name (str, optional): The `name <named_>`_ of the data. If
                 not passed, a name is generated by concatenating the current
@@ -780,14 +617,15 @@ class Loader:
                 indicate which columns of a pandas dataframe should have the
                 BigQuery type TIMESTAMP.
             bq_schema (list of google.cloud.bigquery.schema.SchemaField, optional):
-                The table's schema in BigQuery. Used when destination = 'bq'
-                and source != 'query'. When source = 'query', the bq_schema is
-                inferred from the query. If source is one of 'gs' or 'local'
-                and the bq_schema is not passed, it falls back to an inferred
-                value from the CSV with `google.cloud.bigquery.job.LoadJobConfig.autodetect <https://googleapis.dev/python/bigquery/latest/generated/google.cloud.bigquery.job.LoadJobConfig.html#google.cloud.bigquery.job.LoadJobConfig>`__.
-                If source = 'dataframe' and the
-                bq_schema is not passed, it falls back to an inferred value
-                from the dataframe with `this method <LoadConfig.html#google_pandas_load.load_config.LoadConfig.bq_schema_inferred_from_dataframe>`__.
+                The table schema in BigQuery. Used when
+                destination = 'dataset' and source != 'query'. When
+                source = 'query', the bq_schema is inferred from the query.
+                If source is one of 'bucket' or 'local' and the bq_schema is
+                not passed, it falls back to an inferred value from the CSV
+                with `google.cloud.bigquery.job.LoadJobConfig.autodetect <https://googleapis.dev/python/bigquery/latest/generated/google.cloud.bigquery.job.LoadJobConfig.html#google.cloud.bigquery.job.LoadJobConfig>`__.
+                If source = 'dataframe' and the bq_schema is not passed, it
+                falls back to an inferred value from the dataframe with
+                `this method <LoadConfig.html#google_pandas_load.load_config.LoadConfig.bq_schema_inferred_from_dataframe>`__.
 
         Returns:
             pandas.DataFrame or NoneType: The result of the load job:
@@ -797,17 +635,19 @@ class Loader:
             - In all other cases, it returns None.
         """
 
-        return self.xload(
-                    source=source,
-                    destination=destination,
+        config = LoadConfig(
+            source=source,
+            destination=destination,
 
-                    data_name=data_name,
-                    query=query,
-                    dataframe=dataframe,
+            data_name=data_name,
+            query=query,
+            dataframe=dataframe,
 
-                    write_disposition=write_disposition,
-                    dtype=dtype,
-                    parse_dates=parse_dates,
-                    date_cols=date_cols,
-                    timestamp_cols=timestamp_cols,
-                    bq_schema=bq_schema).load_result
+            write_disposition=write_disposition,
+            dtype=dtype,
+            parse_dates=parse_dates,
+            date_cols=date_cols,
+            timestamp_cols=timestamp_cols,
+            bq_schema=bq_schema)
+
+        return self.multi_load(configs=[config])[0]

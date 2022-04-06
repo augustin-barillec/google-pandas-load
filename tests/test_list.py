@@ -1,5 +1,5 @@
 import os
-from tests.utils.populate import populate_gs, populate_local
+from tests.utils.populate import populate_bucket, populate_local
 from tests.utils import ids
 from tests.utils import loaders
 from tests.utils.base_class import BaseClassTest
@@ -8,7 +8,7 @@ from tests.utils.base_class import BaseClassTest
 class ListTest(BaseClassTest):
 
     def test_list_blobs(self):
-        populate_gs()
+        populate_bucket()
 
         self.assertEqual(
             sorted([ids.build_blob_name_0(f'a{i}') for i in range(7, 12)]),
@@ -26,20 +26,20 @@ class ListTest(BaseClassTest):
         self.assertEqual([], loaders.gpl10.list_blobs('su'))
 
     def test_list_blob_uris(self):
-        populate_gs()
+        populate_bucket()
 
         blob_names = [ids.build_blob_name_0(f'a{i}') for i in range(7, 12)]
-        blob_uris = [ids.build_gs_uri(n) for n in blob_names]
+        blob_uris = [ids.build_bucket_uri(n) for n in blob_names]
         blob_uris = sorted(blob_uris)
         self.assertEqual(blob_uris, loaders.gpl00.list_blob_uris('a'))
 
         blob_names = [ids.build_blob_name_1(f'a{i}') for i in range(10, 13)]
-        blob_uris = [ids.build_gs_uri(n) for n in blob_names]
+        blob_uris = [ids.build_bucket_uri(n) for n in blob_names]
         blob_uris = sorted(blob_uris)
         self.assertEqual(blob_uris, loaders.gpl10.list_blob_uris('a1'))
 
         blob_names = [ids.build_blob_name_2(f'a{i}') for i in range(9, 14)]
-        blob_uris = [ids.build_gs_uri(n) for n in blob_names]
+        blob_uris = [ids.build_bucket_uri(n) for n in blob_names]
         blob_uris = sorted(blob_uris)
         self.assertEqual(blob_uris, loaders.gpl20.list_blob_uris('a'))
 

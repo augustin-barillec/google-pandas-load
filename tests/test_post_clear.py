@@ -24,7 +24,7 @@ class PostClearTest(BaseClassTest):
         self.assertFalse(exist.blob_exists(blob_name))
         self.assertFalse(exist.local_file_exists(local_file_path))
 
-    def test_post_clear_dataframe_to_bq(self):
+    def test_post_clear_dataframe_to_dataset(self):
         populate()
         blob_name = ids.build_blob_name_2('a10')
         local_file_path = ids.build_local_file_path_0('a10')
@@ -32,7 +32,7 @@ class PostClearTest(BaseClassTest):
         self.assertTrue(exist.local_file_exists(local_file_path))
         loaders.gpl20.load(
             source='dataframe',
-            destination='bq',
+            destination='dataset',
             dataframe=pandas.DataFrame(data={'x': [1]}),
             data_name='a10')
         self.assertFalse(exist.blob_exists(blob_name))

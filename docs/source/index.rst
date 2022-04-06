@@ -2,13 +2,13 @@ google-pandas-load documentation
 ================================
 
 .. image:: https://img.shields.io/pypi/v/google-pandas-load
-    :target: https://pypi.org/project/google-pandas-load/
+    :target: https://pypi.org/project/google-pandas-load
 
 .. image:: https://img.shields.io/pypi/l/google-pandas-load.svg
-    :target: https://pypi.org/project/google-pandas-load/
+    :target: https://pypi.org/project/google-pandas-load
 
 .. image:: https://img.shields.io/pypi/pyversions/google-pandas-load.svg
-    :target: https://pypi.org/project/google-pandas-load/
+    :target: https://pypi.org/project/google-pandas-load
 
 .. image:: https://codecov.io/gh/augustin-barillec/google-pandas-load/branch/master/graph/badge.svg
     :target: https://codecov.io/gh/augustin-barillec/google-pandas-load
@@ -17,7 +17,7 @@ google-pandas-load documentation
     :target: https://pepy.tech/project/google-pandas-load
 
 google-pandas-load is a wrapper library for transferring big data from A to B, where A and B are distinct
-and chosen between BigQuery, Storage, a local folder and a pandas DataFrame.
+and chosen between BigQuery, Storage, a local directory and a pandas DataFrame.
 
 Acknowledgements
 ----------------
@@ -74,23 +74,23 @@ Transfer data seamlessly from and to various locations:
     # Upload the result to BigQuery.
     gpl.load(
         source='dataframe',
-        destination='bq',
+        destination='dataset',
         dataframe=df,
         data_name='a0')
 
     # Extract the data to Storage.
     gpl.load(
-        source='bq',
-        destination='gs',
+        source='dataset',
+        destination='bucket',
         data_name='a0')
 
-    # Download the data to the local folder
+    # Download the data to the local directory.
     gpl.load(
-        source='gs',
+        source='bucket',
         destination='local',
         data_name='a0')
 
-Launch simultaneously several load jobs with massive parallelization of the query_to_bq and bq_to_gs steps.
+Launch simultaneously several load jobs with massive parallelization of the query_to_dataset and dataset_to_bucket steps.
 This is made possible by BigQuery.
 
 .. code-block:: python
@@ -107,9 +107,8 @@ This is made possible by BigQuery.
             data_name=f'b{i}')
         configs.append(config)
 
-    # Launch all the load jobs
-    # at the same time.
-    gpl.mload(configs=configs)
+    # Launch all the load jobs at the same time.
+    gpl.multi_load(configs=configs)
 
 Main features
 -------------
@@ -117,7 +116,6 @@ Main features
 - Transfer data seamlessly from and to various locations.
 - Launch several load jobs simultaneously.
 - Massive parallelization of the cloud steps with BigQuery.
-- Monitor query costs and step durations of load jobs.
 
 Limitation
 -----------

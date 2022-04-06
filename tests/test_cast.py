@@ -82,7 +82,7 @@ class CastTest(BaseClassTest):
 
         loaders.gpl11.load(
             source='dataframe',
-            destination='bq',
+            destination='dataset',
             dataframe=df0,
             data_name='a100',
             date_cols=['a', 'q'],
@@ -141,7 +141,7 @@ class CastTest(BaseClassTest):
         load.dataframe_to_local(df0, ids.build_local_file_path_1('a100'))
         loaders.gpl01.load(
             source='local',
-            destination='bq',
+            destination='dataset',
             data_name='a100')
         table_id = ids.build_table_id('a100')
         table = bq_client.get_table(table_id)
@@ -171,7 +171,7 @@ class CastTest(BaseClassTest):
                      bigquery.SchemaField(name='y', field_type='FLOAT')]
         loaders.gpl21.load(
             source='dataframe',
-            destination='bq',
+            destination='dataset',
             dataframe=df0,
             data_name='a100',
             bq_schema=bq_schema)
@@ -185,10 +185,10 @@ class CastTest(BaseClassTest):
         df0 = pandas.DataFrame(data={'x': ['1'], 'y': [3]})
         bq_schema = [bigquery.SchemaField(name='x', field_type='FLOAT'),
                      bigquery.SchemaField(name='y', field_type='FLOAT')]
-        load.dataframe_to_gs(df0, ids.build_blob_name_2('a100'))
+        load.dataframe_to_bucket(df0, ids.build_blob_name_2('a100'))
         loaders.gpl21.load(
-            source='gs',
-            destination='bq',
+            source='bucket',
+            destination='dataset',
             data_name='a100',
             bq_schema=bq_schema)
         table_id = ids.build_table_id('a100')

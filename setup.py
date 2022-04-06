@@ -13,9 +13,9 @@ setup(
     author='Augustin Barillec',
     author_email='augustin.barillec@ysance.com',
     description=(
-        'Wrapper for transferring big data from A to B, where A and B are '
-        'distinct and chosen between BigQuery, Storage, a local folder and '
-        'a pandas DataFrame.'),
+        'Wrapper for transferring data from A to B, where A and B are '
+        'distinct and chosen between BigQuery, Storage, a local directory '
+        'and pandas.'),
     long_description=README,
     install_requires=REQUIREMENTS,
     packages=find_namespace_packages(include=['google_pandas_load*']),
@@ -26,5 +26,4 @@ setup(
         "Programming Language :: Python :: 3.9",
         "Programming Language :: Python :: 3.10",
         "License :: OSI Approved :: MIT License",
-        "OPERATING SYSTEM :: POSIX :: LINUX"]
-)
+        "OPERATING SYSTEM :: POSIX :: LINUX"])
