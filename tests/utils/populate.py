@@ -26,7 +26,7 @@ local_file_paths = local_file_paths_0 + local_file_paths_1
 
 
 def populate_dataset():
-    queries = [f"select '{n}_bq' as x" for n in table_names]
+    queries = [f"select '{n}_dataset' as x" for n in table_names]
     multi_query_to_dataset(queries, table_names)
 
 

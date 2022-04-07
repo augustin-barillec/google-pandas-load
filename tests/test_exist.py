@@ -1,4 +1,5 @@
-from tests.utils.populate import populate_dataset, populate_bucket, populate_local
+from tests.utils.populate import \
+    populate_dataset, populate_bucket, populate_local
 from tests.utils import loaders
 from tests.utils.base_class import BaseClassTest
 

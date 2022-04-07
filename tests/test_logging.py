@@ -22,7 +22,8 @@ class LoggingTest(BaseClassTest):
             self.assertEqual(2, len(records))
             log = formatter.format(records[0])
             self.assertEqual(
-                'google_pandas_load.loader # DEBUG # Starting local to bucket...',
+                'google_pandas_load.loader # DEBUG # '
+                'Starting local to bucket...',
                 log)
 
     def test_local_to_dataframe(self):

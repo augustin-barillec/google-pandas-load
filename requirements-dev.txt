@@ -1,7 +1,8 @@
 -r requirements.txt
 
+db-dtypes==1.*
 twine==4.*
 coverage==6.*
 codecov==2.*
-jupyter==1.*
 sphinx==4.*
+jupyter==1.*

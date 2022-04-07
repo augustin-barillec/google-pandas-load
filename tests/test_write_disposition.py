@@ -17,7 +17,7 @@ class WriteDispositionTest(BaseClassTest):
                 destination='dataset',
                 data_name='s10')
         computed = load.dataset_to_dataframe('s10')
-        self.assertTrue(expected.equals(computed))
+        self.assert_pandas_equal(expected, computed)
 
     def test_write_truncate_query_to_dataset(self):
         expected = pandas.DataFrame(data={'x': [1]})
@@ -29,7 +29,7 @@ class WriteDispositionTest(BaseClassTest):
                 data_name='s11',
                 write_disposition='WRITE_TRUNCATE')
         computed = load.dataset_to_dataframe('s11')
-        self.assertTrue(expected.equals(computed))
+        self.assert_pandas_equal(expected, computed)
 
     def test_write_empty_local_to_dataset(self):
         expected = pandas.DataFrame(data={'x': [1]})
@@ -41,7 +41,7 @@ class WriteDispositionTest(BaseClassTest):
             data_name='s12',
             write_disposition='WRITE_EMPTY')
         computed = load.dataset_to_dataframe('s12')
-        self.assertTrue(expected.equals(computed))
+        self.assert_pandas_equal(expected, computed)
 
     def test_write_append_dataframe_to_dataset(self):
         expected = pandas.DataFrame(data={'x': [0, 1]})
@@ -59,4 +59,4 @@ class WriteDispositionTest(BaseClassTest):
             data_name='s13',
             write_disposition='WRITE_APPEND')
         computed = load.dataset_to_dataframe('s13')
-        self.assertTrue(expected.equals(computed))
+        self.assert_pandas_equal(expected, computed)

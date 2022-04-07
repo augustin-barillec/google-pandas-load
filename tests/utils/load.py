@@ -69,8 +69,8 @@ def local_to_dataframe(local_file_path):
     return pandas.read_csv(local_file_path, sep=separator)
 
 
-def dataframe_to_local(df, local_file_path):
-    return df.to_csv(local_file_path, sep=separator, index=False)
+def dataframe_to_local(dataframe, local_file_path):
+    return dataframe.to_csv(local_file_path, sep=separator, index=False)
 
 
 def query_to_dataframe(query):
@@ -82,9 +82,9 @@ def dataset_to_dataframe(table_name):
     return bq_client.list_rows(table_id).to_dataframe()
 
 
-def multi_dataframe_to_dataset(dfs, table_names):
+def multi_dataframe_to_dataset(dataframes, table_names):
     jobs = []
-    for df, n in zip(dfs, table_names):
+    for df, n in zip(dataframes, table_names):
         table_id = build_table_id(n)
         job_config = bigquery.LoadJobConfig()
         job = bq_client.load_table_from_dataframe(
@@ -95,8 +95,8 @@ def multi_dataframe_to_dataset(dfs, table_names):
     wait_for_jobs(jobs)
 
 
-def dataframe_to_bucket(df, blob_name):
-    csv = df.to_csv(sep=separator, index=False)
+def dataframe_to_bucket(dataframe, blob_name):
+    csv = dataframe.to_csv(sep=separator, index=False)
     storage.Blob(name=blob_name, bucket=bucket).upload_from_string(csv)
 
 

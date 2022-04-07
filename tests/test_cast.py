@@ -22,7 +22,7 @@ class CastTest(BaseClassTest):
             destination='dataframe',
             query=query,
             dtype={'x': str, 'y': float})
-        self.assertTrue(expected.equals(computed))
+        self.assert_pandas_equal(expected, computed)
 
     def test_parse_dates_query_to_dataframe(self):
         datetime1 = datetime(2012, 11, 14, 14, 32, 30, tzinfo=pytz.UTC)
@@ -42,7 +42,7 @@ class CastTest(BaseClassTest):
             query=query,
             parse_dates=['x', 'y', 'z'])
         computed['z'] = computed['z'].apply(lambda z: z.date())
-        self.assertTrue(expected.equals(computed))
+        self.assert_pandas_equal(expected, computed)
 
     def test_bq_schema_inferred_with_source_dataframe(self):
         datetime1 = datetime.strptime('2012-11-14 14:32:30',
@@ -135,8 +135,7 @@ class CastTest(BaseClassTest):
                 'o': [pandas.NA, '1'],
                 'p': [datetime1, pandas.NA],
                 'q': [pandas.NA, date2]
-            }
-        )
+            })
 
         load.dataframe_to_local(df0, ids.build_local_file_path_1('a100'))
         loaders.gpl01.load(

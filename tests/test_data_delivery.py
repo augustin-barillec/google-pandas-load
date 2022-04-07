@@ -2,7 +2,6 @@ import numpy
 import pandas
 from google.cloud import bigquery
 from google_pandas_load import LoadConfig
-from tests.utils.df_equal import normalize_equal
 from tests.utils.resources import dataset_id
 from tests.utils.populate import populate_dataset, populate_bucket, \
     populate_local, populate
@@ -23,7 +22,7 @@ class DataDeliveryTest(BaseClassTest):
             query="select 3 as x, 'a' as y union all select 2 as x, 'b' as y",
             data_name='a0')
         computed = load.dataset_to_dataframe('a0')
-        self.assertTrue(normalize_equal(expected, computed))
+        self.assert_pandas_equal(expected, computed)
 
     def test_query_to_dataframe(self):
         expected = pandas.DataFrame(data={'x': [3, 2], 'y': ['a', 'b']})
@@ -32,7 +31,7 @@ class DataDeliveryTest(BaseClassTest):
             source='query',
             destination='dataframe',
             query="select 3 as x, 'a' as y union all select 2 as x, 'b' as y")
-        self.assertTrue(normalize_equal(expected, computed))
+        self.assert_pandas_equal(expected, computed)
 
     def test_dataset_to_bucket(self):
         expected = pandas.DataFrame(data={'x': ['a8_dataset']})
@@ -43,7 +42,7 @@ class DataDeliveryTest(BaseClassTest):
             data_name='a8')
         blob_name = ids.build_blob_name_2('a8-000000000000.csv.gz')
         computed = load.bucket_to_dataframe(blob_name, decompress=True)
-        self.assertTrue(expected.equals(computed))
+        self.assert_pandas_equal(expected, computed)
 
     def test_dataset_to_local(self):
         expected = pandas.DataFrame(data={'x': [1, 2, 3, 4]})
@@ -54,11 +53,11 @@ class DataDeliveryTest(BaseClassTest):
             data_name='b1')
         local_file_path = ids.build_local_file_path_1('b1-000000000000.csv.gz')
         computed = load.local_to_dataframe(local_file_path)
-        self.assertTrue(normalize_equal(expected, computed))
+        self.assert_pandas_equal(expected, computed)
 
     def test_bucket_to_dataset(self):
         expected = pandas.DataFrame(data={'x': [
-            f'a{i}_gs' for i in range(7, 12)]})
+            f'a{i}_bucket' for i in range(7, 12)]})
         populate_dataset()
         populate_bucket()
         loaders.gpl01.load(
@@ -67,7 +66,7 @@ class DataDeliveryTest(BaseClassTest):
             data_name='a',
             bq_schema=[bigquery.SchemaField(name='x', field_type='STRING')])
         computed = load.dataset_to_dataframe('a')
-        self.assertTrue(normalize_equal(expected, computed))
+        self.assert_pandas_equal(expected, computed)
 
     def test_bucket_to_dataframe(self):
         expected = pandas.DataFrame(data={'x': [3, 2], 'y': ['a', 'b']})
@@ -78,7 +77,7 @@ class DataDeliveryTest(BaseClassTest):
             source='bucket',
             destination='dataframe',
             data_name='a10')
-        self.assertTrue(normalize_equal(expected, computed))
+        self.assert_pandas_equal(expected, computed)
 
     def test_local_to_bucket(self):
         expected = pandas.DataFrame(data={'y': ['c', 'a', 'b']})
@@ -90,7 +89,7 @@ class DataDeliveryTest(BaseClassTest):
             data_name='b')
         blob_name = ids.build_blob_name_2('b')
         computed = load.bucket_to_dataframe(blob_name, decompress=False)
-        self.assertTrue(normalize_equal(expected, computed))
+        self.assert_pandas_equal(expected, computed)
 
     def test_local_to_dataframe(self):
         expected = pandas.DataFrame(data={'x': [
@@ -100,7 +99,7 @@ class DataDeliveryTest(BaseClassTest):
             source='local',
             destination='dataframe',
             data_name='a1')
-        self.assertTrue(normalize_equal(expected, computed))
+        self.assert_pandas_equal(expected, computed)
 
     def test_dataframe_to_dataset(self):
         expected = pandas.DataFrame(data={'x': [1, 2, 3], 'y': [1, 2, 4]})
@@ -111,7 +110,7 @@ class DataDeliveryTest(BaseClassTest):
             dataframe=expected,
             data_name='a1')
         computed = load.dataset_to_dataframe('a1')
-        self.assertTrue(normalize_equal(expected, computed))
+        self.assert_pandas_equal(expected, computed)
 
     def test_dataframe_to_bucket(self):
         expected = pandas.DataFrame(data={'x': [1, 2, 3], 'y': [1, 2, 4]})
@@ -123,7 +122,7 @@ class DataDeliveryTest(BaseClassTest):
             data_name='a1')
         blob_name = ids.build_blob_name_0('a1.csv.gz')
         computed = load.bucket_to_dataframe(blob_name, decompress=True)
-        self.assertTrue(normalize_equal(expected, computed))
+        self.assert_pandas_equal(expected, computed)
 
     def test_upload_download(self):
         expected = pandas.DataFrame(data={'x': [1], 'y': [3]})
@@ -138,7 +137,7 @@ class DataDeliveryTest(BaseClassTest):
             source='query',
             destination='dataframe',
             query=query)
-        self.assertTrue(expected.equals(computed))
+        self.assert_pandas_equal(expected, computed)
 
     def test_download_upload(self):
         expected = pandas.DataFrame(data={'x': [3, 2]})
@@ -152,7 +151,7 @@ class DataDeliveryTest(BaseClassTest):
             dataframe=df0,
             data_name='b1')
         computed = load.dataset_to_dataframe('b1')
-        self.assertTrue(normalize_equal(expected, computed))
+        self.assert_pandas_equal(expected, computed)
 
     def test_config_repeated(self):
         expected = pandas.DataFrame(data={'x': [3]})
@@ -163,7 +162,7 @@ class DataDeliveryTest(BaseClassTest):
             query='select 3 as x')
         computeds = loaders.gpl01.multi_load(configs=[config] * 3)
         for computed in computeds:
-            self.assertTrue(expected.equals(computed))
+            self.assert_pandas_equal(expected, computed)
 
     def test_heterogeneous_configs(self):
         expected1 = pandas.DataFrame(data={'x': [3, 10]})
@@ -190,15 +189,15 @@ class DataDeliveryTest(BaseClassTest):
         self.assertTrue(load_results[2] is None)
 
         computed1 = load.dataset_to_dataframe('a10')
-        self.assertTrue(normalize_equal(expected1, computed1))
+        self.assert_pandas_equal(expected1, computed1)
 
         computed2 = load_results[1]
-        self.assertTrue(expected2.equals(computed2))
+        self.assert_pandas_equal(expected2, computed2)
 
         blob_name = ids.build_blob_name_2('a11-000000000000.csv.gz')
         computed3 = load.bucket_to_dataframe(
             blob_name, decompress=True)
-        self.assertTrue(expected3.equals(computed3))
+        self.assert_pandas_equal(expected3, computed3)
 
     def test_no_skip_blank_lines(self):
         df0 = pandas.DataFrame(data={'x': [3, numpy.nan]})
@@ -223,4 +222,4 @@ class DataDeliveryTest(BaseClassTest):
             configs.append(config)
         computed = loaders.gpl01.multi_load(configs)
         for df, dg in zip(expecteds, computed):
-            self.assertTrue(normalize_equal(df, dg))
+            self.assert_pandas_equal(df, dg)
