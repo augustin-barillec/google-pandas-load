@@ -180,7 +180,7 @@ class CastTest(BaseClassTest):
         self.assertEqual(('x', 'FLOAT'), (f1.name, f1.field_type))
         self.assertEqual(('y', 'FLOAT'), (f2.name, f2.field_type))
 
-    def test_bq_schema_given_with_source_gs(self):
+    def test_bq_schema_given_with_source_bucket(self):
         df0 = pandas.DataFrame(data={'x': ['1'], 'y': [3]})
         bq_schema = [bigquery.SchemaField(name='x', field_type='FLOAT'),
                      bigquery.SchemaField(name='y', field_type='FLOAT')]

@@ -42,10 +42,13 @@ API Changes
 
 Bugfixes
 ^^^^^^^^
+* The subfolders used to be considered as data in the bucket directory.
+  It is not the case anymore: only the blobs at the root of the bucket directory
+  are taken into account.
 
-* The subfolders used to be considered as data in the bucket directory and in
-  the local directory. It is not the case anymore: only the files are taken
-  into account.
+* The subfolders used to be considered as data in the local directory.
+  It is not the case anymore: only the files at the root of the local directory
+  are taken into account.
 
 4.0.0 (2021-04-13)
 ------------------
