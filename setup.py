@@ -11,7 +11,7 @@ setup(
     name='google-pandas-load',
     version=version,
     author='Augustin Barillec',
-    author_email='augustin.barillec@ysance.com',
+    author_email='augustin.barillec@gmail.com',
     description=(
         'Wrapper for transferring data from A to B, where A and B are '
         'distinct and chosen between BigQuery, Storage, a local directory '

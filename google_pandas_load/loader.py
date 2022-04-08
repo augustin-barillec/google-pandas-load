@@ -17,7 +17,7 @@ logger = logging.getLogger(name=__name__)
 
 
 class Loader:
-    """Wrapper for transferring big data between A and B where A and B are
+    """Wrapper for transferring data between A and B where A and B are
     distinct and chosen between a BigQuery dataset, a Storage bucket directory,
     a local directory and the RAM (with type pandas.DataFrame).
 
