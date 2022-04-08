@@ -26,4 +26,9 @@ setup(
         "Programming Language :: Python :: 3.9",
         "Programming Language :: Python :: 3.10",
         "License :: OSI Approved :: MIT License",
-        "OPERATING SYSTEM :: POSIX :: LINUX"])
+        "OPERATING SYSTEM :: POSIX :: LINUX"],
+    project_urls={
+        'Documentation':
+            'https://google-pandas-load.readthedocs.io/en/latest/',
+        'Source': 'https://github.com/augustin-barillec/google-pandas-load'}
+)

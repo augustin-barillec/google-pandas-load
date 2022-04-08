@@ -3,6 +3,50 @@
 History
 =======
 
+5.0.0 (2021-04-13)
+------------------
+
+API Changes
+^^^^^^^^^^^
+
+* google-cloud-bigquery==3.* is now required.
+
+* google-cloud-storage==2.* is now required.
+
+* The available sources are now: 'query', 'dataset', 'bucket', 'local', 'dataframe'.
+
+* The available destinations are now: 'dataset', 'bucket', 'local', 'dataframe'.
+
+* :class:`google_pandas_load.loader.Loader` parameters are now: bq_client,
+  dataset_id, gs_client, bucket_name, bucket_dir_path, local_dir_path,
+  separator, chunk_size, timeout.
+
+* :class:`google_pandas_load.loader.LoaderQuickSetup` parameters are now: project_id,
+  dataset_name, bucket_name, bucket_dir_path, credentials, local_dir_path,
+  separator, chunk_size, timeout.
+
+* :class:`google_pandas_load.loader.Loader` getter functions are now:
+  bq_client, dataset_id, dataset_name, gs_client, bucket_name, bucket,
+  bucket_dir_path and local_dir_path.
+
+* :class:`google_pandas_load.loader.Loader` getter functions are now:
+  project_id, dataset_id, dataset_name, gs_client, bucket_name, bucket,
+  bucket_dir_path and local_dir_path.
+
+* xmload and xload are removed from loader's methods.
+
+* The mload method is renamed multi_load.
+
+* Now, skip_blank_lines=False when using pandas.read_csv. This function is used
+  to load data from 'local' to 'dataframe'.
+
+Bugfixes
+^^^^^^^^
+
+* The subfolders used to be considered as data in the bucket directory and in
+  the local directory. It is not the case anymore: only the files are taken
+  into account.
+
 4.0.0 (2021-04-13)
 ------------------
 
