@@ -26,7 +26,7 @@ class Loader:
 
     Args:
         bq_client (google.cloud.bigquery.client.Client, optional): Client to
-            manages connections to the BigQuery API.
+            manage connections to the BigQuery API.
         dataset_id (str, optional): The dataset id.
         gs_client (google.cloud.storage.client.Client, optional): Client for
             interacting with the Storage API.
@@ -53,7 +53,7 @@ class Loader:
             bucket_dir_path: Optional[str] = None,
             local_dir_path: Optional[str] = None,
             separator: Optional[str] = '|',
-            chunk_size: Optional[int] = 2 ** 28,
+            chunk_size: Optional[int] = 2**28,
             timeout: Optional[int] = 60):
 
         self._bq_client = bq_client
@@ -578,7 +578,7 @@ class Loader:
 
             Before populating a BigQuery table, data goes through a local
             directory and a bucket. If some existing data was `named <named_>`_
-            a0 prior the load job in any of these three locations, it is
+            a0 prior to the load job in any of these three locations, it is
             going to be erased first.
 
             Default behaviour can only be modified in the BigQuery location.

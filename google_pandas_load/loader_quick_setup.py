@@ -58,7 +58,7 @@ class LoaderQuickSetup(Loader):
             credentials: Optional[Credentials] = None,
             local_dir_path: Optional[str] = None,
             separator: Optional[str] = '|',
-            chunk_size: Optional[int] = 2 ** 28,
+            chunk_size: Optional[int] = 2**28,
             timeout: Optional[int] = 60):
         self._project_id = project_id
         bq_client = None

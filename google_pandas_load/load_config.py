@@ -109,7 +109,8 @@ class LoadConfig:
     def bq_schema_inferred_from_dataframe(
             dataframe: pandas.DataFrame,
             date_cols: Optional[List[str]] = None,
-            timestamp_cols: List[str] = None) -> List[bigquery.SchemaField]:
+            timestamp_cols: Optional[List[str]] = None) \
+            -> List[bigquery.SchemaField]:
         """Return a BigQuery schema that is inferred from a pandas dataframe.
 
         Let infer_dtype(column) = `pandas.api.types.infer_dtype <https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.api.types.infer_dtype.html>`__ (column).
