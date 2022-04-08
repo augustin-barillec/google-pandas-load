@@ -3,7 +3,7 @@
 History
 =======
 
-5.0.0 (2021-04-13)
+5.0.0 (2022-04-08)
 ------------------
 
 API Changes
@@ -29,8 +29,8 @@ API Changes
   bq_client, dataset_id, dataset_name, gs_client, bucket_name, bucket,
   bucket_dir_path and local_dir_path.
 
-* :class:`google_pandas_load.loader.Loader` getter functions are now:
-  project_id, dataset_id, dataset_name, gs_client, bucket_name, bucket,
+* :class:`google_pandas_load.loader.LoaderQuickSetup` getter functions are now:
+  project_id, dataset_name, gs_client, bucket_name, bucket,
   bucket_dir_path and local_dir_path.
 
 * xmload and xload are removed from loader's methods.
