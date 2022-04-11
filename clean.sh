@@ -1,6 +1,5 @@
 #!/bin/bash
 
-
 function clean_jupyter(){
   rm -rf .ipynb_checkpoints
 }
