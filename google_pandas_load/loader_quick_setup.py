@@ -65,9 +65,9 @@ class LoaderQuickSetup(Loader):
         dataset_id = None
         gs_client = None
         if self._project_id is not None:
-            bq_client = bigquery.Client(
-                project=self._project_id, credentials=credentials)
             if dataset_name is not None:
+                bq_client = bigquery.Client(
+                    project=self._project_id, credentials=credentials)
                 dataset_id = f'{self._project_id}.{dataset_name}'
             if bucket_name is not None:
                 gs_client = storage.Client(

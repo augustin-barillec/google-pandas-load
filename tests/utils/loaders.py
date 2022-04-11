@@ -1,7 +1,7 @@
 from google_pandas_load import Loader, LoaderQuickSetup
 from tests.utils.resources import project_id, bq_client, dataset_id, \
     dataset_name, gs_client, bucket_name, bucket_dir_path, \
-    bucket_subdir_path, local_dir_path, local_subdir_path
+    bucket_subdir_path, local_dir_path, local_subdir_path, separator
 
 gpl00 = Loader(
     bq_client=bq_client,
@@ -10,7 +10,7 @@ gpl00 = Loader(
     bucket_name=bucket_name,
     bucket_dir_path=None,
     local_dir_path=local_dir_path,
-    separator='|',
+    separator=separator,
     chunk_size=2**28,
     timeout=60)
 
@@ -21,6 +21,7 @@ gpl01 = Loader(
     bucket_name=bucket_name,
     bucket_dir_path=None,
     local_dir_path=local_subdir_path,
+    separator=separator,
     chunk_size=2**28,
     timeout=30)
 
@@ -31,7 +32,7 @@ gpl10 = Loader(
     bucket_name=bucket_name,
     bucket_dir_path=bucket_dir_path,
     local_dir_path=local_dir_path,
-    separator='@',
+    separator=separator,
     chunk_size=2**28,
     timeout=60)
 
@@ -41,7 +42,7 @@ gpl11 = LoaderQuickSetup(
     bucket_name=bucket_name,
     bucket_dir_path=bucket_dir_path,
     local_dir_path=local_subdir_path,
-    separator='|',
+    separator=separator,
     chunk_size=2**28)
 
 gpl20 = Loader(
@@ -51,7 +52,7 @@ gpl20 = Loader(
     bucket_name=bucket_name,
     bucket_dir_path=bucket_subdir_path,
     local_dir_path=local_dir_path,
-    separator='|',
+    separator=separator,
     chunk_size=2**20,
     timeout=60)
 
@@ -62,4 +63,5 @@ gpl21 = Loader(
     bucket_name=bucket_name,
     bucket_dir_path=bucket_subdir_path,
     local_dir_path=local_subdir_path,
+    separator=separator,
     timeout=60)
