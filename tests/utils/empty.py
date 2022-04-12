@@ -1,4 +1,4 @@
-from tests.utils.resources import bucket
+from tests.utils.constants import bucket
 from tests.utils.list import list_table_names, list_blobs
 from tests.utils.delete import delete_table
 

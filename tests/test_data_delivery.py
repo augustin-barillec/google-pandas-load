@@ -2,12 +2,12 @@ import numpy
 import pandas
 from google.cloud import bigquery
 from google_pandas_load import LoadConfig
-from tests.utils.resources import dataset_id
+from tests.utils import constants
 from tests.utils.populate import populate_dataset, populate_bucket, \
     populate_local, populate
 from tests.utils import ids
 from tests.utils import load
-from tests.utils import loaders
+from tests.utils.loader import create_loader
 from tests.utils.base_class import BaseClassTest
 
 
@@ -16,7 +16,10 @@ class DataDeliveryTest(BaseClassTest):
     def test_query_to_dataset(self):
         expected = pandas.DataFrame(data={'x': [3, 2], 'y': ['a', 'b']})
         populate_dataset()
-        loaders.gpl21.load(
+        gpl = create_loader(
+            bucket_dir_path=constants.bucket_subdir_path,
+            local_dir_path=constants.local_subdir_path)
+        gpl.load(
             source='query',
             destination='dataset',
             query="select 3 as x, 'a' as y union all select 2 as x, 'b' as y",
@@ -27,7 +30,8 @@ class DataDeliveryTest(BaseClassTest):
     def test_query_to_dataframe(self):
         expected = pandas.DataFrame(data={'x': [3, 2], 'y': ['a', 'b']})
         populate()
-        computed = loaders.gpl01.load(
+        gpl = create_loader(local_dir_path=constants.local_subdir_path)
+        computed = gpl.load(
             source='query',
             destination='dataframe',
             query="select 3 as x, 'a' as y union all select 2 as x, 'b' as y")
@@ -36,7 +40,8 @@ class DataDeliveryTest(BaseClassTest):
     def test_dataset_to_bucket(self):
         expected = pandas.DataFrame(data={'x': ['a8_dataset']})
         populate_dataset()
-        loaders.gpl20.load(
+        gpl = create_loader(bucket_dir_path=constants.bucket_subdir_path)
+        gpl.load(
             source='dataset',
             destination='bucket',
             data_name='a8')
@@ -47,7 +52,10 @@ class DataDeliveryTest(BaseClassTest):
     def test_dataset_to_local(self):
         expected = pandas.DataFrame(data={'x': [1, 2, 3, 4]})
         load.multi_dataframe_to_dataset([expected], ['b1'])
-        loaders.gpl21.load(
+        gpl = create_loader(
+            bucket_dir_path=constants.bucket_subdir_path,
+            local_dir_path=constants.local_subdir_path)
+        gpl.load(
             source='dataset',
             destination='local',
             data_name='b1')
@@ -60,7 +68,9 @@ class DataDeliveryTest(BaseClassTest):
             f'a{i}_bucket' for i in range(7, 12)]})
         populate_dataset()
         populate_bucket()
-        loaders.gpl01.load(
+        gpl = create_loader(
+            local_dir_path=constants.local_subdir_path)
+        gpl.load(
             source='bucket',
             destination='dataset',
             data_name='a',
@@ -73,7 +83,10 @@ class DataDeliveryTest(BaseClassTest):
         populate()
         blob_name = ids.build_blob_name_2('a10')
         load.dataframe_to_bucket(expected, blob_name)
-        computed = loaders.gpl21.load(
+        gpl = create_loader(
+            bucket_dir_path=constants.bucket_subdir_path,
+            local_dir_path=constants.local_subdir_path)
+        computed = gpl.load(
             source='bucket',
             destination='dataframe',
             data_name='a10')
@@ -83,7 +96,9 @@ class DataDeliveryTest(BaseClassTest):
         expected = pandas.DataFrame(data={'y': ['c', 'a', 'b']})
         local_file_path = ids.build_local_file_path_0('b')
         load.dataframe_to_local(expected, local_file_path)
-        loaders.gpl20.load(
+        gpl = create_loader(
+            bucket_dir_path=constants.bucket_subdir_path)
+        gpl.load(
             source='local',
             destination='bucket',
             data_name='b')
@@ -95,7 +110,10 @@ class DataDeliveryTest(BaseClassTest):
         expected = pandas.DataFrame(data={'x': [
             f'a{i}_local' for i in range(10, 13)]})
         populate_local()
-        computed = loaders.gpl11.load(
+        gpl = create_loader(
+            bucket_dir_path=constants.bucket_dir_path,
+            local_dir_path=constants.local_subdir_path)
+        computed = gpl.load(
             source='local',
             destination='dataframe',
             data_name='a1')
@@ -104,7 +122,10 @@ class DataDeliveryTest(BaseClassTest):
     def test_dataframe_to_dataset(self):
         expected = pandas.DataFrame(data={'x': [1, 2, 3], 'y': [1, 2, 4]})
         populate()
-        loaders.gpl21.load(
+        gpl = create_loader(
+            bucket_dir_path=constants.bucket_subdir_path,
+            local_dir_path=constants.local_subdir_path)
+        gpl.load(
             source='dataframe',
             destination='dataset',
             dataframe=expected,
@@ -115,7 +136,8 @@ class DataDeliveryTest(BaseClassTest):
     def test_dataframe_to_bucket(self):
         expected = pandas.DataFrame(data={'x': [1, 2, 3], 'y': [1, 2, 4]})
         populate()
-        loaders.gpl00.load(
+        gpl = create_loader()
+        gpl.load(
             source='dataframe',
             destination='bucket',
             dataframe=expected,
@@ -127,13 +149,15 @@ class DataDeliveryTest(BaseClassTest):
     def test_upload_download(self):
         expected = pandas.DataFrame(data={'x': [1], 'y': [3]})
         populate()
-        loaders.gpl20.load(
+        gpl = create_loader(
+            bucket_dir_path=constants.bucket_subdir_path)
+        gpl.load(
             source='dataframe',
             destination='dataset',
             dataframe=expected,
             data_name='a9')
-        query = f'select * from {dataset_id}.a9'
-        computed = loaders.gpl20.load(
+        query = f'select * from {constants.dataset_id}.a9'
+        computed = gpl.load(
             source='query',
             destination='dataframe',
             query=query)
@@ -141,11 +165,14 @@ class DataDeliveryTest(BaseClassTest):
 
     def test_download_upload(self):
         expected = pandas.DataFrame(data={'x': [3, 2]})
-        df0 = loaders.gpl11.load(
+        gpl = create_loader(
+            bucket_dir_path=constants.bucket_dir_path,
+            local_dir_path=constants.local_subdir_path)
+        df0 = gpl.load(
             source='query',
             destination='dataframe',
             query='select 3 as x union all select 2 as x')
-        loaders.gpl11.load(
+        gpl.load(
             source='dataframe',
             destination='dataset',
             dataframe=df0,
@@ -160,7 +187,9 @@ class DataDeliveryTest(BaseClassTest):
             source='query',
             destination='dataframe',
             query='select 3 as x')
-        computeds = loaders.gpl01.multi_load(configs=[config] * 3)
+        gpl = create_loader(
+            local_dir_path=constants.local_subdir_path)
+        computeds = gpl.multi_load(configs=[config] * 3)
         for computed in computeds:
             self.assert_pandas_equal(expected, computed)
 
@@ -183,7 +212,9 @@ class DataDeliveryTest(BaseClassTest):
             destination='bucket',
             query="select 'b' as x, 'a' as y",
             data_name='a11')
-        load_results = loaders.gpl20.multi_load([config1, config2, config3])
+        gpl = create_loader(
+            bucket_dir_path=constants.bucket_subdir_path)
+        load_results = gpl.multi_load([config1, config2, config3])
         self.assertEqual(len(load_results), 3)
         self.assertTrue(load_results[0] is None)
         self.assertTrue(load_results[2] is None)
@@ -220,6 +251,7 @@ class DataDeliveryTest(BaseClassTest):
             config = LoadConfig(
                 source='query', destination='dataframe', query=query)
             configs.append(config)
-        computed = loaders.gpl01.multi_load(configs)
+        gpl = create_loader(local_dir_path=constants.local_subdir_path)
+        computed = gpl.multi_load(configs)
         for df, dg in zip(expecteds, computed):
             self.assert_pandas_equal(df, dg)

@@ -3,8 +3,8 @@ import pandas
 from io import StringIO
 from google.cloud import bigquery
 from google.cloud import storage
-from tests.utils.resources import bq_client, bucket, separator
-from tests.utils.ids import build_table_id, build_bucket_uri
+from tests.utils.constants import bq_client, bucket, separator
+from tests.utils.ids import build_table_id
 
 
 def wait_for_jobs(jobs):

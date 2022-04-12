@@ -3,10 +3,10 @@ import numpy
 import pandas
 from datetime import datetime
 from google.cloud import bigquery
-from tests.utils.resources import bq_client
+from tests.utils import constants
 from tests.utils import ids
 from tests.utils import load
-from tests.utils import loaders
+from tests.utils.loader import create_loader
 from tests.utils.base_class import BaseClassTest
 
 
@@ -17,7 +17,8 @@ class CastTest(BaseClassTest):
         query = """
         select 236 as x, 5 as y 
         """
-        computed = loaders.gpl00.load(
+        gpl = create_loader()
+        computed = gpl.load(
             source='query',
             destination='dataframe',
             query=query,
@@ -36,7 +37,8 @@ class CastTest(BaseClassTest):
         '2013-11-14 14:32:30.100121' as y,
         cast('2012-11-14' as DATE) as z
         """
-        computed = loaders.gpl20.load(
+        gpl = create_loader(bucket_dir_path=constants.bucket_subdir_path)
+        computed = gpl.load(
             source='query',
             destination='dataframe',
             query=query,
@@ -80,7 +82,8 @@ class CastTest(BaseClassTest):
         df0['k'] = df0['k'].astype(pandas.CategoricalDtype())
         df0['l'] = df0['l'].astype(pandas.BooleanDtype())
 
-        loaders.gpl11.load(
+        gpl = create_loader(bucket_dir_path=constants.bucket_subdir_path)
+        gpl.load(
             source='dataframe',
             destination='dataset',
             dataframe=df0,
@@ -88,7 +91,7 @@ class CastTest(BaseClassTest):
             date_cols=['a', 'q'],
             timestamp_cols=['b', 'p'])
         table_id = ids.build_table_id('a100')
-        table = bq_client.get_table(table_id)
+        table = constants.bq_client.get_table(table_id)
         f1, f2, f3, f4, f5, f6, f7, f8, f9, f10, f11, f12, f13, f14, f15, \
             f16, f17 = table.schema
         self.assertEqual(('a', 'DATE'), (f1.name, f1.field_type))
@@ -138,12 +141,13 @@ class CastTest(BaseClassTest):
             })
 
         load.dataframe_to_local(df0, ids.build_local_file_path_1('a100'))
-        loaders.gpl01.load(
+        gpl = create_loader(local_dir_path=constants.local_subdir_path)
+        gpl.load(
             source='local',
             destination='dataset',
             data_name='a100')
         table_id = ids.build_table_id('a100')
-        table = bq_client.get_table(table_id)
+        table = constants.bq_client.get_table(table_id)
         f1, f2, f3, f4, f5, f6, f7, f8, f9, f10, f11, f12, f13, f14, f15, \
             f16, f17 = table.schema
         self.assertEqual(('a', 'DATE'), (f1.name, f1.field_type))
@@ -168,14 +172,17 @@ class CastTest(BaseClassTest):
         df0 = pandas.DataFrame(data={'x': ['1'], 'y': [3]})
         bq_schema = [bigquery.SchemaField(name='x', field_type='FLOAT'),
                      bigquery.SchemaField(name='y', field_type='FLOAT')]
-        loaders.gpl21.load(
+        gpl = create_loader(
+            bucket_dir_path=constants.bucket_subdir_path,
+            local_dir_path=constants.local_subdir_path)
+        gpl.load(
             source='dataframe',
             destination='dataset',
             dataframe=df0,
             data_name='a100',
             bq_schema=bq_schema)
         table_id = ids.build_table_id('a100')
-        table = bq_client.get_table(table_id)
+        table = constants.bq_client.get_table(table_id)
         f1, f2 = table.schema
         self.assertEqual(('x', 'FLOAT'), (f1.name, f1.field_type))
         self.assertEqual(('y', 'FLOAT'), (f2.name, f2.field_type))
@@ -185,13 +192,16 @@ class CastTest(BaseClassTest):
         bq_schema = [bigquery.SchemaField(name='x', field_type='FLOAT'),
                      bigquery.SchemaField(name='y', field_type='FLOAT')]
         load.dataframe_to_bucket(df0, ids.build_blob_name_2('a100'))
-        loaders.gpl21.load(
+        gpl = create_loader(
+            bucket_dir_path=constants.bucket_subdir_path,
+            local_dir_path=constants.local_subdir_path)
+        gpl.load(
             source='bucket',
             destination='dataset',
             data_name='a100',
             bq_schema=bq_schema)
         table_id = ids.build_table_id('a100')
-        table = bq_client.get_table(table_id)
+        table = constants.bq_client.get_table(table_id)
         f1, f2 = table.schema
         self.assertEqual(('x', 'FLOAT'), (f1.name, f1.field_type))
         self.assertEqual(('y', 'FLOAT'), (f2.name, f2.field_type))

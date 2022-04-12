@@ -1,5 +1,5 @@
 import os
-from tests.utils.resources import dataset_id, bucket_name, \
+from tests.utils.constants import dataset_id, bucket_name, \
     bucket_dir_path, bucket_subdir_path, local_dir_path, local_subdir_path
 
 

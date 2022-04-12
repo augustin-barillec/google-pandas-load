@@ -1,7 +1,7 @@
 import os
 import shutil
 from google.cloud import storage
-from tests.utils.resources import bq_client, bucket, local_dir_path
+from tests.utils.constants import bq_client, bucket, local_dir_path
 from tests.utils.ids import build_table_id
 
 

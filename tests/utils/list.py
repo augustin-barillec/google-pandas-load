@@ -1,4 +1,4 @@
-from tests.utils.resources import bq_client, dataset_id, bucket
+from tests.utils.constants import bq_client, dataset_id, bucket
 
 
 def list_table_names():

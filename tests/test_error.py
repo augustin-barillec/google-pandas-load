@@ -1,9 +1,9 @@
 import pandas
 from google.cloud.exceptions import BadRequest, Conflict
 from google_pandas_load import Loader, LoadConfig
-from tests.utils.resources import bq_client, gs_client
+from tests.utils.constants import bq_client, gs_client
 from tests.utils.populate import populate_dataset, populate_local
-from tests.utils import loaders
+from tests.utils.loader import create_loader
 from tests.utils.base_class import BaseClassTest
 
 
@@ -156,12 +156,12 @@ class LoadErrorTest(BaseClassTest):
         config = LoadConfig(
             source='bucket', destination='local', data_name='a1')
         with self.assertRaises(ValueError) as cm:
-            loaders.gpl21.multi_load(configs={config})
+            create_loader().multi_load(configs={config})
         self.assertEqual('configs must be a list', str(cm.exception))
 
     def test_raise_error_if_configs_is_empty(self):
         with self.assertRaises(ValueError) as cm:
-            loaders.gpl00.multi_load(configs=[])
+            create_loader().multi_load(configs=[])
         self.assertEqual('configs must be non-empty', str(cm.exception))
 
     def test_raise_error_if_prefix(self):
@@ -176,7 +176,7 @@ class LoadErrorTest(BaseClassTest):
             query='select 4 as y',
             data_name='aa')
         with self.assertRaises(ValueError) as cm:
-            loaders.gpl01.multi_load(configs=[config1, config2])
+            create_loader().multi_load(configs=[config1, config2])
         self.assertEqual('a is a prefix of aa', str(cm.exception))
 
     def test_raise_error_if_missing_required_resources(self):
@@ -203,26 +203,26 @@ class LoadErrorTest(BaseClassTest):
 
     def test_raise_error_if_no_data(self):
         with self.assertRaises(ValueError) as cm:
-            loaders.gpl00.load(
+            create_loader().load(
                 source='dataset', destination='local', data_name='e0')
         self.assertEqual('There is no data named e0 in dataset',
                          str(cm.exception))
 
         with self.assertRaises(ValueError) as cm:
-            loaders.gpl00.load(
+            create_loader().load(
                 source='bucket', destination='dataset', data_name='e0')
         self.assertEqual('There is no data named e0 in bucket',
                          str(cm.exception))
 
         with self.assertRaises(ValueError) as cm:
-            loaders.gpl00.load(
+            create_loader().load(
                 source='local', destination='dataframe', data_name='e0')
         self.assertEqual('There is no data named e0 in local',
                          str(cm.exception))
 
     def test_raise_error_if_syntax_error_in_query(self):
         with self.assertRaises(BadRequest):
-            loaders.gpl20.load(
+            create_loader().load(
                 source='query', destination='dataset',
                 query='selectt 3', data_name='a3')
 
@@ -230,7 +230,7 @@ class LoadErrorTest(BaseClassTest):
         populate_dataset()
         populate_local()
         with self.assertRaises(Conflict) as cm:
-            loaders.gpl01.load(
+            create_loader().load(
                 source='local',
                 destination='dataset',
                 data_name='a10',

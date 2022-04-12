@@ -1,7 +1,7 @@
 import os
 from google.cloud import storage
 from google.cloud.exceptions import NotFound
-from tests.utils.resources import bq_client, bucket
+from tests.utils.constants import bq_client, bucket
 from tests.utils.ids import build_table_id
 
 

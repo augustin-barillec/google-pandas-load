@@ -1,8 +1,9 @@
 import binascii
 import pandas
+from tests.utils import constants
 from tests.utils import ids
 from tests.utils import load
-from tests.utils import loaders
+from tests.utils.loader import create_loader
 from tests.utils.base_class import BaseClassTest
 
 
@@ -14,7 +15,8 @@ def is_gz_file(filepath):
 class CompressTest(BaseClassTest):
 
     def test_compress_query_to_bucket(self):
-        loaders.gpl20.load(
+        gpl = create_loader(bucket_dir_path=constants.bucket_subdir_path)
+        gpl.load(
             source='query',
             destination='bucket',
             query='select 5',
@@ -26,7 +28,8 @@ class CompressTest(BaseClassTest):
         self.assertTrue(is_gz_file(local_file_path))
 
     def test_compress_dataframe_to_local(self):
-        loaders.gpl01.load(
+        gpl = create_loader(local_dir_path=constants.local_subdir_path)
+        gpl.load(
             source='dataframe',
             destination='local',
             dataframe=pandas.DataFrame(data={'x': [1]}),
