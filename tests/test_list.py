@@ -2,7 +2,7 @@ import os
 from tests.utils import constants
 from tests.utils.populate import populate_bucket, populate_local
 from tests.utils import ids
-from tests.utils.loader import create_loader
+from tests.utils.loader import create_loader, create_loader_quick_setup
 from tests.utils.base_class import BaseClassTest
 
 
@@ -11,7 +11,7 @@ class ListTest(BaseClassTest):
     def test_list_blobs(self):
         populate_bucket()
 
-        gpl00 = create_loader()
+        gpl00 = create_loader_quick_setup()
         gpl10 = create_loader(bucket_dir_path=constants.bucket_dir_path)
         gpl20 = create_loader(bucket_dir_path=constants.bucket_subdir_path)
 
@@ -35,7 +35,9 @@ class ListTest(BaseClassTest):
 
         gpl00 = create_loader()
         gpl10 = create_loader(bucket_dir_path=constants.bucket_dir_path)
-        gpl20 = create_loader(bucket_dir_path=constants.bucket_subdir_path)
+        gpl20 = create_loader_quick_setup(
+            bucket_dir_path=constants.bucket_subdir_path,
+            separator='#')
 
         blob_names = [ids.build_blob_name_0(f'a{i}') for i in range(7, 12)]
         blob_uris = [ids.build_bucket_uri(n) for n in blob_names]

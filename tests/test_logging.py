@@ -2,7 +2,7 @@ import re
 import logging
 from tests.utils import constants
 from tests.utils.populate import populate_local
-from tests.utils.loader import create_loader
+from tests.utils.loader import create_loader, create_loader_quick_setup
 from tests.utils.base_class import BaseClassTest
 
 
@@ -15,7 +15,9 @@ class LoggingTest(BaseClassTest):
     def test_local_to_bucket(self):
         populate_local()
         with self.assertLogs('google_pandas_load.loader', level='DEBUG') as cm:
-            gpl = create_loader(bucket_dir_path=constants.bucket_dir_path)
+            gpl = create_loader_quick_setup(
+                dataset_name=None,
+                bucket_dir_path=constants.bucket_dir_path)
             gpl.load(
                 source='local',
                 destination='bucket',
@@ -31,7 +33,11 @@ class LoggingTest(BaseClassTest):
     def test_local_to_dataframe(self):
         populate_local()
         with self.assertLogs('google_pandas_load.loader', level='DEBUG') as cm:
-            gpl = create_loader(bucket_dir_path=constants.bucket_subdir_path)
+            gpl = create_loader_quick_setup(
+                project_id=None,
+                dataset_name=None,
+                bucket_name=None,
+                bucket_dir_path=constants.bucket_subdir_path)
             gpl.load(
                 source='local',
                 destination='dataframe',
@@ -48,7 +54,7 @@ class LoggingTest(BaseClassTest):
         with self.assertLogs('google_pandas_load.loader', level='DEBUG') as cm:
             gpl = create_loader(
                 bucket_dir_path=constants.bucket_dir_path,
-                local_dir_path=constants.local_subdir_path)
+                local_dir_path=None)
             gpl.load(
                 source='query',
                 destination='bucket',

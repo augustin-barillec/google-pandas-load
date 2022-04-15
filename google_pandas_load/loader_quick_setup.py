@@ -61,17 +61,18 @@ class LoaderQuickSetup(Loader):
             chunk_size: Optional[int] = 2**28,
             timeout: Optional[int] = 60):
         self._project_id = project_id
+        self._check_project_id_dataset_name_bucket_name_consistency(
+            dataset_name, bucket_name)
         bq_client = None
         dataset_id = None
         gs_client = None
-        if self._project_id is not None:
-            if dataset_name is not None:
-                bq_client = bigquery.Client(
-                    project=self._project_id, credentials=credentials)
-                dataset_id = f'{self._project_id}.{dataset_name}'
-            if bucket_name is not None:
-                gs_client = storage.Client(
-                    project=self._project_id, credentials=credentials)
+        if dataset_name is not None:
+            bq_client = bigquery.Client(
+                project=self._project_id, credentials=credentials)
+            dataset_id = f'{self._project_id}.{dataset_name}'
+        if bucket_name is not None:
+            gs_client = storage.Client(
+                project=self._project_id, credentials=credentials)
 
         super().__init__(
             bq_client=bq_client,
@@ -88,3 +89,19 @@ class LoaderQuickSetup(Loader):
     def project_id(self) -> str:
         """str: The project_id given in the argument."""
         return self._project_id
+
+    def _check_project_id_dataset_name_bucket_name_consistency(
+            self, dataset_name, bucket_name):
+        c1 = self._project_id is None
+        c2 = dataset_name is None
+        c3 = bucket_name is None
+        if not c1 and c2 and c3:
+            msg = ('At least one of dataset_name or bucket_name '
+                   'must be provided if project_id is provided')
+            raise ValueError(msg)
+        if not c2 and c1:
+            msg = 'project_id must provided if dataset_name is provided'
+            raise ValueError(msg)
+        if not c3 and c1:
+            msg = 'project_id must provided if bucket_name is provided'
+            raise ValueError(msg)

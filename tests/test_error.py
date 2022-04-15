@@ -1,10 +1,90 @@
 import pandas
 from google.cloud.exceptions import BadRequest, Conflict
-from google_pandas_load import Loader, LoadConfig
+from google_pandas_load import LoadConfig
 from tests.utils.constants import bq_client, gs_client
 from tests.utils.populate import populate_dataset, populate_local
-from tests.utils.loader import create_loader
+from tests.utils.loader import create_loader, create_loader_quick_setup
 from tests.utils.base_class import BaseClassTest
+
+
+class LoaderInitErrorTest(BaseClassTest):
+
+    def test_raise_error_if_dataset_id_none_bq_client_not_none(self):
+        with self.assertRaises(ValueError) as cm:
+            create_loader(bq_client=bq_client, dataset_id=None)
+        msg = 'dataset_id must be provided if bq_client is provided'
+        self.assertEqual(msg, str(cm.exception))
+
+    def test_raise_error_if_bq_client_none_dataset_id_not_none(self):
+        with self.assertRaises(ValueError) as cm:
+            create_loader(bq_client=None, dataset_id='a.b')
+        msg = 'bq_client must be provided if dataset_id is provided'
+        self.assertEqual(msg, str(cm.exception))
+
+    def test_raise_error_if_bucket_name_none_gs_client_not_none(self):
+        with self.assertRaises(ValueError) as cm:
+            create_loader(gs_client=gs_client, bucket_name=None)
+        msg = 'bucket_name must be provided if gs_client is provided'
+        self.assertEqual(msg, str(cm.exception))
+
+    def test_raise_error_if_gs_client_none_bucket_not_none(self):
+        with self.assertRaises(ValueError) as cm:
+            create_loader(gs_client=None, bucket_name='bn')
+        msg = 'gs_client must be provided if bucket_name is provided'
+        self.assertEqual(msg, str(cm.exception))
+
+    def test_raise_error_if_dataset_id_not_contain_exactly_one_dot(self):
+        msg = 'dataset_id must contain exactly one dot'
+
+        with self.assertRaises(ValueError) as cm:
+            create_loader(dataset_id='ab')
+        self.assertEqual(msg, str(cm.exception))
+
+        with self.assertRaises(ValueError) as cm:
+            create_loader(dataset_id='a.b.c')
+        self.assertEqual(msg, str(cm.exception))
+
+    def test_raise_error_if_bucket_dir_path_is_empty_string(self):
+        with self.assertRaises(ValueError) as cm:
+            create_loader(bucket_dir_path='')
+        msg = 'bucket_dir_path must not be the empty string'
+        self.assertEqual(msg, str(cm.exception))
+
+    def test_raise_error_if_bucket_dir_path_starts_with_slash(self):
+        with self.assertRaises(ValueError) as cm:
+            create_loader(bucket_dir_path='/dir/subdir')
+        msg = 'bucket_dir_path must not start with /'
+        self.assertEqual(msg, str(cm.exception))
+
+    def test_raise_error_if_bucket_dir_path_ends_with_slash(self):
+        with self.assertRaises(ValueError) as cm:
+            create_loader(bucket_dir_path='dir/subdir/')
+        msg = 'bucket_dir_path must not end with /'
+        self.assertEqual(msg, str(cm.exception))
+
+
+class LoaderQuickSetupInit(BaseClassTest):
+
+    def test_raise_error_if_d_and_b_none_project_id_not_none(self):
+        with self.assertRaises(ValueError) as cm:
+            create_loader_quick_setup(
+                project_id='pi', dataset_name=None, bucket_name=None)
+        msg = ('At least one of dataset_name or bucket_name '
+               'must be provided if project_id is provided')
+        self.assertEqual(msg, str(cm.exception))
+
+    def test_raise_error_if_project_id_none_dataset_name_not_none(self):
+        with self.assertRaises(ValueError) as cm:
+            create_loader_quick_setup(project_id=None)
+        msg = 'project_id must provided if dataset_name is provided'
+        self.assertEqual(msg, str(cm.exception))
+
+    def test_raise_error_if_project_id_none_bucket_name_not_none(self):
+        with self.assertRaises(ValueError) as cm:
+            create_loader_quick_setup(
+                project_id=None, dataset_name=None)
+        msg = 'project_id must provided if bucket_name is provided'
+        self.assertEqual(msg, str(cm.exception))
 
 
 class LoadConfigErrorTest(BaseClassTest):
@@ -52,18 +132,18 @@ class LoadConfigErrorTest(BaseClassTest):
     def test_raise_error_if_missing_required_values(self):
         with self.assertRaises(ValueError) as cm:
             LoadConfig(source='query', destination='bucket', query='select 3')
-        msg = ("data_name must be given if source or destination is one of "
+        msg = ("data_name must be provided if source or destination is one of "
                "'dataset' or 'bucket' or 'local'")
         self.assertEqual(msg, str(cm.exception))
 
         with self.assertRaises(ValueError) as cm:
             LoadConfig(source='query', destination='dataframe')
-        msg = "query must be given if source = 'query'"
+        msg = "query must be provided if source = 'query'"
         self.assertEqual(msg, str(cm.exception))
 
         with self.assertRaises(ValueError) as cm:
             LoadConfig(source='dataframe', destination='local', data_name='a1')
-        msg = "dataframe must be given if source = 'dataframe'"
+        msg = "dataframe must be provided if source = 'dataframe'"
         self.assertEqual(msg, str(cm.exception))
 
     def test_raise_error_if_infer_bq_schema_from_no_columns_dataframe(self):
@@ -75,77 +155,21 @@ class LoadConfigErrorTest(BaseClassTest):
         self.assertEqual(str(cm.exception), msg)
 
 
-class LoaderSetupErrorTest(BaseClassTest):
-
-    def test_raise_error_if_dataset_id_none_bq_client_not_none(self):
-        with self.assertRaises(ValueError) as cm:
-            Loader(bq_client=bq_client, dataset_id=None)
-        msg = 'dataset_id must not be None if bq_client is not None'
-        self.assertEqual(msg, str(cm.exception))
-
-    def test_raise_error_if_bq_client_none_dataset_id_not_none(self):
-        with self.assertRaises(ValueError) as cm:
-            Loader(bq_client=None, dataset_id='a.b')
-        msg = 'bq_client must not be None if dataset_id is not None'
-        self.assertEqual(msg, str(cm.exception))
-
-    def test_raise_error_if_bucket_name_none_gs_client_not_none(self):
-        with self.assertRaises(ValueError) as cm:
-            Loader(gs_client=gs_client, bucket_name=None)
-        msg = 'bucket_name must not be None if gs_client is not None'
-        self.assertEqual(msg, str(cm.exception))
-
-    def test_raise_error_if_gs_client_none_bucket_not_none(self):
-        with self.assertRaises(ValueError) as cm:
-            Loader(gs_client=None, bucket_name='bn')
-        msg = 'gs_client must not be None if bucket_name is not None'
-        self.assertEqual(msg, str(cm.exception))
-
-    def test_raise_error_if_dataset_id_not_contain_exactly_one_dot(self):
-        msg = 'dataset_id must contain exactly one dot'
-
-        with self.assertRaises(ValueError) as cm:
-            Loader(dataset_id='ab')
-        self.assertEqual(msg, str(cm.exception))
-
-        with self.assertRaises(ValueError) as cm:
-            Loader(dataset_id='a.b.c')
-        self.assertEqual(msg, str(cm.exception))
-
-    def test_raise_error_if_bucket_dir_path_is_empty_string(self):
-        with self.assertRaises(ValueError) as cm:
-            Loader(bucket_dir_path='')
-        msg = 'bucket_dir_path must not be the empty string'
-        self.assertEqual(msg, str(cm.exception))
-
-    def test_raise_error_if_bucket_dir_path_starts_with_slash(self):
-        with self.assertRaises(ValueError) as cm:
-            Loader(bucket_dir_path='/dir/subdir')
-        msg = 'bucket_dir_path must not start with /'
-        self.assertEqual(msg, str(cm.exception))
-
-    def test_raise_error_if_bucket_dir_path_ends_with_slash(self):
-        with self.assertRaises(ValueError) as cm:
-            Loader(bucket_dir_path='dir/subdir/')
-        msg = 'bucket_dir_path must not end with /'
-        self.assertEqual(msg, str(cm.exception))
-
-
 class ListErrorTest(BaseClassTest):
 
     def test_raise_error_if_data_name_contains_slash(self):
         with self.assertRaises(ValueError) as cm:
-            Loader().list_blobs(data_name='a/b')
+            create_loader().list_blobs(data_name='a/b')
         msg = 'data_name=a/b must not contain a /'
         self.assertEqual(msg, str(cm.exception))
 
         with self.assertRaises(ValueError) as cm:
-            Loader().list_blob_uris(data_name='a/b')
+            create_loader().list_blob_uris(data_name='a/b')
         msg = 'data_name=a/b must not contain a /'
         self.assertEqual(msg, str(cm.exception))
 
         with self.assertRaises(ValueError) as cm:
-            Loader().list_local_file_paths(data_name='a/b')
+            create_loader().list_local_file_paths(data_name='a/b')
         msg = 'data_name=a/b must not contain a /'
         self.assertEqual(msg, str(cm.exception))
 
@@ -182,23 +206,23 @@ class LoadErrorTest(BaseClassTest):
     def test_raise_error_if_missing_required_resources(self):
 
         with self.assertRaises(ValueError) as cm:
-            Loader(bq_client=None).load(
+            create_loader(bq_client=None, dataset_id=None).load(
                 source='query', destination='dataset',
                 data_name='e0', query='select 3')
-        self.assertEqual('bq_client must be given if dataset is used',
+        self.assertEqual('bq_client must be provided if dataset is used',
                          str(cm.exception))
 
         with self.assertRaises(ValueError) as cm:
-            Loader(gs_client=None).load(
+            create_loader(gs_client=None, bucket_name=None).load(
                 source='bucket', destination='local', data_name='a')
-        self.assertEqual('gs_client must be given if bucket is used',
+        self.assertEqual('gs_client must be provided if bucket is used',
                          str(cm.exception))
 
         with self.assertRaises(ValueError) as cm:
-            Loader(local_dir_path=None).load(
+            create_loader(local_dir_path=None).load(
                 source='dataframe', destination='local',
                 dataframe=pandas.DataFrame(data={'x': [1]}), data_name='a')
-        self.assertEqual('local_dir_path must be given if local is used',
+        self.assertEqual('local_dir_path must be provided if local is used',
                          str(cm.exception))
 
     def test_raise_error_if_no_data(self):

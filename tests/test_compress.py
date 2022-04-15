@@ -3,7 +3,7 @@ import pandas
 from tests.utils import constants
 from tests.utils import ids
 from tests.utils import load
-from tests.utils.loader import create_loader
+from tests.utils.loader import create_loader, create_loader_quick_setup
 from tests.utils.base_class import BaseClassTest
 
 
@@ -28,7 +28,11 @@ class CompressTest(BaseClassTest):
         self.assertTrue(is_gz_file(local_file_path))
 
     def test_compress_dataframe_to_local(self):
-        gpl = create_loader(local_dir_path=constants.local_subdir_path)
+        gpl = create_loader_quick_setup(
+            project_id=None,
+            dataset_name=None,
+            bucket_name=None,
+            local_dir_path=constants.local_subdir_path)
         gpl.load(
             source='dataframe',
             destination='local',

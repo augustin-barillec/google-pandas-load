@@ -2,7 +2,7 @@ import pandas
 from tests.utils import constants
 from tests.utils import ids
 from tests.utils import load
-from tests.utils.loader import create_loader
+from tests.utils.loader import create_loader, create_loader_quick_setup
 from tests.utils.base_class import BaseClassTest
 
 
@@ -12,9 +12,9 @@ class WriteDispositionTest(BaseClassTest):
         expected = pandas.DataFrame(data={'x': [1]})
         blob_name = ids.build_blob_name_2('s10')
         load.dataframe_to_bucket(expected, blob_name)
-        gpl = create_loader(
+        gpl = create_loader_quick_setup(
             bucket_dir_path=constants.bucket_subdir_path,
-            local_dir_path=constants.local_subdir_path)
+            local_dir_path=None)
         for _ in range(2):
             gpl.load(
                 source='bucket',
@@ -25,9 +25,9 @@ class WriteDispositionTest(BaseClassTest):
 
     def test_write_truncate_query_to_dataset(self):
         expected = pandas.DataFrame(data={'x': [1]})
-        gpl = create_loader(
-            bucket_dir_path=constants.bucket_subdir_path,
-            local_dir_path=constants.local_subdir_path)
+        gpl = create_loader_quick_setup(
+            bucket_name=None,
+            local_dir_path=None)
         for _ in range(2):
             gpl.load(
                 source='query',
@@ -55,7 +55,7 @@ class WriteDispositionTest(BaseClassTest):
         expected = pandas.DataFrame(data={'x': [0, 1]})
         df00 = pandas.DataFrame(data={'x': [0]})
         df01 = pandas.DataFrame(data={'x': [1]})
-        gpl = create_loader()
+        gpl = create_loader(chunk_size=2**18, timeout=5)
         gpl.load(
             source='dataframe',
             destination='dataset',

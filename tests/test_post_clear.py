@@ -3,7 +3,7 @@ from tests.utils import constants
 from tests.utils.populate import populate
 from tests.utils import ids
 from tests.utils import exist
-from tests.utils.loader import create_loader
+from tests.utils.loader import create_loader, create_loader_quick_setup
 from tests.utils.base_class import BaseClassTest
 
 
@@ -32,7 +32,8 @@ class PostClearTest(BaseClassTest):
         local_file_path = ids.build_local_file_path_0('a10')
         self.assertTrue(exist.blob_exists(blob_name))
         self.assertTrue(exist.local_file_exists(local_file_path))
-        gpl = create_loader(bucket_dir_path=constants.bucket_subdir_path)
+        gpl = create_loader_quick_setup(
+            bucket_dir_path=constants.bucket_subdir_path)
         gpl.load(
             source='dataframe',
             destination='dataset',

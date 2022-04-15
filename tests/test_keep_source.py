@@ -3,7 +3,7 @@ from tests.utils.populate import populate_dataset, populate_bucket, \
     populate_local
 from tests.utils import ids
 from tests.utils import exist
-from tests.utils.loader import create_loader
+from tests.utils.loader import create_loader, create_loader_quick_setup
 from tests.utils.base_class import BaseClassTest
 
 
@@ -22,7 +22,8 @@ class KeepSourceTest(BaseClassTest):
 
     def test_keep_source_in_bucket(self):
         populate_bucket()
-        gpl = create_loader(bucket_dir_path=constants.bucket_subdir_path)
+        gpl = create_loader_quick_setup(
+            bucket_dir_path=constants.bucket_subdir_path)
         gpl.load(
             source='bucket',
             destination='dataframe',
@@ -32,7 +33,9 @@ class KeepSourceTest(BaseClassTest):
 
     def test_keep_source_in_local(self):
         populate_local()
-        gpl = create_loader(bucket_dir_path=constants.bucket_dir_path)
+        gpl = create_loader_quick_setup(
+            dataset_name=None,
+            bucket_dir_path=constants.bucket_dir_path)
         gpl.load(
             source='local',
             destination='bucket',

@@ -58,28 +58,30 @@ class Loader:
 
         self._bq_client = bq_client
         self._dataset_id = dataset_id
-        self._check_dataset_id_format()
-        self._check_bq_client_dataset_id_consistency()
-        if self._dataset_id is not None:
-            self._dataset_name = self._dataset_id.split('.')[-1]
         self._gs_client = gs_client
         self._bucket_name = bucket_name
-        self._check_gs_client_bucket_name_consistency()
         self._bucket_dir_path = bucket_dir_path
-        self._check_bucket_dir_path_format()
+        self._local_dir_path = local_dir_path
+        self._separator = separator
+        self._chunk_size = chunk_size
+        self._timeout = timeout
+
+        self._check_bq_client_dataset_id_consistency()
+        self._check_gs_client_bucket_name_consistency()
+
+        if self._dataset_id is not None:
+            self._check_dataset_id_format()
+            self._dataset_name = self._dataset_id.split('.')[-1]
         if self._gs_client is not None:
             self._bucket = self._gs_client.bucket(self._bucket_name)
             self._bucket_uri = f'gs://{self._bucket_name}'
             if self._bucket_dir_path is None:
                 self._blob_name_prefix = ''
             else:
+                self._check_bucket_dir_path_format()
                 self._blob_name_prefix = self._bucket_dir_path + '/'
             self._blob_uri_prefix = (
                     self._bucket_uri + '/' + self._blob_name_prefix)
-        self._local_dir_path = local_dir_path
-        self._separator = separator
-        self._chunk_size = chunk_size
-        self._timeout = timeout
 
     @property
     def bq_client(self) -> bigquery.Client:
@@ -121,43 +123,43 @@ class Loader:
         """str: The local directory path."""
         return self._local_dir_path
 
-    def _check_dataset_id_format(self):
-        if self._dataset_id is not None:
-            if self._dataset_id.count('.') != 1:
-                msg = 'dataset_id must contain exactly one dot'
-                raise ValueError(msg)
-
     def _check_bq_client_dataset_id_consistency(self):
         c1 = self._bq_client is None
         c2 = self._dataset_id is None
         if not c1 and c2:
-            msg = 'dataset_id must not be None if bq_client is not None'
+            msg = 'dataset_id must be provided if bq_client is provided'
             raise ValueError(msg)
         if not c2 and c1:
-            msg = 'bq_client must not be None if dataset_id is not None'
+            msg = 'bq_client must be provided if dataset_id is provided'
             raise ValueError(msg)
 
     def _check_gs_client_bucket_name_consistency(self):
         c1 = self._gs_client is None
         c2 = self._bucket_name is None
         if not c1 and c2:
-            msg = 'bucket_name must not be None if gs_client is not None'
+            msg = 'bucket_name must be provided if gs_client is provided'
             raise ValueError(msg)
         if not c2 and c1:
-            msg = 'gs_client must not be None if bucket_name is not None'
+            msg = 'gs_client must be provided if bucket_name is provided'
+            raise ValueError(msg)
+
+    def _check_dataset_id_format(self):
+        assert self._dataset_id is not None
+        if self._dataset_id.count('.') != 1:
+            msg = 'dataset_id must contain exactly one dot'
             raise ValueError(msg)
 
     def _check_bucket_dir_path_format(self):
-        if self._bucket_dir_path is not None:
-            if self._bucket_dir_path == '':
-                msg = 'bucket_dir_path must not be the empty string'
-                raise ValueError(msg)
-            if self._bucket_dir_path.startswith('/'):
-                msg = 'bucket_dir_path must not start with /'
-                raise ValueError(msg)
-            if self._bucket_dir_path.endswith('/'):
-                msg = 'bucket_dir_path must not end with /'
-                raise ValueError(msg)
+        assert self._bucket_dir_path is not None
+        if self._bucket_dir_path == '':
+            msg = 'bucket_dir_path must not be the empty string'
+            raise ValueError(msg)
+        if self._bucket_dir_path.startswith('/'):
+            msg = 'bucket_dir_path must not start with /'
+            raise ValueError(msg)
+        if self._bucket_dir_path.endswith('/'):
+            msg = 'bucket_dir_path must not end with /'
+            raise ValueError(msg)
 
     @staticmethod
     def _check_data_name_not_contain_slash(data_name):
@@ -176,17 +178,18 @@ class Loader:
     def _check_if_bq_client_missing(self, atomic_function_names):
         names = atomic_function_names
         if self._bq_client is None and any('dataset' in n for n in names):
-            raise ValueError('bq_client must be given if dataset is used')
+            raise ValueError('bq_client must be provided if dataset is used')
 
     def _check_if_gs_client_missing(self, atomic_function_names):
         names = atomic_function_names
         if self._gs_client is None and any('bucket' in n for n in names):
-            raise ValueError('gs_client must be given if bucket is used')
+            raise ValueError('gs_client must be provided if bucket is used')
 
     def _check_if_local_dir_path_missing(self, atomic_function_names):
         names = atomic_function_names
         if self._local_dir_path is None and any('local' in n for n in names):
-            raise ValueError('local_dir_path must be given if local is used')
+            raise ValueError(
+                'local_dir_path must be provided if local is used')
 
     def _check_if_data_in_source(self, atomic_config):
         n, s = atomic_config.data_name, atomic_config.source

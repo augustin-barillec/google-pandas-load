@@ -93,17 +93,18 @@ class LoadConfig:
         c2 = self.source in MIDDLE_LOCATIONS
         c3 = self.destination in MIDDLE_LOCATIONS
         if c1 and (c2 or c3):
-            msg = ("data_name must be given if source or destination is "
+            msg = ("data_name must be provided if source or destination is "
                    "one of 'dataset' or 'bucket' or 'local'")
             raise ValueError(msg)
 
     def _check_if_query_missing(self):
         if self.source == 'query' and self._query is None:
-            raise ValueError("query must be given if source = 'query'")
+            raise ValueError("query must be provided if source = 'query'")
 
     def _check_if_dataframe_missing(self):
         if self.source == 'dataframe' and self._dataframe is None:
-            raise ValueError("dataframe must be given if source = 'dataframe'")
+            raise ValueError(
+                "dataframe must be provided if source = 'dataframe'")
 
     @staticmethod
     def bq_schema_inferred_from_dataframe(

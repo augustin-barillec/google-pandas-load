@@ -6,7 +6,7 @@ from google.cloud import bigquery
 from tests.utils import constants
 from tests.utils import ids
 from tests.utils import load
-from tests.utils.loader import create_loader
+from tests.utils.loader import create_loader, create_loader_quick_setup
 from tests.utils.base_class import BaseClassTest
 
 
@@ -17,7 +17,7 @@ class CastTest(BaseClassTest):
         query = """
         select 236 as x, 5 as y 
         """
-        gpl = create_loader()
+        gpl = create_loader_quick_setup(separator='@')
         computed = gpl.load(
             source='query',
             destination='dataframe',
@@ -82,7 +82,9 @@ class CastTest(BaseClassTest):
         df0['k'] = df0['k'].astype(pandas.CategoricalDtype())
         df0['l'] = df0['l'].astype(pandas.BooleanDtype())
 
-        gpl = create_loader(bucket_dir_path=constants.bucket_subdir_path)
+        gpl = create_loader(
+            bucket_dir_path=constants.bucket_subdir_path,
+            timeout=30)
         gpl.load(
             source='dataframe',
             destination='dataset',
@@ -141,7 +143,9 @@ class CastTest(BaseClassTest):
             })
 
         load.dataframe_to_local(df0, ids.build_local_file_path_1('a100'))
-        gpl = create_loader(local_dir_path=constants.local_subdir_path)
+        gpl = create_loader(
+            local_dir_path=constants.local_subdir_path,
+            chunk_size=2**20)
         gpl.load(
             source='local',
             destination='dataset',
@@ -194,7 +198,7 @@ class CastTest(BaseClassTest):
         load.dataframe_to_bucket(df0, ids.build_blob_name_2('a100'))
         gpl = create_loader(
             bucket_dir_path=constants.bucket_subdir_path,
-            local_dir_path=constants.local_subdir_path)
+            local_dir_path=None)
         gpl.load(
             source='bucket',
             destination='dataset',

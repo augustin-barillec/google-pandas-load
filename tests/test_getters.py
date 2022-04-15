@@ -11,7 +11,11 @@ class GettersTest(unittest.TestCase):
         gpl00 = create_loader()
         gpl10 = create_loader(bucket_dir_path=bucket_dir_path)
         gpl20 = create_loader(bucket_dir_path=bucket_subdir_path)
-        gpl01 = create_loader(local_dir_path=local_subdir_path)
+        gpl01 = create_loader_quick_setup(
+            project_id=None,
+            dataset_name=None,
+            bucket_name=None,
+            local_dir_path=local_subdir_path)
         self.assertIsNotNone(gpl00.bq_client)
         self.assertIsNotNone(gpl00.gs_client)
         self.assertIsNotNone(gpl00.bucket)
@@ -25,5 +29,5 @@ class GettersTest(unittest.TestCase):
         self.assertEqual(local_subdir_path, gpl01.local_dir_path)
 
     def test_call_loader_quick_setup_getters(self):
-        gpl = create_loader_quick_setup()
+        gpl = create_loader_quick_setup(bucket_name=None)
         self.assertEqual(project_id, gpl.project_id)
