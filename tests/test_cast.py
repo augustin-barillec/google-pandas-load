@@ -1,7 +1,6 @@
-import pytz
 import numpy
 import pandas
-from datetime import datetime
+from datetime import datetime, timezone
 from google.cloud import bigquery
 from tests.utils import constants
 from tests.utils import ids
@@ -26,7 +25,7 @@ class CastTest(BaseClassTest):
         self.assert_pandas_equal(expected, computed)
 
     def test_parse_dates_query_to_dataframe(self):
-        datetime1 = datetime(2012, 11, 14, 14, 32, 30, tzinfo=pytz.UTC)
+        datetime1 = datetime(2012, 11, 14, 14, 32, 30, tzinfo=timezone.utc)
         datetime2 = datetime(2013, 11, 14, 14, 32, 30, 100121)
         date1 = datetime1.date()
         expected = pandas.DataFrame(data={
