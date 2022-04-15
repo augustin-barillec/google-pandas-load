@@ -65,11 +65,13 @@ class LoadConfig:
             self._infer_bq_schema_from_dataframe()
 
     def _check_data_name_not_empty_string(self):
+        assert self.data_name is not None
         if self.data_name == '':
             msg = 'data_name must not be the empty string'
             raise ValueError(msg)
 
     def _check_data_name_not_contain_slash(self):
+        assert self.data_name is not None
         utils.check_data_name_not_contain_slash(self.data_name)
 
     def _check_source_value(self):
