@@ -87,7 +87,7 @@ class LoaderQuickSetup(Loader):
 
     @property
     def project_id(self) -> str:
-        """str: The project_id given in the argument."""
+        """str: The project_id."""
         return self._project_id
 
     def _check_project_id_dataset_name_bucket_name_consistency(

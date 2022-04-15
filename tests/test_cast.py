@@ -71,16 +71,13 @@ class CastTest(BaseClassTest):
                 'o': [pandas.NA, '1'],
                 'p': [datetime1, pandas.NA],
                 'q': [pandas.NA, date2]
-            }
-        )
-
+            })
         df0['g'] = df0['g'].astype(numpy.unsignedinteger)
         df0['h'] = df0['h'].astype(pandas.BooleanDtype())
         df0['i'] = df0['i'].astype(pandas.UInt32Dtype())
         df0['j'] = df0['j'].astype(pandas.StringDtype())
         df0['k'] = df0['k'].astype(pandas.CategoricalDtype())
         df0['l'] = df0['l'].astype(pandas.BooleanDtype())
-
         gpl = create_loader(
             bucket_dir_path=constants.bucket_subdir_path,
             timeout=30)
@@ -140,7 +137,6 @@ class CastTest(BaseClassTest):
                 'p': [datetime1, pandas.NA],
                 'q': [pandas.NA, date2]
             })
-
         load.dataframe_to_local(df0, ids.build_local_file_path_1('a100'))
         gpl = create_loader(
             local_dir_path=constants.local_subdir_path,

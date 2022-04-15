@@ -8,14 +8,16 @@ Improvement
 ^^^^^^^^^^^
 * Now, the initialization of :class:`google_pandas_load.loader.LoaderQuickSetup`
   raises an error in the following cases:
-    - the project_id is provided but the dataset_name and the bucket_name are not.
-    - the dataset_name is provided but the project_id is not.
-    - the bucket_name is provided but the project_id is not.
+  - the project_id is provided but the dataset_name and the bucket_name are not.
+  - the dataset_name is provided but the project_id is not.
+  - the bucket_name is provided but the project_id is not.
+
 Bugfixes
 ^^^^^^^^
 * :class:`google_pandas_load.loader.LoaderQuickSetup` could not be initialized
   only with the project_id and the bucket_name. Indeed the dataset_name had
   to be provided if the project_id was provided. It is not the case anymore.
+
 5.0.0 (2022-04-08)
 ------------------
 API Changes
@@ -50,6 +52,7 @@ API Changes
 
 * Now, skip_blank_lines=False when using pandas.read_csv. This function is used
   to load data from 'local' to 'dataframe'.
+
 Bugfixes
 ^^^^^^^^
 * The subfolders used to be considered as data in the bucket directory.
@@ -81,6 +84,7 @@ API Changes
 
 * compress is removed from loader's arguments. Data is now always compressed
   when loaded from 'bq' to 'gs' or from 'dataframe' to 'local'.
+
 Improvement
 ^^^^^^^^^^^
 * :class:`google_pandas_load.loader.Loader` has now 8 getter functions:
@@ -92,6 +96,7 @@ Improvement
 
 * The argument removals described in the API Changes section above simplify
   the use of this library.
+
 3.0.0 (2020-07-15)
 ------------------
 API Changes
@@ -109,6 +114,7 @@ Improvement
   'local', the bq_schema parameter is not required anymore. If it is not
   passed, it falls back to an inferred value from the CSV with
   `google.cloud.bigquery.job.LoadJobConfig.autodetect`_.
+
 Notes
 ^^^^^
 * We use new conventions for naming some BigQuery objects. This causes only one
@@ -121,11 +127,13 @@ Notes
   - project1.dataset1.table1 is a table_id.
   - dataset1 is a dataset_name.
   - table1 is a table_name.
+
 2.0.1 (2019-12-20)
 ------------------
 Improvement
 ^^^^^^^^^^^
 * The data is deleted in transitional locations even if its transfer fails.
+
 Bugfixes
 ^^^^^^^^
 * The method `google.cloud.bigquery.job.QueryJob.result()`_ is used again
@@ -134,6 +142,7 @@ Bugfixes
 
 * The end of a step "query_to_bq" produced the log: "Ended source to bq".
   It has been corrected to "Ended query to bq".
+
 2.0.0 (2019-12-04)
 ------------------
 API Changes
@@ -162,12 +171,14 @@ API Changes
 * :class:`google_pandas_load.loader_quick_setup.LoaderQuickSetup` has three new
   getter functions: project_id, dataset_id and bucket_name. They return the
   homonym arguments of the class.
+
 Bugfixes
 ^^^^^^^^
 * The method `google.cloud.bigquery.job.QueryJob.result()`_ was used to wait
   for a google job to be completed. It appeared it could lead to a timeout if
   the google job was too long to run and is threfore no longer used. Instead,
   the google job is reloaded every second until it is completed.
+
 1.0.0 (2019-04-11)
 ------------------
 * Initial release on PyPI.
