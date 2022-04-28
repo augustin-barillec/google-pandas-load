@@ -1,11 +1,12 @@
 import pandas
 from argparse import Namespace
-from typing import List, Dict, Any, Optional
+from typing import Literal, List, Dict, Any, Optional
 from google.cloud import bigquery
 from pandas.api.types import infer_dtype
 from google_pandas_load import utils
-from google_pandas_load.constants import LOCATIONS, SOURCE_LOCATIONS, \
-    DESTINATION_LOCATIONS, REVERSED_LOCATIONS, MIDDLE_LOCATIONS
+from google_pandas_load.constants import LOCATIONS, \
+    SOURCE_LOCATIONS, DESTINATION_LOCATIONS, REVERSED_LOCATIONS, \
+    MIDDLE_LOCATIONS
 
 
 class LoadConfig:
@@ -22,8 +23,9 @@ class LoadConfig:
 
     def __init__(
             self,
-            source: str,
-            destination: str,
+            source: Literal[
+                'query', 'dataset', 'bucket', 'local', 'dataframe'],
+            destination: Literal['dataset', 'bucket', 'local', 'dataframe'],
 
             data_name: Optional[str] = None,
             query: Optional[str] = None,

@@ -76,14 +76,14 @@ class LoaderQuickSetupInit(BaseClassTest):
     def test_raise_error_if_project_id_none_dataset_name_not_none(self):
         with self.assertRaises(ValueError) as cm:
             create_loader_quick_setup(project_id=None)
-        msg = 'project_id must provided if dataset_name is provided'
+        msg = 'project_id must be provided if dataset_name is provided'
         self.assertEqual(msg, str(cm.exception))
 
     def test_raise_error_if_project_id_none_bucket_name_not_none(self):
         with self.assertRaises(ValueError) as cm:
             create_loader_quick_setup(
                 project_id=None, dataset_name=None)
-        msg = 'project_id must provided if bucket_name is provided'
+        msg = 'project_id must be provided if bucket_name is provided'
         self.assertEqual(msg, str(cm.exception))
 
 

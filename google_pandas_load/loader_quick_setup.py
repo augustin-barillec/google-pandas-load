@@ -100,8 +100,8 @@ class LoaderQuickSetup(Loader):
                    'must be provided if project_id is provided')
             raise ValueError(msg)
         if not c2 and c1:
-            msg = 'project_id must provided if dataset_name is provided'
+            msg = 'project_id must be provided if dataset_name is provided'
             raise ValueError(msg)
         if not c3 and c1:
-            msg = 'project_id must provided if bucket_name is provided'
+            msg = 'project_id must be provided if bucket_name is provided'
             raise ValueError(msg)

@@ -1,7 +1,7 @@
 import os
 import logging
 import pandas
-from typing import List, Dict, Any, Optional
+from typing import Literal, List, Dict, Any, Optional
 from datetime import datetime
 from copy import deepcopy
 from google.cloud import bigquery, storage
@@ -450,7 +450,7 @@ class Loader:
                     if c.clear_source:
                         self._clear_source(c)
         end_timestamp = datetime.now()
-        duration = (end_timestamp - start_timestamp).seconds
+        duration = (end_timestamp - start_timestamp).total_seconds()
         if atomic_function_name != 'query_to_dataset':
             msg = f'Ended {source} to {destination} [{duration}s]'
             self._log(msg)
@@ -513,8 +513,9 @@ class Loader:
 
     def load(
             self,
-            source: str,
-            destination: str,
+            source: Literal[
+                'query', 'dataset', 'bucket', 'local', 'dataframe'],
+            destination: Literal['dataset', 'bucket', 'local', 'dataframe'],
 
             data_name: Optional[str] = None,
             query: Optional[str] = None,
