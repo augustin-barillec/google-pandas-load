@@ -450,7 +450,7 @@ class Loader:
                     if c.clear_source:
                         self._clear_source(c)
         end_timestamp = datetime.now()
-        duration = (end_timestamp - start_timestamp).total_seconds()
+        duration = round((end_timestamp - start_timestamp).total_seconds())
         if atomic_function_name != 'query_to_dataset':
             msg = f'Ended {source} to {destination} [{duration}s]'
             self._log(msg)
