@@ -17,18 +17,9 @@ function clean_packaging(){
   rm -rf build dist google_pandas_load.egg-info
 }
 
-function clean_venv(){
-  rm -rf venv
-}
-
-function clean_daily(){
+function clean(){
   clean_jupyter
   clean_docs
   clean_coverage
   clean_packaging
-}
-
-function clean_all(){
-  clean_daily
-  clean_venv
 }

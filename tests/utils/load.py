@@ -63,5 +63,5 @@ def bucket_to_dataframe(blob_name, decompress):
     b = storage.Blob(name=blob_name, bucket=bucket).download_as_bytes()
     if decompress:
         b = zlib.decompress(b, wbits=zlib.MAX_WBITS | 16)
-    csv = b.decode()
+    csv = b.decode('utf-8')
     return pandas.read_csv(StringIO(csv), sep=separator)
