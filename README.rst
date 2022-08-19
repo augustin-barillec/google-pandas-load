@@ -10,7 +10,7 @@ google-pandas-load
 .. image:: https://img.shields.io/pypi/pyversions/google-pandas-load.svg
     :target: https://pypi.org/project/google-pandas-load/
 
-.. image:: https://codecov.io/gh/augustin-barillec/google-pandas-load/branch/master/graph/badge.svg
+.. image:: https://codecov.io/gh/augustin-barillec/google-pandas-load/branch/main/graph/badge.svg
     :target: https://codecov.io/gh/augustin-barillec/google-pandas-load
 
 .. image:: https://pepy.tech/badge/google-pandas-load
