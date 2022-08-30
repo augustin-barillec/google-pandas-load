@@ -63,7 +63,7 @@ class LoaderInitErrorTest(BaseClassTest):
         self.assertEqual(msg, str(cm.exception))
 
 
-class LoaderQuickSetupInit(BaseClassTest):
+class LoaderQuickSetupInitTest(BaseClassTest):
 
     def test_raise_error_if_d_and_b_none_project_id_not_none(self):
         with self.assertRaises(ValueError) as cm:
