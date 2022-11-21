@@ -1,13 +1,11 @@
-from tests.utils.constants import bucket
-from tests.utils.list import list_table_names, list_blobs
-from tests.utils.delete import delete_table
+from tests import utils
 
 
 def empty_dataset():
-    for n in list_table_names():
-        delete_table(n)
+    for n in utils.list.list_table_names():
+        utils.delete.delete_table(n)
 
 
 def empty_bucket():
-    blobs = list_blobs()
-    bucket.delete_blobs(blobs=blobs)
+    blobs = utils.list.list_blobs()
+    utils.constants.bucket.delete_blobs(blobs=blobs)

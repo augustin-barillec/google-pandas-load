@@ -1,6 +1,6 @@
 import os
-from tests.utils.constants import local_subdir_path
+from tests import utils
 
 
 def create_local_subdir():
-    os.makedirs(local_subdir_path)
+    os.makedirs(utils.constants.local_subdir_path)

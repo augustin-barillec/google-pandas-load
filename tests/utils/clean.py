@@ -1,8 +1,7 @@
-from tests.utils.empty import empty_dataset, empty_bucket
-from tests.utils.delete import delete_local_dir
+from tests import utils
 
 
 def clean():
-    empty_dataset()
-    empty_bucket()
-    delete_local_dir()
+    utils.empty.empty_dataset()
+    utils.empty.empty_bucket()
+    utils.delete.delete_local_dir()

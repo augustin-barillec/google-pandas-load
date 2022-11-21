@@ -1,21 +1,19 @@
 import os
-from google.cloud import storage
-from google.cloud.exceptions import NotFound
-from tests.utils.constants import bq_client, bucket
-from tests.utils.ids import build_table_id
+from google.cloud import exceptions, storage
+from tests import utils
 
 
 def table_exists(table_name):
-    table_id = build_table_id(table_name)
+    table_id = utils.ids.build_table_id(table_name)
     try:
-        bq_client.get_table(table_id)
+        utils.constants.bq_client.get_table(table_id)
         return True
-    except NotFound:
+    except exceptions.NotFound:
         return False
 
 
 def blob_exists(blob_name):
-    return storage.Blob(name=blob_name, bucket=bucket).exists()
+    return storage.Blob(name=blob_name, bucket=utils.constants.bucket).exists()
 
 
 def local_file_exists(local_file_path):

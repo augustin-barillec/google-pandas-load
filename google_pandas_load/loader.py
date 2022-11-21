@@ -5,13 +5,7 @@ from typing import Literal, List, Dict, Any, Optional
 from datetime import datetime
 from copy import deepcopy
 from google.cloud import bigquery, storage
-from google_pandas_load.load_config import LoadConfig
-from google_pandas_load import utils
-from google_pandas_load.constants import \
-    MIDDLE_LOCATIONS, \
-    DESTINATIONS_TO_ALWAYS_CLEAR, \
-    ATOMIC_FUNCTION_NAMES, \
-    BQ_CLIENT_ATOMIC_FUNCTION_NAMES
+from google_pandas_load import constants, load_config, utils
 
 logger = logging.getLogger(name=__name__)
 
@@ -55,7 +49,6 @@ class Loader:
             separator: Optional[str] = '|',
             chunk_size: Optional[int] = 2**28,
             timeout: Optional[int] = 60):
-
         self._bq_client = bq_client
         self._dataset_id = dataset_id
         self._gs_client = gs_client
@@ -433,19 +426,20 @@ class Loader:
         atomic_function_name = f'{source}_to_{destination}'
         self._log(f'Starting {source} to {destination}...')
         start_timestamp = datetime.now()
-        if source in MIDDLE_LOCATIONS:
+        if source in constants.MIDDLE_LOCATIONS:
             for c in configs:
                 self._check_if_data_in_source(c)
-        if destination in DESTINATIONS_TO_ALWAYS_CLEAR:
+        if destination in constants.DESTINATIONS_TO_ALWAYS_CLEAR:
             for c in configs:
                 self._clear_destination(c)
         try:
-            if atomic_function_name in BQ_CLIENT_ATOMIC_FUNCTION_NAMES:
+            if atomic_function_name in \
+                    constants.BQ_CLIENT_ATOMIC_FUNCTION_NAMES:
                 res = self._execute_bq_client_loads(configs)
             else:
                 res = self._execute_local_loads(configs)
         finally:
-            if source in MIDDLE_LOCATIONS:
+            if source in constants.MIDDLE_LOCATIONS:
                 for c in configs:
                     if c.clear_source:
                         self._clear_source(c)
@@ -464,7 +458,7 @@ class Loader:
             self._log(msg)
         return res
 
-    def multi_load(self, configs: List[LoadConfig]):
+    def multi_load(self, configs: List[load_config.LoadConfig]):
         """Execute several load jobs specified by the configurations.
 
         The BigQuery Client executes simultaneously the query_to_dataset parts
@@ -497,7 +491,7 @@ class Loader:
         self._check_if_local_dir_path_missing(names_atomic_functions_to_call)
 
         res = dict()
-        for n in ATOMIC_FUNCTION_NAMES:
+        for n in constants.ATOMIC_FUNCTION_NAMES:
             indexed_atomic_configs = [
                 (i, s[n]) for i, s in enumerate(sliced_configs) if n in s]
             if len(indexed_atomic_configs) == 0:
@@ -638,8 +632,7 @@ class Loader:
               populated with the data specified by the arguments.
             - In all other cases, it returns None.
         """
-
-        config = LoadConfig(
+        config = load_config.LoadConfig(
             source=source,
             destination=destination,
 

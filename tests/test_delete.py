@@ -1,70 +1,64 @@
-from tests.utils import constants
-from tests.utils import ids
-from tests.utils import exist
-from tests.utils.populate import populate_dataset, populate_bucket, \
-    populate_local
-from tests.utils.loader import create_loader, create_loader_quick_setup
-from tests.utils.base_class import BaseClassTest
+from tests import utils
 
 
-class DeleteTest(BaseClassTest):
-
+class DeleteTest(utils.base_class.BaseClassTest):
     def test_delete_in_dataset(self):
-        populate_dataset()
-        self.assertTrue(exist.table_exists('a11'))
-        gpl = create_loader_quick_setup(
+        utils.populate.populate_dataset()
+        self.assertTrue(utils.exist.table_exists('a11'))
+        gpl = utils.loader.create_loader_quick_setup(
             bucket_name=None,
             bucket_dir_path=None,
             local_dir_path=None)
         gpl.delete_in_dataset('a11')
-        self.assertFalse(exist.table_exists('a11'))
+        self.assertFalse(utils.exist.table_exists('a11'))
 
     def test_delete_in_bucket(self):
-        populate_bucket()
+        utils.populate.populate_bucket()
 
-        blob_name = ids.build_blob_name_0('a7')
-        self.assertTrue(exist.blob_exists(blob_name))
-        gpl = create_loader(
+        blob_name = utils.ids.build_blob_name_0('a7')
+        self.assertTrue(utils.exist.blob_exists(blob_name))
+        gpl = utils.loader.create_loader(
             bq_client=None,
             dataset_id=None,
             local_dir_path=None)
         gpl.delete_in_bucket('a7')
-        self.assertFalse(exist.blob_exists(blob_name))
+        self.assertFalse(utils.exist.blob_exists(blob_name))
 
-        blob_name = ids.build_blob_name_1('a10')
-        self.assertTrue(exist.blob_exists(blob_name))
-        gpl = create_loader(bucket_dir_path=constants.bucket_dir_path)
+        blob_name = utils.ids.build_blob_name_1('a10')
+        self.assertTrue(utils.exist.blob_exists(blob_name))
+        gpl = utils.loader.create_loader(
+            bucket_dir_path=utils.constants.bucket_dir_path)
         gpl.delete_in_bucket('a1')
-        self.assertFalse(exist.blob_exists(blob_name))
+        self.assertFalse(utils.exist.blob_exists(blob_name))
 
-        blob_name = ids.build_blob_name_2('a13')
-        self.assertTrue(exist.blob_exists(blob_name))
-        gpl = create_loader_quick_setup(
+        blob_name = utils.ids.build_blob_name_2('a13')
+        self.assertTrue(utils.exist.blob_exists(blob_name))
+        gpl = utils.loader.create_loader_quick_setup(
             dataset_name=None,
-            bucket_dir_path=constants.bucket_subdir_path,
+            bucket_dir_path=utils.constants.bucket_subdir_path,
             local_dir_path=None)
         gpl.delete_in_bucket('a')
-        self.assertFalse(exist.blob_exists(blob_name))
+        self.assertFalse(utils.exist.blob_exists(blob_name))
 
     def test_delete_in_local(self):
-        populate_local()
+        utils.populate.populate_local()
 
-        local_file_path = ids.build_local_file_path_0('a11')
-        self.assertTrue(exist.local_file_exists(local_file_path))
-        gpl = create_loader(
+        local_file_path = utils.ids.build_local_file_path_0('a11')
+        self.assertTrue(utils.exist.local_file_exists(local_file_path))
+        gpl = utils.loader.create_loader(
             bq_client=None,
             dataset_id=None,
             gs_client=None,
             bucket_name=None)
         gpl.delete_in_local('a11')
-        self.assertFalse(exist.local_file_exists(local_file_path))
+        self.assertFalse(utils.exist.local_file_exists(local_file_path))
 
-        local_file_path = ids.build_local_file_path_1('a12')
-        self.assertTrue(exist.local_file_exists(local_file_path))
-        gpl = create_loader_quick_setup(
+        local_file_path = utils.ids.build_local_file_path_1('a12')
+        self.assertTrue(utils.exist.local_file_exists(local_file_path))
+        gpl = utils.loader.create_loader_quick_setup(
             project_id=None,
             dataset_name=None,
             bucket_name=None,
-            local_dir_path=constants.local_subdir_path)
+            local_dir_path=utils.constants.local_subdir_path)
         gpl.delete_in_local('a1')
-        self.assertFalse(exist.local_file_exists(local_file_path))
+        self.assertFalse(utils.exist.local_file_exists(local_file_path))

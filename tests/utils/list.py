@@ -1,9 +1,10 @@
-from tests.utils.constants import bq_client, dataset_id, bucket
+from tests import utils
 
 
 def list_table_names():
-    return [t.table_id for t in bq_client.list_tables(dataset_id)]
+    return [t.table_id for t in utils.constants.bq_client.list_tables(
+        utils.constants.dataset_id)]
 
 
 def list_blobs():
-    return list(bucket.list_blobs())
+    return list(utils.constants.bucket.list_blobs())

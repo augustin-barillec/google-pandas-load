@@ -1,14 +1,13 @@
 import os
-from tests.utils.constants import dataset_id, bucket_name, \
-    bucket_dir_path, bucket_subdir_path, local_dir_path, local_subdir_path
+from tests import utils
 
 
 def build_table_id(table_name):
-    return f'{dataset_id}.{table_name}'
+    return f'{utils.constants.dataset_id}.{table_name}'
 
 
 def build_bucket_uri(blob_name):
-    return f'gs://{bucket_name}/{blob_name}'
+    return f'gs://{utils.constants.bucket_name}/{blob_name}'
 
 
 def build_blob_name(bucket_dir_path_, blob_basename):
@@ -24,11 +23,11 @@ def build_blob_name_0(blob_basename):
 
 
 def build_blob_name_1(blob_basename):
-    return build_blob_name(bucket_dir_path, blob_basename)
+    return build_blob_name(utils.constants.bucket_dir_path, blob_basename)
 
 
 def build_blob_name_2(blob_basename):
-    return build_blob_name(bucket_subdir_path, blob_basename)
+    return build_blob_name(utils.constants.bucket_subdir_path, blob_basename)
 
 
 def build_local_file_path(local_dir_path_, local_file_basename):
@@ -36,8 +35,10 @@ def build_local_file_path(local_dir_path_, local_file_basename):
 
 
 def build_local_file_path_0(local_file_basename):
-    return build_local_file_path(local_dir_path, local_file_basename)
+    return build_local_file_path(
+        utils.constants.local_dir_path, local_file_basename)
 
 
 def build_local_file_path_1(local_file_basename):
-    return build_local_file_path(local_subdir_path, local_file_basename)
+    return build_local_file_path(
+        utils.constants.local_subdir_path, local_file_basename)

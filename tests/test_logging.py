@@ -1,23 +1,17 @@
-import re
 import logging
-from tests.utils import constants
-from tests.utils.populate import populate_local
-from tests.utils.loader import create_loader, create_loader_quick_setup
-from tests.utils.base_class import BaseClassTest
-
-
+import re
+from tests import utils
 fmt = '%(name)s # %(levelname)s # %(message)s'
 formatter = logging.Formatter(fmt=fmt)
 
 
-class LoggingTest(BaseClassTest):
-
+class LoggingTest(utils.base_class.BaseClassTest):
     def test_local_to_bucket(self):
-        populate_local()
+        utils.populate.populate_local()
         with self.assertLogs('google_pandas_load.loader', level='DEBUG') as cm:
-            gpl = create_loader_quick_setup(
+            gpl = utils.loader.create_loader_quick_setup(
                 dataset_name=None,
-                bucket_dir_path=constants.bucket_dir_path)
+                bucket_dir_path=utils.constants.bucket_dir_path)
             gpl.load(
                 source='local',
                 destination='bucket',
@@ -31,13 +25,13 @@ class LoggingTest(BaseClassTest):
                 log)
 
     def test_local_to_dataframe(self):
-        populate_local()
+        utils.populate.populate_local()
         with self.assertLogs('google_pandas_load.loader', level='DEBUG') as cm:
-            gpl = create_loader_quick_setup(
+            gpl = utils.loader.create_loader_quick_setup(
                 project_id=None,
                 dataset_name=None,
                 bucket_name=None,
-                bucket_dir_path=constants.bucket_subdir_path)
+                bucket_dir_path=utils.constants.bucket_subdir_path)
             gpl.load(
                 source='local',
                 destination='dataframe',
@@ -52,8 +46,8 @@ class LoggingTest(BaseClassTest):
 
     def test_query_to_bucket(self):
         with self.assertLogs('google_pandas_load.loader', level='DEBUG') as cm:
-            gpl = create_loader(
-                bucket_dir_path=constants.bucket_dir_path,
+            gpl = utils.loader.create_loader(
+                bucket_dir_path=utils.constants.bucket_dir_path,
                 local_dir_path=None)
             gpl.load(
                 source='query',

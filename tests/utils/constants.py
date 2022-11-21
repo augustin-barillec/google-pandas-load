@@ -1,6 +1,4 @@
-from google.cloud import bigquery
-from google.cloud import storage
-
+from google.cloud import bigquery, storage
 
 project_id = 'dmp-y-tests'
 dataset_name = 'test_gpl'

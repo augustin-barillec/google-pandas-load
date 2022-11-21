@@ -2,11 +2,7 @@ import pandas
 from argparse import Namespace
 from typing import Literal, List, Dict, Any, Optional
 from google.cloud import bigquery
-from pandas.api.types import infer_dtype
-from google_pandas_load import utils
-from google_pandas_load.constants import LOCATIONS, \
-    SOURCE_LOCATIONS, DESTINATION_LOCATIONS, REVERSED_LOCATIONS, \
-    MIDDLE_LOCATIONS
+from google_pandas_load import constants, utils
 
 
 class LoadConfig:
@@ -20,7 +16,6 @@ class LoadConfig:
     - The list is passed
       to :meth:`google_pandas_load.loader.Loader.multi_load`.
     """
-
     def __init__(
             self,
             source: Literal[
@@ -77,13 +72,13 @@ class LoadConfig:
         utils.check_data_name_not_contain_slash(self.data_name)
 
     def _check_source_value(self):
-        if self.source not in SOURCE_LOCATIONS:
+        if self.source not in constants.SOURCE_LOCATIONS:
             msg = ("source must be one of 'query' or 'dataset' "
                    "or 'bucket' or 'local' or 'dataframe")
             raise ValueError(msg)
 
     def _check_destination_value(self):
-        if self.destination not in DESTINATION_LOCATIONS:
+        if self.destination not in constants.DESTINATION_LOCATIONS:
             msg = ("destination must be one of 'dataset' "
                    "or 'bucket' or 'local' or 'dataframe'")
             raise ValueError(msg)
@@ -94,8 +89,8 @@ class LoadConfig:
 
     def _check_if_data_name_missing(self):
         c1 = self.data_name is None
-        c2 = self.source in MIDDLE_LOCATIONS
-        c3 = self.destination in MIDDLE_LOCATIONS
+        c2 = self.source in constants.MIDDLE_LOCATIONS
+        c3 = self.destination in constants.MIDDLE_LOCATIONS
         if c1 and (c2 or c3):
             msg = ("data_name must be provided if source or destination is "
                    "one of 'dataset' or 'bucket' or 'local'")
@@ -156,7 +151,7 @@ class LoadConfig:
             date_cols = []
         bq_schema = []
         for col in dataframe.columns:
-            dtype_description = infer_dtype(dataframe[col])
+            dtype_description = pandas.api.types.infer_dtype(dataframe[col])
             if col in date_cols:
                 bq_schema.append(bigquery.SchemaField(name=col,
                                                       field_type='DATE'))
@@ -169,7 +164,7 @@ class LoadConfig:
             elif dtype_description == 'integer':
                 bq_schema.append(bigquery.SchemaField(name=col,
                                                       field_type='INTEGER'))
-            elif dtype_description == 'floating':
+            elif dtype_description in ('floating', 'mixed-integer-float'):
                 bq_schema.append(bigquery.SchemaField(name=col,
                                                       field_type='FLOAT'))
             else:
@@ -185,16 +180,18 @@ class LoadConfig:
 
     @property
     def _names_atomic_functions_to_call(self):
-        index_source = LOCATIONS.index(self.source)
-        index_destination = LOCATIONS.index(self.destination)
-        rindex_source = REVERSED_LOCATIONS.index(self.source)
-        rindex_destination = REVERSED_LOCATIONS.index(self.destination)
+        index_source = constants.LOCATIONS.index(self.source)
+        index_destination = constants.LOCATIONS.index(self.destination)
+        rindex_source = constants.REVERSED_LOCATIONS.index(self.source)
+        rindex_destination = constants.REVERSED_LOCATIONS.index(
+            self.destination)
         if index_source < index_destination:
             return utils.build_atomic_function_names(
-                LOCATIONS[index_source: index_destination + 1])
+                constants.LOCATIONS[index_source: index_destination + 1])
         else:
             return utils.build_atomic_function_names(
-                REVERSED_LOCATIONS[rindex_source: rindex_destination + 1])
+                constants.REVERSED_LOCATIONS
+                [rindex_source: rindex_destination + 1])
 
     def _query_to_dataset_config(self):
         return Namespace(
@@ -227,6 +224,6 @@ class LoadConfig:
             source, destination = n.split('_to_')
             res[n].source = source
             res[n].destination = destination
-            if res[n].source in MIDDLE_LOCATIONS:
+            if res[n].source in constants.MIDDLE_LOCATIONS:
                 res[n].clear_source = (i != 0)
         return res

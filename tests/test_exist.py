@@ -1,47 +1,43 @@
-from tests.utils import constants
-from tests.utils.populate import \
-    populate_dataset, populate_bucket, populate_local
-from tests.utils.loader import create_loader, create_loader_quick_setup
-from tests.utils.base_class import BaseClassTest
+from tests import utils
 
 
-class ExistTest(BaseClassTest):
-
+class ExistTest(utils.base_class.BaseClassTest):
     def test_exist_in_dataset(self):
-        gpl = create_loader_quick_setup(
-            local_dir_path=constants.local_subdir_path)
+        gpl = utils.loader.create_loader_quick_setup(
+            local_dir_path=utils.constants.local_subdir_path)
         self.assertFalse(gpl.exist_in_dataset('a8'))
-        populate_dataset()
+        utils.populate.populate_dataset()
         self.assertTrue(gpl.exist_in_dataset('a8'))
 
     def test_exist_in_bucket(self):
-        gpl01 = create_loader(local_dir_path=constants.local_subdir_path)
-        gpl11 = create_loader(
-            bucket_dir_path=constants.bucket_dir_path,
-            local_dir_path=constants.local_subdir_path)
-        gpl21 = create_loader_quick_setup(
+        gpl01 = utils.loader.create_loader(
+            local_dir_path=utils.constants.local_subdir_path)
+        gpl11 = utils.loader.create_loader(
+            bucket_dir_path=utils.constants.bucket_dir_path,
+            local_dir_path=utils.constants.local_subdir_path)
+        gpl21 = utils.loader.create_loader_quick_setup(
             dataset_name=None,
-            bucket_dir_path=constants.bucket_subdir_path,
-            local_dir_path=constants.local_subdir_path)
+            bucket_dir_path=utils.constants.bucket_subdir_path,
+            local_dir_path=utils.constants.local_subdir_path)
         self.assertFalse(gpl01.exist_in_bucket('a1'))
         self.assertFalse(gpl11.exist_in_bucket('a10'))
         self.assertFalse(gpl21.exist_in_bucket('a'))
-        populate_bucket()
+        utils.populate.populate_bucket()
         self.assertTrue(gpl01.exist_in_bucket('a1'))
         self.assertTrue(gpl11.exist_in_bucket('a10'))
         self.assertTrue(gpl21.exist_in_bucket('a'))
 
     def test_exist_in_local(self):
-        gpl00 = create_loader()
-        gpl01 = create_loader(
+        gpl00 = utils.loader.create_loader()
+        gpl01 = utils.loader.create_loader(
             bq_client=None,
             dataset_id=None,
             gs_client=None,
             bucket_name=None,
             bucket_dir_path='bucket_dir_path',
-            local_dir_path=constants.local_subdir_path)
+            local_dir_path=utils.constants.local_subdir_path)
         self.assertFalse(gpl00.exist_in_local('a'))
         self.assertFalse(gpl01.exist_in_local('a9'))
-        populate_local()
+        utils.populate.populate_local()
         self.assertTrue(gpl00.exist_in_local('a'))
         self.assertTrue(gpl01.exist_in_local('a9'))
