@@ -49,6 +49,7 @@ For further information about how to authenticate to Google Cloud Platform with 
         project_id='pi',
         dataset_name='dn',
         bucket_name='bn',
+        bucket_dir_path='tmp',
         local_dir_path='/tmp',
         credentials=None)
 
@@ -59,6 +60,10 @@ Transfer data seamlessly from and to various locations:
    location it will go through or at.
 
    Explanation for this choice and one example can be found `here <Loader.html#pre-deletion>`__.
+
+.. note::
+   If the optional argument bucket_dir_path is not given, data will be stored at the root of the bucket.
+   It is a good practice to specify this argument so that data is stored in a defined bucket directory.
 
 .. code-block:: python
 

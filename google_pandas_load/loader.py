@@ -18,6 +18,11 @@ class Loader:
     The Loader bundles all the parameters that do not change often when
     executing load jobs during a workflow.
 
+    Note:
+        If the optional argument bucket_dir_path is not given, data will be
+        stored at the root of the bucket. It is a good practice to specify this
+        argument so that data is stored in a defined bucket directory.
+
     Args:
         bq_client (google.cloud.bigquery.client.Client, optional): Client to
             manage connections to the BigQuery API.

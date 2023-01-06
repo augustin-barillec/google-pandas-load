@@ -35,6 +35,11 @@ class LoaderQuickSetup(Loader):
             project=project_id,
             credentials=credentials)
 
+    Note:
+        If the optional argument bucket_dir_path is not given, data will be
+        stored at the root of the bucket. It is a good practice to specify this
+        argument so that data is stored in a defined bucket directory.
+
     Args:
         project_id (str, optional): The project id.
         dataset_name (str, optional): The dataset name.
