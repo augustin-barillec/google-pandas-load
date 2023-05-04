@@ -3,5 +3,4 @@ db-dtypes==1.*
 twine==4.*
 coverage==7.*
 codecov==2.*
-sphinx==4.*
-jupyter==1.*
+sphinx==7.*

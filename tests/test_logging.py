@@ -57,7 +57,7 @@ class LoggingTest(utils.base_class.BaseClassTest):
             records = cm.records
             self.assertEqual(4, len(records))
             regexp = (r'^google_pandas_load.loader # DEBUG # '
-                      r'Ended query to dataset \[[0-9]+s, [0-9]+\.[0-9]+\$\]$')
+                      r'Ended query to dataset \[[0-9]+s, [0-9]+\.[0-9]+GB\]$')
             pattern = re.compile(regexp)
             log = formatter.format(records[1])
             self.assertIsNotNone(pattern.search(log))

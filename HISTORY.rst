@@ -2,6 +2,17 @@
 
 History
 =======
+6.0.0 (2023-05-05)
+------------------
+API Changes
+^^^^^^^^^^^
+* pandas==2.* is now required.
+
+Improvement
+^^^^^^^^^^^
+* The price of a query is not shown in the logs anymore. Instead the number of
+  gigabytes, which is a simpler metric to compute, is now written in the logs.
+
 5.0.1 (2022-04-15)
 ------------------
 Improvement

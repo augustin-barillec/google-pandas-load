@@ -455,11 +455,12 @@ class Loader:
             self._log(msg)
         else:
             jobs = res
-            total_bytes_billed_list = [j.total_bytes_billed for j in jobs]
-            costs = [round(tbb / 10 ** 12 * 5, 5)
-                     for tbb in total_bytes_billed_list]
-            cost = sum(costs)
-            msg = f'Ended query to dataset [{duration}s, {cost}$]'
+            total_bytes_processed_list = [
+                j.total_bytes_processed for j in jobs]
+            gb_processed_list = [
+                round(tbb / 10 ** 9, 2) for tbb in total_bytes_processed_list]
+            gb_processed = sum(gb_processed_list)
+            msg = f'Ended query to dataset [{duration}s, {gb_processed}GB]'
             self._log(msg)
         return res
 
