@@ -6,7 +6,6 @@ from datetime import datetime
 from copy import deepcopy
 from google.cloud import bigquery, storage
 from google_pandas_load import constants, load_config, utils
-
 logger = logging.getLogger(name=__name__)
 
 
@@ -42,7 +41,6 @@ class Loader:
             for the server response when uploading a Storage blob.
             Defaults to 60.
     """
-
     def __init__(
             self,
             bq_client: Optional[bigquery.Client] = None,
@@ -312,7 +310,6 @@ class Loader:
             sep=self._separator,
             dtype=dtype,
             parse_dates=parse_dates,
-            infer_datetime_format=True,
             skip_blank_lines=False)
 
     def _dataframe_to_local_file(self, dataframe, local_file_path):

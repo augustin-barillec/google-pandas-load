@@ -68,7 +68,7 @@ class CastTest(utils.base_class.BaseClassTest):
                 'p': [datetime1, pandas.NA],
                 'q': [pandas.NA, date2]
             })
-        df0['g'] = df0['g'].astype(numpy.unsignedinteger)
+        df0['g'] = df0['g'].astype(numpy.uint64)
         df0['h'] = df0['h'].astype(pandas.BooleanDtype())
         df0['i'] = df0['i'].astype(pandas.UInt32Dtype())
         df0['j'] = df0['j'].astype(pandas.StringDtype())
