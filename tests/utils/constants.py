@@ -1,5 +1,4 @@
 from google.cloud import bigquery, storage
-
 project_id = 'dmp-y-tests'
 dataset_name = 'test_gpl'
 dataset_id = f'{project_id}.{dataset_name}'
