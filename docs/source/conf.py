@@ -3,6 +3,7 @@
 import os
 import sys
 sys.path.insert(0, os.path.abspath('../..'))
+from version import version
 
 # For the full list of built-in configuration values, see the documentation:
 # https://www.sphinx-doc.org/en/master/usage/configuration.html
@@ -13,7 +14,7 @@ sys.path.insert(0, os.path.abspath('../..'))
 project = 'google-pandas-load'
 copyright = '2023, Augustin Barillec'
 author = 'Augustin Barillec'
-release = '6.0.0'
+release = version
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
