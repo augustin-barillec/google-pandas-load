@@ -1,6 +1,6 @@
 -r requirements.txt
-coverage==7.*
 codecov==2.*
+coverage==7.*
 db-dtypes==1.*
 sphinx==7.*
 twine==4.*
