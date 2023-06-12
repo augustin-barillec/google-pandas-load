@@ -11,7 +11,8 @@ API Changes
 Improvement
 ^^^^^^^^^^^
 * The price of a query is not shown in the logs anymore. Instead the number of
-  gigabytes, which is a simpler metric to compute, is now written in the logs.
+  gigabytes processed by the query, which is a simpler metric to compute,
+  is now written in the logs.
 
 5.0.1 (2022-04-15)
 ------------------
